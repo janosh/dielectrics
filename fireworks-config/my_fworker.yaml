@@ -1,0 +1,11 @@
+# https://atomate.org/installation.html#my-fworker-yaml
+name: CSD3
+category: ""
+query: "{}"
+env:
+  db_file: /home/jr769/rds/hpc-work/dielectrics/fireworks-config/db.json
+  # https://stackoverflow.com/a/37133350 says to use mpiexec
+  # https://osc.edu/supercomputing/batch-processing-at-osc/slurm_migration/slurm_migration_issues says to use srun
+  vasp_cmd: srun /home/jr769/rds/hpc-work/vasp/compiled/vasp_std_6.2.1_intel_mpi_icelake
+  # vasp_cmd: mpiexec /home/jr769/rds/hpc-work/vasp/compiled/vasp_std_6.2.0_csd3_intel_mpi
+  scratch_dir: null

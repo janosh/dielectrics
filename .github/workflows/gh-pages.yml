@@ -1,0 +1,41 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# set permissions of GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Copy file to artifact folder
+        run: |
+          mkdir -p artifacts
+          cp dielectrics/plots/pareto-plotly.html artifacts/index.html
+
+      - name: Upload build artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          name: github-pages
+          path: artifacts
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

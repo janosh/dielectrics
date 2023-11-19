@@ -1,0 +1,18 @@
+# https://atomate.org/installation.html#my-qadapter-yaml
+# uses the template file at https://git.io/JOM57
+_fw_name: CommonAdapter
+_fw_q_type: SLURM
+
+rocket_launch: rlaunch rapidfire
+nodes: 1 # can be min-max range or single number, single number means run on exactly that many nodes
+cpus_per_task: 1 # determines how many cores are allocated per MPI task
+ntasks_per_node: 32 # ~3,4 GB RAM per node on icelake & cclake, almost 2x/4x that on skylake/skylake-himem
+walltime: 12:0:0 # CSD3 max wall times are 12h on SL3 and 36h on SL2 (service level)
+queue: icelake # cclake,cclake-himem,skylake,skylake-himem (queue = partition on CSD3)
+account: LEE-SL3-CPU # LEE-JR769-SL2-CPU or LEE-SL3-CPU, use mybalance to check available budget
+job_name: null
+logdir: /home/jr769/rds/hpc-work/dfpt-calcs/fw-logs # make sure this dir exists or launches will fail
+# mail_type: FAIL
+
+pre_rocket: module purge && module load rhel8/default-icl
+post_rocket: null

@@ -1,0 +1,27 @@
+# Uncomment ECHO_TEST to verify that LaunchPad (lpad) finds this file.
+# https://atomate.org/installation.html#troubleshooting-and-faq
+ECHO_TEST: lpad found /Users/janosh/dev/dielectrics/FW_config.yaml
+
+CONFIG_FILE_DIR: /home/jr769/rds/hpc-work/dielectrics/fireworks-config
+
+# see https://materialsproject.github.io/fireworks/config_tutorial for list of common fireworks options
+
+# deletes empty launch dir if _launch_dir is set
+REMOVE_USELESS_DIRS: true
+
+# FIFO: Run older FireWorks first (default), FILO: run recent FireWorks first.
+# Higher priority FireWorks are always run first.
+SORT_FWS: FILO
+
+# If true, queue launcher always creates new block directory every time it is called,
+# else re-uses previous blocks until reaching MAXJOBS_BLOCK.
+ALWAYS_CREATE_NEW_BLOCK: true
+
+# date format for writing block directories in qlaunch's rapid-fire mode
+FW_BLOCK_FORMAT: "%Y-%m-%d@%H-%M"
+
+# prefer storing fireworks as YAML for debugging as it's easier to read (though slower to parse)
+PRINT_FW_YAML: true
+PRINT_FW_JSON: false
+
+QUEUE_UPDATE_INTERVAL: 1 # seconds to wait after submitting a job to the queue

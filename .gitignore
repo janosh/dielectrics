@@ -1,0 +1,24 @@
+# package install
+*.egg-info
+
+# cache
+__pycache__
+.db_cache
+
+# Fireworks config
+fireworks-config/db.json
+fireworks-config/my_launchpad.yaml
+
+# Atomate workflow output
+fw_logs
+block*
+launcher*
+
+# large datas files
+*.json.gz
+*.json.bz2
+*.csv.bz2
+*.pkl*
+
+# logs
+*/airss/**/*.castep
