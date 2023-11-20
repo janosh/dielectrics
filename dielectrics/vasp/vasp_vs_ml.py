@@ -465,83 +465,99 @@ plt.grid(True)
 plt.show()
 
 
-# %%
-df_plot = df_vasp.set_index(bandgap_us_col).sort_index()
+# %% Plot rolling MAE of Wren band gap and dielectric models vs DFT
+# swap these to use either Wren or our DFT band gaps as x-axis values
+for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
+    [(bandgap_wren_col, bandgap_us_col), (diel_total_wren_col, diel_total_pbe_col)],
+    [(bandgap_us_col, bandgap_wren_col), (diel_total_pbe_col, diel_total_wren_col)],
+]:
+    df_plot = df_vasp.set_index(x_axis_bandgap, drop=False).sort_index()
 
-# add annotation with MAE and R^2 for dielectric and bandgap line
-bandgap_mae = (df_vasp[bandgap_wren_col] - df_vasp[bandgap_us_col]).abs().mean()
-bandgap_mae_rel = bandgap_mae / df_vasp[bandgap_us_col].std()
-diel_mae = (df_vasp[diel_total_wren_col] - df_vasp[diel_total_pbe_col]).abs().mean()
-diel_mae_rel = diel_mae / df_vasp[diel_total_pbe_col].std()
+    # compute MAE and R^2 for dielectric and bandgap line to show in plot annotation
+    bandgap_mae = (df_vasp[other_bandgap] - df_vasp[x_axis_bandgap]).abs().mean()
+    diel_mae = (df_vasp[diel_total_wren_col] - df_vasp[diel_total_pbe_col]).abs().mean()
 
-window = 300
-bandgap_wren_err = (
-    f"<b>Rolling |E<sub>gap,Wren</sub> - E<sub>gap,PBE</sub>|</b><br>"
-    f"MAE={bandgap_mae:.1f}eV (MAE/std={bandgap_mae_rel:.2f})"
-)
-if bandgap_us_col in df_plot:
-    df_plot = df_plot.set_index(bandgap_us_col).sort_index()
-df_plot[bandgap_wren_err] = abs(df_plot[bandgap_wren_col] - df_plot.index)
-rolling_wren_bandgap_err = (
-    df_plot[bandgap_wren_err].dropna().rolling(window=window).mean()
-)
+    window = 300
+    # bandgap rolling MAE calculation
+    bandgap_rolling_err_col = (
+        f"<b>Rolling |E<sub>gap,Wren</sub> - E<sub>gap,PBE</sub>|</b><br>"
+        f"MAE={bandgap_mae:.1f}eV (std={df_vasp[x_axis_bandgap].std():.3})"
+    )
+    df_plot[bandgap_rolling_err_col] = abs(
+        df_plot[x_axis_bandgap] - df_plot[other_bandgap]
+    )
+    rolling_bandgap_err = (
+        df_plot[bandgap_rolling_err_col].dropna().rolling(window=window).mean()
+    )
 
-fig = px.line(
-    rolling_wren_bandgap_err, color_discrete_sequence=[bandgap_color := "blue"]
-)
+    fig = px.line(
+        rolling_bandgap_err,
+        color_discrete_sequence=[bandgap_color := "blue"],
+        width=500,
+        height=300,
+    )
 
-# add rolling MAE of MP band gap
-# bandgap_mp_err = bandgap_wren_err.replace("Wren", "MP")
-# df_plot[bandgap_mp_err] = abs(df_plot[bandgap_pbe_col] - df_plot.index)
-# rolling_mp_err = df_plot[bandgap_mp_err].dropna().rolling(window=100).mean()
-# fig.add_scatter(x=rolling_mp_err.index, y=rolling_mp_err, name=bandgap_mp_err)
+    # add rolling MAE of MP band gap w.r.t. our own PBE band gaps into same plot
+    # bandgap_mp_err = bandgap_rolling_err.replace("Wren", "MP")
+    # df_plot[bandgap_mp_err] = abs(df_plot[bandgap_pbe_col] - df_plot.index)
+    # rolling_mp_err = df_plot[bandgap_mp_err].dropna().rolling(window=100).mean()
+    # fig.add_scatter(x=rolling_mp_err.index, y=rolling_mp_err, name=bandgap_mp_err)
 
-diel_error_wren = (
-    f"<b>Rolling |ε<sub>total,Wren</sub> - ε<sub>total,PBE</sub>|</b><br>"
-    f"MAE={diel_mae:.1f} (MAE/std={diel_mae_rel:.2f})"
-)
+    diel_rolling_error_col = (
+        f"<b>Rolling |ε<sub>total,Wren</sub> - ε<sub>total,PBE</sub>|</b><br>"
+        f"MAE={diel_mae:.1f} (std={df_vasp[diel_total_pbe_col].std():.3})"
+    )
 
-if diel_total_pbe_col in df_plot:
-    df_plot = df_plot.reset_index().set_index(diel_total_pbe_col).sort_index()
-df_plot[diel_error_wren] = abs(df_plot[diel_total_wren_col] - df_plot.index)
-rolling_wren_diel_err = df_plot[diel_error_wren].dropna().rolling(window=window).mean()
-# add rolling MAE of Wren dielectric constant into same plot (top x and right y axis)
-fig.add_scatter(
-    x=rolling_wren_diel_err.index,
-    y=rolling_wren_diel_err,
-    name=diel_error_wren,
-    yaxis="y2",
-    xaxis="x2",
-    line=dict(color=(diel_color := "red")),
-    marker=dict(symbol="square"),
-)
+    df_plot = df_plot.set_index(x_axis_diel, drop=False).sort_index()
+    df_plot[diel_rolling_error_col] = abs(df_plot[x_axis_diel] - df_plot[other_diel])
+    rolling_diel_err = (
+        df_plot[diel_rolling_error_col].dropna().rolling(window=window).mean()
+    )
+    # add rolling MAE of Wren dielectric constant into same plot (top x and right y axis)
+    fig.add_scatter(
+        x=rolling_diel_err.index,
+        y=rolling_diel_err,
+        name=diel_rolling_error_col,
+        yaxis="y2",
+        xaxis="x2",
+        line=dict(color=(diel_color := "red")),
+        marker=dict(symbol="square"),
+    )
 
-x1_title = "Band gap (eV)"
-x2_title = "Dielectric constant"
-y1_title = "Rolling E<sub>gap</sub> absolute error (eV)"
-y2_title = "Rolling ε<sub>total</sub> absolute error"
+    x1_title = f"E<sub>gap,{'Wren' if 'wren' in x_axis_bandgap else 'PBE'}</sub> (eV)"
+    x2_title = f"ε<sub>total,{'Wren' if 'wren' in x_axis_diel else 'PBE'}</sub>"
+    y1_title = "Rolling E<sub>gap</sub> absolute error (eV)"
+    y2_title = "Rolling ε<sub>total</sub> absolute error"
 
-common = dict(showline=True, linewidth=3, title_standoff=5)
-fig.layout.xaxis = dict(color=bandgap_color, title=x1_title, **common)
-fig.layout.yaxis = dict(color=bandgap_color, title=y1_title, **common)
+    common = dict(showline=True, linewidth=2, title_standoff=5)
+    fig.layout.xaxis = dict(color=bandgap_color, title=x1_title, **common)
+    fig.layout.yaxis = dict(color=bandgap_color, title=y1_title, **common)
 
-common_2 = dict(showgrid=False, color=diel_color, **common)
-fig.layout.xaxis2 = dict(overlaying="x", side="top", **common_2, title=x2_title)
-fig.layout.yaxis2 = dict(overlaying="y", side="right", **common_2, title=y2_title)
+    common_2 = dict(showgrid=False, color=diel_color, **common)
+    fig.layout.xaxis2 = dict(overlaying="x", side="top", **common_2, title=x2_title)
+    fig.layout.yaxis2 = dict(overlaying="y", side="right", **common_2, title=y2_title)
 
-fig.layout.margin = dict(l=20, r=20, t=20, b=20)
-fig.update_traces(marker=dict(size=4), mode="lines+markers")
-legend_title = dict(text=f"{window=}", font=dict(size=12))
-fig.layout.legend = dict(
-    x=1, y=0.5, xanchor="right", title=legend_title, bgcolor="rgba(0,0,0,0)"
-)
+    fig.layout.margin = dict(l=20, r=20, t=20, b=20)
+    fig.update_traces(marker=dict(size=4), mode="lines+markers")
+    legend_title = dict(text=f"{window=}", font=dict(size=12))
+    if "wren" in x_axis_bandgap:
+        fig.update_layout(showlegend=False)
+    else:
+        fig.layout.legend = dict(
+            x=1, y=0.15, xanchor="right", title=legend_title, bgcolor="rgba(0,0,0,0)"
+        )
 
-# set x-min to 0 (can't use None for xmax, has no effect)
-fig.layout.xaxis.update(range=[0, 8.5])
-fig.layout.xaxis2.update(range=[0, 750])
+    # set x-min to 0 (can't use None for xmax, has no effect)
+    fig.layout.xaxis.update(range=[0, 8.5])
+    fig.layout.xaxis2.update(range=[0, 750])
 
-fig.show()
-save_fig(fig, f"{PAPER_FIGS}/rolling-bandgap+diel-error.pdf")
+    fig.show()
+    assert ("wren" in x_axis_bandgap, "wren" in x_axis_diel) in (
+        (True, True),
+        (False, False),
+    )
+    suffix = f"{'wren' if 'wren' in x_axis_bandgap else 'pbe'}-as-x.pdf"
+    save_fig(fig, f"{PAPER_FIGS}/rolling-bandgap+diel-error-{suffix}")
 
 
 # %%

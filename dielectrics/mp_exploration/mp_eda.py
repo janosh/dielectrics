@@ -247,7 +247,6 @@ fig = px.strip(
     color="component",
     color_discrete_map={"electronic": "blue", "ionic": "green"},
     hover_data={"material_id": True, "formula": True, crystal_sys_col: False},
-    template="plotly_white",
     # sort strips from high to low spacegroup number
     category_orders={crystal_sys_col: cry_sys_order},
     height=500,

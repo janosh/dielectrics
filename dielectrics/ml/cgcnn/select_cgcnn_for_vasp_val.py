@@ -51,7 +51,7 @@ cgcnn_for_vasp_val = df_cgcnn.nlargest(100, "fom")
 cgcnn_for_vasp_val.describe()
 
 cgcnn_for_vasp_val.to_json(
-    "{DATA_DIR}/cgcnn/top-cgcnn-for-vasp-val.json.bz2",
+    f"{DATA_DIR}/cgcnn/top-cgcnn-for-vasp-val.json.bz2",
     default_handler=lambda x: x.as_dict(),
 )
 

@@ -14,8 +14,7 @@ from dielectrics import (
 )
 
 
-px.defaults.labels = {freq_col: "Frequency (Hz)", fr_min_e_col: r"$\sqrt{F(R)-E}$"}
-px.defaults.template = "plotly_white"
+px.defaults.labels |= {freq_col: "Frequency (Hz)", fr_min_e_col: r"$\sqrt{F(R)-E}$"}
 materials = ("Bi2Zr2O7-Fm3m", "CsTaTeO6-Fd3m")
 formulas_plain = [x.split("-")[0] for x in materials]
 formulas = tuple(map(htmlify, formulas_plain))
@@ -43,7 +42,7 @@ df_tauc = pd.read_csv(
 
 df = df_tauc.filter(like=fr_min_e_col).droplevel(1, axis=1)
 df.index.name = energy_col
-fig = px.line(df, width=600, height=400)
+fig = px.line(df, width=400, height=250)
 fig.layout.margin.update(l=5, r=5, b=5, t=5)
 fig.layout.legend.update(title=None, x=1, y=0, xanchor="right")
 fig.layout.yaxis.title = fr_min_e_col
@@ -58,8 +57,8 @@ wave_len_col = "Wavelength (nm)"
 df_refl = df_refl.set_index(wave_len_col).drop(columns=f"{wave_len_col}.1")
 df_refl.columns = formulas
 
-fig = px.line(1 / df_refl, width=600, height=400, range_x=[df_refl.index.min(), 1200])
-# fig = px.line(df_refl, width=600, height=400, range_x=[None, 1200])
+fig = px.line(1 / df_refl, width=400, height=250, range_x=[df_refl.index.min(), 1200])
+# fig = px.line(df_refl, width=400, height=250, range_x=[None, 1200])
 fig.layout.margin.update(l=0, r=0, b=0, t=0)
 fig.layout.legend.update(title=None, x=1, y=1, xanchor="right")
 fig.layout.yaxis.title = "Reflectance (%)"
@@ -74,7 +73,7 @@ fig.show()
 formula = "Bi2Zr2O7"
 df_de = pd.read_csv(f"{DATA_DIR}/experiment/{formula}-DE-data.csv").set_index(freq_col)
 df_de.columns = df_de.columns.str.title()
-fig_diel = px.line(df_de.filter(like="Permittivity"), log_x=True, width=600, height=400)
+fig_diel = px.line(df_de.filter(like="Permittivity"), log_x=True, width=400, height=250)
 loss_col = "Loss Tangent"
 # add loss tangent column on secondary y-axis
 fig_diel.add_scatter(
@@ -98,13 +97,11 @@ fig_diel.layout.yaxis2 = dict(
 fig_diel.layout.margin.update(l=0, r=0, b=0, t=0)
 fig_diel.layout.legend.update(title=None, x=1, y=1, xanchor="right")
 fig_diel.show()
-save_fig(fig_diel, f"{PAPER_FIGS}/exp-{formula}-dielectric-real-imaginary-loss.pdf")
+# save_fig(fig_diel, f"{PAPER_FIGS}/exp-{formula}-dielectric-real-imaginary-loss.pdf")
 
 
 # %% Rietveld XRD fits for Zr2Bi2O7 Fm3m (227) and CsTaTeO6 Fd3m
 for material in materials:
-    rietveld_ticks_data_path = "{DATA_DIR}/experiment/Bi2Zr2O7-Fm3m-rietveld-ticks.txt"
-
     theta_col = r"$2 \theta$"
     header_cols = [theta_col, "Observed", "Fit", "Difference"]
 
@@ -116,14 +113,14 @@ for material in materials:
         f"{DATA_DIR}/experiment/{material}-rietveld-ticks.txt", **kwds
     )
 
-    fig = px.line(df_rietveld, x=theta_col, y=header_cols[1:], width=500, height=300)
+    fig = px.line(df_rietveld, x=theta_col, y=header_cols[1:], width=400, height=250)
 
     # Add the ticks for hkl reflections
     fig.add_scatter(
         x=rietveld_ticks[theta_col],
         y=[-400] * len(rietveld_ticks),
         mode="markers",
-        name=material,
+        name=htmlify(material),
         marker=dict(line_color="black", symbol="line-ns", line_width=2, size=5),
     )
 
@@ -136,7 +133,7 @@ for material in materials:
             x=df_Ta2O5[theta_col],
             y=[-800] * len(df_Ta2O5),
             mode="markers",
-            name="Ta2O5",
+            name=htmlify("Ta2O5"),
             marker=dict(line_color="orange", symbol="line-ns", line_width=1, size=5),
         )
         # label Ta2O5 peak at (1.7, 700)
@@ -160,6 +157,9 @@ for material in materials:
 
     fig.layout.margin.update(l=10, r=10, b=10, t=10)
     fig.layout.legend.update(title=None, x=1, y=1, xanchor="right", yanchor="top")
-    fig.layout.yaxis.update(title="Intensity (a.u.)", tickformat="~s")
+    fig.layout.yaxis.update(
+        title="Intensity (a.u.)", tickformat="~s", linecolor="gray", title_standoff=4
+    )
+    fig.layout.xaxis.update(linecolor="gray", title_standoff=0)
     fig.show()
-    # save_fig(fig, f"{PAPER_FIGS}/exp-rietveld-{material}.pdf")
+    save_fig(fig, f"{PAPER_FIGS}/exp-rietveld-{material}.pdf")

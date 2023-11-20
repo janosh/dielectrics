@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import crystal_toolkit.components as ctc
@@ -29,6 +28,7 @@ from dielectrics import (
     id_col,
     plotly_hover_cols,
     selection_status_col,
+    today,
 )
 from dielectrics.db import db
 from dielectrics.db.fetch_data import df_diel_from_task_coll
@@ -403,33 +403,29 @@ fig.add_contour(
 fig.update_xaxes(range=[0, 500], mirror=True, showline=True)
 fig.update_yaxes(range=[0, 7], mirror=True, showline=True)
 
+
+fig.layout.margin = dict(l=80, r=30, t=80, b=60)
 bgcolor = "rgba(255, 255, 255, 0.8)"  # dark: rgba(0, 0, 0, 0.4)
-legend = dict(
+fig.layout.legend = dict(
     x=1, y=1, xanchor="right", yanchor="top", bgcolor=bgcolor, groupclick="toggleitem"
 )
-
+fig.layout.height = 1200
+fig.layout.width = 1200
+fig.layout.title = (
+    f"<b>Pareto Front of Dielectric Constant and Band Gap</b> - data as of {today}"
+)
+fig.layout.xaxis.title = "Total dielectric constant"
+fig.layout.yaxis.title = "Band gap / eV"
+fig.layout.legend_groupclick = "toggleitem"
 legend_toggle = dict(
     args=["showlegend", True],
     args2=["showlegend", False],
     label="Toggle legend",
     method="relayout",
 )
-
-fig.update_layout(
-    legend=legend,
-    margin=dict(l=80, r=30, t=80, b=60),
-    template="plotly_white",  # or plotly_dark
-    height=1200,
-    width=1200,
-    title=f"<b>Pareto Front of Dielectric Constant and Band Gap</b> - data as of "
-    f"{datetime.now():%Y-%m-%d %H:%M}",
-    xaxis_title="Total dielectric constant",
-    yaxis_title="Band gap / eV",
-    legend_groupclick="toggleitem",
-    updatemenus=[
-        dict(type="buttons", buttons=[legend_toggle], showactive=True, x=1, y=1)
-    ],
-)
+fig.layout.updatemenus = [
+    dict(type="buttons", buttons=[legend_toggle], showactive=True)
+]
 
 # draw ellipses indicating regions of desirable material properties for widely used
 # electronic devices
