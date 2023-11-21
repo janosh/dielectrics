@@ -1,11 +1,17 @@
 # %%
+import os
+
 import pandas as pd
 from matplotlib.colors import SymLogNorm
+from pymatviz.io import save_fig
 from pymatviz.utils import element_symbols
 
 from dielectrics import DATA_DIR
 from dielectrics.element_substitution import load_icsd_trans_mat
 from dielectrics.plots import plt
+
+
+module_dir = os.path.dirname(__file__)
 
 
 # %%
@@ -16,7 +22,6 @@ n_elements = 36
 
 # %%
 plt.figure(figsize=(8, 6))
-
 plt.imshow(
     substitution_matrix[:n_elements, :n_elements],
     interpolation="nearest",  # 'nearest': faithful but blocky
@@ -42,11 +47,11 @@ ax.tick_params(labeltop=True, labelright=True)
 
 plt.colorbar(pad=0.07, label="Substitution Probability")
 
-# plt.title("Our element substitution matrix", y=1.05)
-#
+title1 = "ICSD elemental substitution matrix"
+title2 = "ICSD chemical similarity matrix"
+ax.set_title(title1, y=1.1)
 
-# plt.savefig("plots/elemental-substitution-matrix.pdf")
-# plt.savefig("plots/elemental-substitution-matrix.png")
+save_fig(ax, f"{module_dir}/plots/icsd-elem-substitution-matrix.pdf")
 
 
 # %% downloaded from https://tddft.org/bmg/data.php
@@ -57,7 +62,7 @@ df_wbm_trans_mat = pd.read_csv(wbm_elem_sub_matrix, header=None).drop(0).drop(0,
 
 # %%
 plt.figure(figsize=(8, 8))
-plt.gca().matshow(
+plt.imshow(
     df_wbm_trans_mat.iloc[:n_elements, :n_elements],
     interpolation="nearest",
     cmap="Spectral",

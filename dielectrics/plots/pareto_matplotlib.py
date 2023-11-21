@@ -52,98 +52,121 @@ assert all(df_us[diel_total_pbe_col] > 0), "negative dielectric, this shouldn't 
 
 
 # %%
-plt.figure(figsize=(10, 7))
-
-ax = sns.kdeplot(
-    x=df_diel_train.diel_total_mp,
-    y=df_diel_train[bandgap_mp_col],
-    # cut=0,  # how far evaluation grid extends, 0 truncates at data limits
-    fill=True,
-    cmap="Blues",
-    zorder=0,
-)
-
-
-df_us.plot.scatter(
-    x=diel_total_pbe_col,
-    y=bandgap_us_col,
-    ax=ax,
-    label=f"{len(df_us):,} this work",
-    color="orange",
-)
-
-df_qz3.plot.scatter(
-    x=diel_total_pbe_col,
-    y="bandgap_pbe",
-    ax=ax,
-    label=f"{len(df_qz3):,} Qu et al. 2020",
-    color="red",
-    marker="D",  # diamond
-)
-
-df_petousis.plot.scatter(
-    x="diel_total_petousis",
-    y=bandgap_mp_col,
-    ax=ax,
-    label=f"{len(df_petousis):,} Petousis et al. 2017",
-    color="yellow",
-    marker="s",  # square
-)
+# plt.figure(figsize=(8, 5))
+mp_kde = True  # whether to plot a kernel density of MP dielectric training data
+names: list[str] = []
+if mp_kde:
+    ax = sns.kdeplot(
+        x=df_diel_train.diel_total_mp,
+        y=df_diel_train[bandgap_mp_col],
+        # cut=0,  # how far evaluation grid extends, 0 truncates at data limits
+        fill=True,
+        cmap="Blues",
+        zorder=0,
+        label=f"KDE of {len(df_diel_train):,} MP DFPT calcs",
+    )
+else:
+    ax = plt.gca()
+for df, (name, label), color, marker in (
+    (  # for main text
+        df_us[[diel_total_pbe_col, bandgap_us_col]],
+        ("us", f"{len(df_us):,} this work"),
+        "darkorange",
+        "o",  # circle
+    ),
+    # (  # for SI
+    #     df_qz3[[diel_total_pbe_col, "bandgap_pbe"]],
+    #     ("qu", f"{len(df_qz3):,} Qu et al. 2020"),
+    #     "red",
+    #     "D",  # diamond
+    # ),
+    # (
+    #     df_petousis[["diel_total_petousis", bandgap_mp_col]],
+    #     ("petousis", f"{len(df_petousis):,} Petousis et al. 2017"),
+    #     "blue",
+    #     "s",  # square
+    # ),
+    # ( # splitting by substitution and MP/WBM structures, not used in paper
+    #     df_us.query(f"~{id_col}.str.contains('->')")[
+    #         [diel_total_pbe_col, bandgap_us_col]
+    #     ],
+    #     f"{sum(~df_us.index.str.contains('->')):,} MP/WBM structures",
+    #     "purple",
+    #     "x",  # cross
+    # ),
+    # (
+    #     df_us.query(f"{id_col}.str.contains('->')")[
+    #         [diel_total_pbe_col, bandgap_us_col]
+    #     ],
+    #     f"{sum(df_us.index.str.contains('->')):,} substitution structures",
+    #     "green",
+    #     "P",  # plus
+    # ),
+):
+    x_col, y_col = list(df)
+    df.plot.scatter(
+        x=x_col, y=y_col, ax=ax, label=label, color=color, marker=marker, alpha=0.5
+    )
+    names.append(name)
 
 
 handles = ax.legend().legend_handles
-
 for handle in handles:
     handle.set_sizes([50])
-kde_handle = Patch(
-    facecolor="lightblue",
-    label=f"KDE of {len(df_diel_train):,} MP DFPT calcs",
-)
-scatter_legend = ax.legend(handles=[kde_handle, *handles], loc="best")
-ax.add_artist(scatter_legend)
+if mp_kde:
+    kde_label = f"KDE of {len(df_diel_train):,} MP DFPT calcs"
+    kde_handle = Patch(label=kde_label, facecolor="deepskyblue")
+    handles = (*handles, kde_handle)
+ax.add_artist(ax.legend(handles=handles, loc="upper right", frameon=False))
 
-
-plt.xlabel(r"total permittivity $\epsilon$")
-plt.ylabel(r"PBE band gap $E_\mathrm{gap}$ (eV)")
+ax.set_xlabel(r"$\epsilon_\text{total}$")
+ax.set_ylabel(r"$E_\text{gap,PBE}$ (eV)")
 
 # ax.set(xlim=[0, xmax := 400], ylim=[0, ymax := 8])
 ax.set(xscale="log", yscale="log", xlim=[1, xmax := 1800], ylim=[0.3, ymax := 15])
 
-contour_label_kwds = dict(inline_spacing=3, fontsize=10, inline=True)
+isoline_label_kwds = dict(inline_spacing=3, fontsize=10, inline=True)
 
 fom_vals = np.outer(np.arange(ymax + 1), np.arange(xmax + 1))
 fom_levels = [30, 60, 120, 240]
-fom_iso_lines = ax.contour(
-    fom_vals, levels=fom_levels, linestyles="--", colors=["green"], zorder=0
+fom_isolines = ax.contour(
+    fom_vals, levels=fom_levels, linestyles="--", colors=["purple"], zorder=0
 )
 fom_manual_locations = [(x / (ymax - 4), ymax - 4) for x in fom_levels]
-ax.clabel(fom_iso_lines, manual=fom_manual_locations, **contour_label_kwds)
+ax.clabel(fom_isolines, manual=fom_manual_locations, **isoline_label_kwds)
 
-fitness_vals = np.outer(np.arange(ymax + 1), np.sqrt(np.arange(xmax + 1)))
-fitness_levels = [15, 30, 60]
-fitness_iso_lines = ax.contour(
-    fitness_vals, levels=fitness_levels, linestyles="--", colors=["purple"], zorder=0
-)
-fitness_manual_locations = [((x / (ymax - 6)) ** 2, ymax - 6) for x in fitness_levels]
-ax.clabel(fitness_iso_lines, manual=fitness_manual_locations, **contour_label_kwds)
+show_fitness_isolines = False
+if show_fitness_isolines:
+    fitness_vals = np.outer(np.arange(ymax + 1), np.sqrt(np.arange(xmax + 1)))
+    fitness_levels = [15, 30, 60]
+    fitness_isolines = ax.contour(
+        fitness_vals,
+        levels=fitness_levels,
+        linestyles="--",
+        colors=["green"],
+        zorder=0,
+    )
+    fitness_manual_locations = [
+        ((x / (ymax - 6)) ** 2, ymax - 6) for x in fitness_levels
+    ]
+    ax.clabel(fitness_isolines, manual=fitness_manual_locations, **isoline_label_kwds)
 
-contour_handles = [
-    fom_iso_lines.legend_elements()[0][0],
-    fitness_iso_lines.legend_elements()[0][0],
-]
-labels = [
-    r"$\epsilon_\text{total} \cdot E_g = c$",
-    r"$\sqrt{\epsilon_\text{total}} \cdot E_g = c$",
-]
-contour_legend = ax.legend(contour_handles, labels, loc="lower left")
+isoline_handles = [fom_isolines.legend_elements()[0][0]]
+labels = [r"$\epsilon_\text{total} \cdot E_g = c$"]
+if show_fitness_isolines:
+    isoline_handles += [fitness_isolines.legend_elements()[0][0]]
+    labels += [r"$\sqrt{\epsilon_\text{total}} \cdot E_g = c$"]
+isoline_legend = ax.legend(isoline_handles, labels, loc="lower left")
 for handle, text in zip(
-    contour_legend.legend_handles, contour_legend.get_texts(), strict=True
+    isoline_legend.legend_handles, isoline_legend.get_texts(), strict=True
 ):
     text.set_color(handle.get_color())
 
 
-plt.savefig(f"{PAPER_FIGS}/pareto-us-vs-petousis-vs-qu.pdf")
+plt.savefig(f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}.pdf")
 
+
+# %%
 
 # %%
 fom_tresh = max(fom_levels)

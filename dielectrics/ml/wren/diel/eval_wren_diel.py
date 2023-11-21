@@ -1,9 +1,18 @@
 # %%
 import pandas as pd
 from pymatviz import density_hexbin, scatter_with_err_bar
+from pymatviz.io import save_fig
 from pymatviz.utils import annotate_metrics
 
-from dielectrics import DATA_DIR, diel_total_wren_col, id_col
+from dielectrics import (
+    DATA_DIR,
+    PAPER_FIGS,
+    diel_elec_mp_col,
+    diel_total_mp_col,
+    diel_total_pbe_col,
+    diel_total_wren_col,
+    id_col,
+)
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 from dielectrics.plots import plt
 
@@ -37,26 +46,23 @@ df_elec_rob_ens["diel_elec_ale"] = df_elec_rob_ens.filter(like="ale_", axis=1).m
 
 
 # %%
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 10))
+fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 
 fig.suptitle("Wren Dielectric Models trained on MP")
-
-x, y = df_ionic_rob_ens[["diel_ionic_target", "diel_ionic_pred_n0"]].to_numpy().T
-density_hexbin(x, y, ax=ax1)
-ax1.set_title("Single robust ionic")
-
-x, y = df_elec_rob_ens[["diel_elec_target", "diel_elec_pred_n0"]].to_numpy().T
-density_hexbin(x, y, ax=ax2)
-ax2.set_title("Single robust electronic")
-
-x, y = df_ionic_rob_ens[["diel_ionic_target", "diel_ionic_pred"]].to_numpy().T
-density_hexbin(x, y, ax=ax3)
-ax3.set_title("Ensemble robust ionic")
-
-x, y = df_elec_rob_ens[["diel_elec_target", "diel_elec_pred"]].to_numpy().T
-density_hexbin(x, y, ax=ax4)
-ax4.set_title("Ensemble robust electronic")
-
+for ax, df, title in zip(
+    axs.flat,
+    (
+        df_ionic_rob_ens[["diel_ionic_target", "diel_ionic_pred"]],
+        df_elec_rob_ens[["diel_elec_target", "diel_elec_pred"]],
+        df_ionic_rob_ens[["diel_ionic_target", "diel_ionic_pred_n0"]],
+        df_elec_rob_ens[["diel_elec_target", "diel_elec_pred_n0"]],
+    ),
+    ("Single ionic", "Single electronic", "Ensemble ionic", "Ensemble electronic"),
+    strict=True,
+):
+    x, y = df.to_numpy().T
+    density_hexbin(x, y, ax=ax)
+    ax.set_title(title)
 
 # plt.savefig("plots/wren-diel-density-scatter-trained-on-all-mp.pdf")
 
@@ -69,11 +75,11 @@ df_wren_seed.describe()
 
 
 # %%
-(df_wren_seed.diel_total_wren - df_wren_seed.diel_total_wren_indi).hist(
+ax_res = (df_wren_seed[diel_total_wren_col] - df_wren_seed.diel_total_wren_indi).hist(
     log=True, bins=70, figsize=[10, 6]
 )
 
-plt.title(
+ax_res.set_title(
     "Histogram of residual between directly predicting total dielectric "
     "constant vs\nionic + electronic individually on MP + WBM dataset"
 )
@@ -103,9 +109,8 @@ df_wren_seed.nlargest(1000, "fom_wren").fom_wren.hist(
     ax=ax, bins=70, color="orange", label="top 1k from MP+WBM"
 )
 
-plt.title("Wren-predicted FoM")
-
-# plt.savefig("plots/top-1k-elemsub-vs-mp+wbm.pdf")
+ax.set_title("Wren-predicted FoM")
+save_fig(f"{PAPER_FIGS}/wren/screen/top-1k-elemsub-vs-mp+wbm.pdf")
 
 
 # %% EVALUATING WREN ENSEMBLE STARTS HERE
@@ -136,7 +141,7 @@ df_wren["diel_total_wren_std"] = (
 
 df_wren[diel_total_wren_col] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
 
-df_wren["fom_wren"] = df_wren.diel_total_wren * df_wren.bandgap_pbe
+df_wren["fom_wren"] = df_wren[diel_total_wren_col] * df_wren.bandgap_pbe
 
 df_wren["fom_wren_rank"] = df_wren.fom_wren.rank(ascending=False).astype(int)
 
@@ -150,7 +155,7 @@ df_vasp_single = df_diel_from_task_coll({"series": "MP+WBM top 1k Wren-pred FoM"
 wren_cols = ["diel_total_wren_std", "diel_total_wren"]
 
 df_vasp_ens[wren_cols] = df_wren[wren_cols]
-df_vasp_single[diel_total_wren_col] = df_wren_seed.diel_total_wren
+df_vasp_single[diel_total_wren_col] = df_wren_seed[diel_total_wren_col]
 
 
 # %% Compare Wren 2 months older single predictions with recent ensemble preds
@@ -158,8 +163,8 @@ df = df_vasp_ens.query("fom_wren_rank < 1000 and diel_total_wren_std < 1000")
 
 plt.figure(figsize=(12, 8))
 scatter_with_err_bar(
-    df.diel_total_pbe,
-    df.diel_total_wren,
+    df[diel_total_pbe_col],
+    df[diel_total_wren_col],
     yerr=df.diel_total_wren_std,
 )
 
@@ -169,7 +174,9 @@ ax = df_vasp_single.plot.scatter(
     x="diel_total_pbe", y=diel_total_wren_col, figsize=(12, 8)
 )
 
-annotate_metrics(df_vasp_single.diel_total_pbe, df_vasp_single.diel_total_wren)
+annotate_metrics(
+    df_vasp_single[diel_total_pbe_col], df_vasp_single[diel_total_wren_col]
+)
 ax.axline((0, 0), (1, 1), alpha=0.5, zorder=0, linestyle="dashed", color="black")
 
 
@@ -183,8 +190,8 @@ df_elec_ens = pd.read_csv(
     f"{DATA_DIR}/wren/diel/wren-mp-diel-elec-ensemble-excl-petousis.csv"
 ).set_index(idx_cols)
 
-df_elec_ens["diel_elec_target"] = df_exp.diel_elec_mp
-df_ionic_ens["diel_ionic_target"] = df_exp.diel_total_mp - df_exp.diel_elec_mp
+df_elec_ens["diel_elec_target"] = df_exp[diel_elec_mp_col]
+df_ionic_ens["diel_ionic_target"] = df_exp[diel_total_mp_col] - df_exp[diel_elec_mp_col]
 
 # filter out obviously wrong highly negative targets (if any)
 print(df_elec_ens.diel_elec_target.nsmallest(5))
