@@ -416,7 +416,7 @@ fig.layout.title = (
 )
 fig.layout.xaxis.title = "Total dielectric constant"
 fig.layout.yaxis.title = "Band gap / eV"
-fig.layout.legend_groupclick = "toggleitem"
+fig.layout.legend.update(groupclick="toggleitem")
 legend_toggle = dict(
     args=["showlegend", True],
     args2=["showlegend", False],

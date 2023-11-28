@@ -436,33 +436,23 @@ plt.savefig("plots/quiver-cgcnn.pdf")
 
 
 # %%
-# Sorting the dataframes by bandgap
-df_vasp = df_vasp.sort_values(by="bandgap_us")
+df_vasp = df_vasp.sort_values(by=bandgap_us_col)
 
 df_wren_bandgap = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-bandgap-mp+wbm-ensemble-screen-mp-top1k-fom-elemsub.csv",
     index_col=id_col,
 )
-df_wren_bandgap[bandgap_wren_col] = df_wren_bandgap.filter(
-    regex=r"bandgap_pred_n\d"
-).mean(axis=1)
 
-df_wren_bandgap[bandgap_wren_col].hist(bins=30, figsize=[10, 6])
+wren_bg_cols = list(df_wren_bandgap.filter(regex=r"bandgap_pred_n\d"))
+assert len(wren_bg_cols) == 10
+df_wren_bandgap[bandgap_wren_col] = df_wren_bandgap[wren_bg_cols].mean(axis=1)
+bandgap_wren_std_col = "bandgap_wren_std"
+df_wren_bandgap[bandgap_wren_std_col] = df_wren_bandgap[wren_bg_cols].std(axis=1)
+df_vasp[bandgap_wren_col] = df_wren_bandgap[bandgap_wren_col]
+df_vasp[bandgap_wren_std_col] = df_wren_bandgap[bandgap_wren_std_col]
 
-# Calculating the rolling MAE
-window_size = 20  # Change this based on how smooth you want the curve
-df_vasp["rolling_mae"] = (
-    (df_vasp["n_pbe"] - df_wren["n_pred_n0"]).abs().rolling(window=window_size).mean()
-)
-
-# Plotting
-plt.figure(figsize=(10, 6))
-plt.plot(df_vasp["bandgap"], df_vasp["rolling_mae"])
-plt.xlabel("Bandgap (eV)")
-plt.ylabel("Rolling MAE")
-plt.title("Rolling MAE of Wren Band Gap Model vs DFT")
-plt.grid(True)
-plt.show()
+ax = df_wren_bandgap[bandgap_wren_col].hist(bins=50, figsize=[10, 6])
+ax.set(xlabel="Wren band gap (eV)", ylabel="Count", xlim=(0, None))
 
 
 # %% Plot rolling MAE of Wren band gap and dielectric models vs DFT

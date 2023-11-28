@@ -29,6 +29,8 @@ fig_impedance = px.line(
     y=["real impedance", "imaginary impedance"],
     labels={"value": imped_col},
     log_y=True,
+    width=360,
+    height=240,
 )
 fig_impedance.layout.margin.update(l=0, r=0, b=0, t=0)
 fig_impedance.layout.legend.update(title=None, x=1, y=1, xanchor="right", yanchor="top")
@@ -39,14 +41,52 @@ fig_impedance.show()
 df_tauc = pd.read_csv(
     f"{DATA_DIR}/experiment/dielectrics-tauc.csv", header=[0, 1], index_col=0
 )
+e_gap_exp = dict(Bi2Zr2O7=2.27, CsTaTeO6=1.05)
+df_tauc = df_tauc.rename(
+    columns=lambda col: f"{col}<br>E<sub>gap</sub> = {e_gap_exp[col]} eV", level=0
+)
 
-df = df_tauc.filter(like=fr_min_e_col).droplevel(1, axis=1)
-df.index.name = energy_col
-fig = px.line(df, width=400, height=250)
-fig.layout.margin.update(l=5, r=5, b=5, t=5)
-fig.layout.legend.update(title=None, x=1, y=0, xanchor="right")
-fig.layout.yaxis.title = fr_min_e_col
-fig.show()
+df_tauc = df_tauc.filter(like=fr_min_e_col).droplevel(1, axis=1)
+df_tauc.index.name = energy_col
+
+fig_tauc = px.line(df_tauc, width=360, height=240)
+
+y_max = df_tauc.max().max()
+# add slope lines to figure for each material
+for formula, (y_low, y_high) in zip(
+    df_tauc.columns.get_level_values(0).unique(), ((1.65, 1.95), (1, 1.55)), strict=True
+):
+    # get first y value larger than 1
+    srs = df_tauc[formula]
+    y1 = srs.loc[srs > y_low].iloc[0]
+    # get last y value smaller than 2
+    y2 = srs.loc[srs < y_high].iloc[-1]
+    # get corresponding x values
+    x1 = df_tauc.index[srs == y1][0]
+    x2 = df_tauc.index[srs == y2][0]
+    # compute intersection with y=0
+    x0 = x1 - y1 * (x2 - x1) / (y2 - y1)
+    # extend line to y=y_max
+    x2 = x2 + (y_max - y2) * (x2 - x1) / (y2 - y1)
+    fig_tauc.add_shape(x0=x0, y0=0, x1=x2, y1=y_max, type="line", line=dict(width=1))
+    # add annotation at intersection
+    fig_tauc.add_annotation(
+        **dict(x=x0, y=0, ax=50, ay=-25),
+        text=f"{x0:.2f} eV",
+        arrowhead=4,
+        # shorten arrow to avoid overlap with line
+        standoff=6,
+        # showarrow=False,
+        # # y shift to avoid overlap with line
+        # yshift=-10,
+    )
+
+fig_tauc.update_xaxes(dtick=1)  # increase x-axis tick density
+fig_tauc.layout.margin.update(l=5, r=5, b=5, t=5)
+fig_tauc.layout.legend.update(title=None, x=1, y=0, xanchor="right")
+fig_tauc.layout.yaxis.title = r"$\sqrt{F(R) - E}$"
+fig_tauc.show()
+save_fig(fig_tauc, f"{PAPER_FIGS}/exp-tauc.pdf")
 
 
 # %% Diffuse Reflectance Plot
@@ -57,13 +97,13 @@ wave_len_col = "Wavelength (nm)"
 df_refl = df_refl.set_index(wave_len_col).drop(columns=f"{wave_len_col}.1")
 df_refl.columns = formulas
 
-fig = px.line(1 / df_refl, width=400, height=250, range_x=[df_refl.index.min(), 1200])
-# fig = px.line(df_refl, width=400, height=250, range_x=[None, 1200])
+fig = px.line(df_refl, width=360, height=240)
+# fig = px.line(df_refl, width=360, height=240, range_x=[None, 1200])
 fig.layout.margin.update(l=0, r=0, b=0, t=0)
-fig.layout.legend.update(title=None, x=1, y=1, xanchor="right")
+fig.layout.legend.update(title=None, x=1, y=0, xanchor="right")
 fig.layout.yaxis.title = "Reflectance (%)"
 fig.show()
-# save_fig(fig, f"{PAPER_FIGS}/exp-diffuse-reflectance.pdf")
+save_fig(fig, f"{PAPER_FIGS}/exp-diffuse-reflectance.pdf")
 
 
 # %% DE-data Plot
@@ -73,7 +113,7 @@ fig.show()
 formula = "Bi2Zr2O7"
 df_de = pd.read_csv(f"{DATA_DIR}/experiment/{formula}-DE-data.csv").set_index(freq_col)
 df_de.columns = df_de.columns.str.title()
-fig_diel = px.line(df_de.filter(like="Permittivity"), log_x=True, width=400, height=250)
+fig_diel = px.line(df_de.filter(like="Permittivity"), log_x=True, width=360, height=240)
 loss_col = "Loss Tangent"
 # add loss tangent column on secondary y-axis
 fig_diel.add_scatter(
@@ -92,17 +132,30 @@ fig_diel.layout.yaxis2 = dict(
     showgrid=False,
     color="darkorange",
     range=[0, 0.4],
+    title_standoff=8,
+)
+
+fig_diel.add_annotation(
+    x=0.5,
+    y=0.4,
+    text=formula,
+    showarrow=False,
+    font=dict(size=15),
+    xref="paper",
+    yref="paper",
 )
 
 fig_diel.layout.margin.update(l=0, r=0, b=0, t=0)
-fig_diel.layout.legend.update(title=None, x=1, y=1, xanchor="right")
+fig_diel.layout.legend.update(
+    title=None, x=1, y=1, xanchor="right", bgcolor="rgba(0,0,0,0)"
+)
 fig_diel.show()
-# save_fig(fig_diel, f"{PAPER_FIGS}/exp-{formula}-dielectric-real-imaginary-loss.pdf")
+save_fig(fig_diel, f"{PAPER_FIGS}/exp-{formula}-dielectric-real-imaginary-loss.pdf")
 
 
 # %% Rietveld XRD fits for Zr2Bi2O7 Fm3m (227) and CsTaTeO6 Fd3m
 for material in materials:
-    theta_col = r"$2 \theta$"
+    theta_col = "Q"
     header_cols = [theta_col, "Observed", "Fit", "Difference"]
 
     kwds = dict(sep=r"\s+", header=None, names=header_cols)
@@ -113,7 +166,10 @@ for material in materials:
         f"{DATA_DIR}/experiment/{material}-rietveld-ticks.txt", **kwds
     )
 
-    fig = px.line(df_rietveld, x=theta_col, y=header_cols[1:], width=400, height=250)
+    fig = px.line(df_rietveld, x=theta_col, y=header_cols[1:], width=360, height=240)
+
+    # start x-axis at 0
+    # fig.update_xaxes(range=[0, df_rietveld[theta_col].max()])
 
     # Add the ticks for hkl reflections
     fig.add_scatter(
@@ -158,8 +214,8 @@ for material in materials:
     fig.layout.margin.update(l=10, r=10, b=10, t=10)
     fig.layout.legend.update(title=None, x=1, y=1, xanchor="right", yanchor="top")
     fig.layout.yaxis.update(
-        title="Intensity (a.u.)", tickformat="~s", linecolor="gray", title_standoff=4
+        title="Intensity (a.u.)", title_standoff=2, showticklabels=False
     )
-    fig.layout.xaxis.update(linecolor="gray", title_standoff=0)
+    fig.layout.xaxis.update(title_standoff=0)
     fig.show()
     save_fig(fig, f"{PAPER_FIGS}/exp-rietveld-{material}.pdf")

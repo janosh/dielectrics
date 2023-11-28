@@ -12,6 +12,7 @@ from pymatgen.core import Structure
 from dielectrics import (
     DATA_DIR,
     ROOT,
+    bandgap_us_col,
     date_col,
     formula_col,
     structure_col,
@@ -171,7 +172,7 @@ def df_diel_from_task_coll(
     except KeyError:  # no structure key in output dict
         pass
     df_output = pd.json_normalize(output_series).rename(
-        columns={"bandgap": "bandgap_us"}
+        columns={"bandgap": bandgap_us_col}
     )
     df[list(df_output)] = df_output
 

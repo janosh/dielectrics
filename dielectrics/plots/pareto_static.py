@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib.patches import Patch
+from pymatviz.io import save_fig
 
 from dielectrics import (
     DATA_DIR,
@@ -24,10 +25,10 @@ __date__ = "2022-03-02"
 
 
 # %%
-df_diel_train = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
+df_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 # discard negative and unrealistically large dielectric constants
-df_diel_train = df_diel_train.query(f"0 < {diel_total_mp_col} < 2000")
+df_mp = df_mp.query(f"0 < {diel_total_mp_col} < 2000")
 
 
 # %% qz3 for author last name initials (https://rdcu.be/cCMga)
@@ -53,68 +54,64 @@ assert all(df_us[diel_total_pbe_col] > 0), "negative dielectric, this shouldn't 
 
 # %%
 # plt.figure(figsize=(8, 5))
-mp_kde = True  # whether to plot a kernel density of MP dielectric training data
+mp_kde = False  # whether to plot a kernel density of MP dielectric training data
 names: list[str] = []
 if mp_kde:
     ax = sns.kdeplot(
-        x=df_diel_train.diel_total_mp,
-        y=df_diel_train[bandgap_mp_col],
+        x=df_mp[diel_total_mp_col],
+        y=df_mp[bandgap_mp_col],
         # cut=0,  # how far evaluation grid extends, 0 truncates at data limits
         fill=True,
         cmap="Blues",
         zorder=0,
-        label=f"KDE of {len(df_diel_train):,} MP DFPT calcs",
+        label=f"KDE of {len(df_mp):,} MP DFPT calcs",
     )
 else:
     ax = plt.gca()
-for df, (name, label), color, marker in (
+
+
+# other cmap choices: tab20, tab20b, tab20c, Set1, Set2, Set3
+color_iter = iter(sns.color_palette("tab10"))
+markers = iter(["o", "D", "s", "x", "P"])  # circle, diamond, square, cross, plus
+
+for df, (name, label) in (
     (  # for main text
         df_us[[diel_total_pbe_col, bandgap_us_col]],
         ("us", f"{len(df_us):,} this work"),
-        "darkorange",
-        "o",  # circle
     ),
-    # (  # for SI
-    #     df_qz3[[diel_total_pbe_col, "bandgap_pbe"]],
-    #     ("qu", f"{len(df_qz3):,} Qu et al. 2020"),
-    #     "red",
-    #     "D",  # diamond
-    # ),
-    # (
-    #     df_petousis[["diel_total_petousis", bandgap_mp_col]],
-    #     ("petousis", f"{len(df_petousis):,} Petousis et al. 2017"),
-    #     "blue",
-    #     "s",  # square
-    # ),
-    # ( # splitting by substitution and MP/WBM structures, not used in paper
+    (  # for SI
+        df_qz3[[diel_total_pbe_col, "bandgap_pbe"]],
+        ("qu", f"{len(df_qz3):,} Qu et al. 2020"),
+    ),
+    (
+        df_petousis[["diel_total_petousis", bandgap_mp_col]],
+        ("petousis", f"{len(df_petousis):,} Petousis et al. 2017"),
+    ),
+    # (  # splitting by substitution and MP/WBM structures, not used in paper
     #     df_us.query(f"~{id_col}.str.contains('->')")[
     #         [diel_total_pbe_col, bandgap_us_col]
     #     ],
     #     f"{sum(~df_us.index.str.contains('->')):,} MP/WBM structures",
-    #     "purple",
-    #     "x",  # cross
     # ),
     # (
     #     df_us.query(f"{id_col}.str.contains('->')")[
     #         [diel_total_pbe_col, bandgap_us_col]
     #     ],
     #     f"{sum(df_us.index.str.contains('->')):,} substitution structures",
-    #     "green",
-    #     "P",  # plus
     # ),
 ):
+    color, marker = next(color_iter), next(markers)
     x_col, y_col = list(df)
-    df.plot.scatter(
-        x=x_col, y=y_col, ax=ax, label=label, color=color, marker=marker, alpha=0.5
+    ax = df.plot.scatter(
+        x=x_col, y=y_col, ax=ax, label=label, color=color, marker=marker, alpha=0.7
     )
     names.append(name)
-
 
 handles = ax.legend().legend_handles
 for handle in handles:
     handle.set_sizes([50])
 if mp_kde:
-    kde_label = f"KDE of {len(df_diel_train):,} MP DFPT calcs"
+    kde_label = f"KDE of {len(df_mp):,} MP DFPT calcs"
     kde_handle = Patch(label=kde_label, facecolor="deepskyblue")
     handles = (*handles, kde_handle)
 ax.add_artist(ax.legend(handles=handles, loc="upper right", frameon=False))
@@ -123,14 +120,14 @@ ax.set_xlabel(r"$\epsilon_\text{total}$")
 ax.set_ylabel(r"$E_\text{gap,PBE}$ (eV)")
 
 # ax.set(xlim=[0, xmax := 400], ylim=[0, ymax := 8])
-ax.set(xscale="log", yscale="log", xlim=[1, xmax := 1800], ylim=[0.3, ymax := 15])
+ax.set(xscale="log", yscale="log", xlim=(1, xmax := 1800), ylim=(0.3, ymax := 15))
 
 isoline_label_kwds = dict(inline_spacing=3, fontsize=10, inline=True)
 
 fom_vals = np.outer(np.arange(ymax + 1), np.arange(xmax + 1))
-fom_levels = [30, 60, 120, 240]
+fom_levels = (30, 60, 120, 240)
 fom_isolines = ax.contour(
-    fom_vals, levels=fom_levels, linestyles="--", colors=["purple"], zorder=0
+    fom_vals, levels=fom_levels, linestyles="--", colors=["darkblue"], zorder=0
 )
 fom_manual_locations = [(x / (ymax - 4), ymax - 4) for x in fom_levels]
 ax.clabel(fom_isolines, manual=fom_manual_locations, **isoline_label_kwds)
@@ -163,7 +160,7 @@ for handle, text in zip(
     text.set_color(handle.get_color())
 
 
-plt.savefig(f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}.pdf")
+save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}.pdf")
 
 
 # %%
