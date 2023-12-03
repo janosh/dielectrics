@@ -519,13 +519,14 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
     y1_title = "Rolling E<sub>gap</sub> absolute error (eV)"
     y2_title = "Rolling ε<sub>total</sub> absolute error"
 
-    common = dict(showline=True, linewidth=2, title_standoff=5)
-    fig.layout.xaxis = dict(color=bandgap_color, title=x1_title, **common)
-    fig.layout.yaxis = dict(color=bandgap_color, title=y1_title, **common)
+    fig.layout.xaxis = dict(color=bandgap_color, title=x1_title, title_standoff=5)
+    fig.layout.yaxis = dict(color=bandgap_color, title=y1_title, title_standoff=5)
 
-    common_2 = dict(showgrid=False, color=diel_color, **common)
-    fig.layout.xaxis2 = dict(overlaying="x", side="top", **common_2, title=x2_title)
-    fig.layout.yaxis2 = dict(overlaying="y", side="right", **common_2, title=y2_title)
+    common_kwds = dict(showgrid=False, color=diel_color, title_standoff=5)
+    fig.layout.xaxis2 = dict(overlaying="x", side="top", **common_kwds, title=x2_title)
+    fig.layout.yaxis2 = dict(
+        overlaying="y", side="right", **common_kwds, title=y2_title
+    )
 
     fig.layout.margin = dict(l=20, r=20, t=20, b=20)
     fig.update_traces(marker=dict(size=4), mode="lines+markers")

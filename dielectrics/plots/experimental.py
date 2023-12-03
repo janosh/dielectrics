@@ -39,7 +39,7 @@ fig_impedance.show()
 
 # %% Tauc Plot
 df_tauc = pd.read_csv(
-    f"{DATA_DIR}/experiment/dielectrics-tauc.csv", header=[0, 1], index_col=0
+    f"{DATA_DIR}/experiment/dielectrics-tauc-bandgaps.csv", header=[0, 1], index_col=0
 )
 e_gap_exp = dict(Bi2Zr2O7=2.27, CsTaTeO6=1.05)
 df_tauc = df_tauc.rename(
@@ -51,42 +51,64 @@ df_tauc.index.name = energy_col
 
 fig_tauc = px.line(df_tauc, width=360, height=240)
 
-y_max = df_tauc.max().max()
-# add slope lines to figure for each material
-for formula, (y_low, y_high) in zip(
-    df_tauc.columns.get_level_values(0).unique(), ((1.65, 1.95), (1, 1.55)), strict=True
-):
-    # get first y value larger than 1
-    srs = df_tauc[formula]
-    y1 = srs.loc[srs > y_low].iloc[0]
-    # get last y value smaller than 2
-    y2 = srs.loc[srs < y_high].iloc[-1]
-    # get corresponding x values
-    x1 = df_tauc.index[srs == y1][0]
-    x2 = df_tauc.index[srs == y2][0]
-    # compute intersection with y=0
-    x0 = x1 - y1 * (x2 - x1) / (y2 - y1)
-    # extend line to y=y_max
-    x2 = x2 + (y_max - y2) * (x2 - x1) / (y2 - y1)
-    fig_tauc.add_shape(x0=x0, y0=0, x1=x2, y1=y_max, type="line", line=dict(width=1))
-    # add annotation at intersection
-    fig_tauc.add_annotation(
-        **dict(x=x0, y=0, ax=50, ay=-25),
-        text=f"{x0:.2f} eV",
-        arrowhead=4,
-        # shorten arrow to avoid overlap with line
-        standoff=6,
-        # showarrow=False,
-        # # y shift to avoid overlap with line
-        # yshift=-10,
-    )
+y_max = 4.5  # df_tauc.max().max()
+if auto_slopes := False:
+    # add slope lines to figure for each material
+    for formula, (y_low, y_high) in zip(
+        df_tauc.columns.get_level_values(0).unique(),
+        ((1.65, 1.95), (1, 1.55)),
+        strict=True,
+    ):
+        srs = df_tauc[formula]
+        # get first y value larger than y_low
+        y1 = srs.loc[srs > y_low].iloc[0]
+        # get last y value less than y_high
+        y2 = srs.loc[srs < y_high].iloc[-1]
+        # get corresponding x values
+        x1 = df_tauc.index[srs == y1][0]
+        x2 = df_tauc.index[srs == y2][0]
+        # compute intersection with y=0
+        x0 = x1 - y1 * (x2 - x1) / (y2 - y1)
+        # extend line to y=y_max
+        x2 = x2 + (y_max - y2) * (x2 - x1) / (y2 - y1)
+        fig_tauc.add_shape(
+            x0=x0, y0=0, x1=x2, y1=y_max, type="line", line=dict(width=1)
+        )
+        # add annotation at intersection
+        fig_tauc.add_annotation(
+            **dict(x=x0, y=0, ax=50, ay=-25),
+            text=f"{x0:.2f} eV",
+            arrowhead=4,
+            # shorten arrow to avoid overlap with line
+            standoff=6,
+            # showarrow=False,
+            # # y shift to avoid overlap with line
+            # yshift=-10,
+        )
+else:
+    # received from Wesley Surta on 2023-12-01
+    # Bi2Zr2O7 line y = 2.96491 x - 6.72905
+    # CsTaTeO6 line y = 2.50844 x - 2.65018
+    for slope, intercept in ((2.96491, -6.72905), (2.50844, -2.65018)):
+        y0, y1 = 0, y_max
+        x1 = (y0 - intercept) / slope
+        x2 = (y1 - intercept) / slope
+        fig_tauc.add_shape(x0=x1, y0=y0, x1=x2, y1=y1, type="line", line=dict(width=1))
+        fig_tauc.add_annotation(
+            **dict(x=x1, y=y0, ax=50, ay=-30),
+            text=f"{x1:.2f} eV",
+            arrowhead=4,
+            standoff=6,
+        )
 
 fig_tauc.update_xaxes(dtick=1)  # increase x-axis tick density
+fig_tauc.update_yaxes(range=[0, y_max])
 fig_tauc.layout.margin.update(l=5, r=5, b=5, t=5)
 fig_tauc.layout.legend.update(title=None, x=1, y=0, xanchor="right")
-fig_tauc.layout.yaxis.title = r"$\sqrt{F(R) - E}$"
+fig_tauc.layout.yaxis.title.update(text=r"$\sqrt{F(R) - E}$", standoff=9)
+fig_tauc.layout.xaxis.title.update(standoff=8)
 fig_tauc.show()
-save_fig(fig_tauc, f"{PAPER_FIGS}/exp-tauc.pdf")
+save_fig(fig_tauc, f"{PAPER_FIGS}/exp-tauc-bandgaps.pdf")
 
 
 # %% Diffuse Reflectance Plot
@@ -113,7 +135,7 @@ save_fig(fig, f"{PAPER_FIGS}/exp-diffuse-reflectance.pdf")
 formula = "Bi2Zr2O7"
 df_de = pd.read_csv(f"{DATA_DIR}/experiment/{formula}-DE-data.csv").set_index(freq_col)
 df_de.columns = df_de.columns.str.title()
-fig_diel = px.line(df_de.filter(like="Permittivity"), log_x=True, width=360, height=240)
+fig_diel = px.line(df_de.filter(like="Permittivity"), log_x=True, width=360, height=215)
 loss_col = "Loss Tangent"
 # add loss tangent column on secondary y-axis
 fig_diel.add_scatter(
@@ -138,7 +160,7 @@ fig_diel.layout.yaxis2 = dict(
 fig_diel.add_annotation(
     x=0.5,
     y=0.4,
-    text=formula,
+    text=htmlify(formula),
     showarrow=False,
     font=dict(size=15),
     xref="paper",

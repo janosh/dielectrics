@@ -4,6 +4,7 @@ from enum import StrEnum
 
 import plotly.express as px
 from matplotlib import pyplot as plt
+from plotly import io as pio
 from pymatviz.utils import styled_html_tag
 
 
@@ -99,7 +100,21 @@ px.defaults.labels = {
     symmetry_col: "Symmetry",
     selection_status_col: "Selection status",
 }
+
 px.defaults.template = "plotly_white"
+pio.templates.default = "plotly_white"
+axis_template = dict(
+    mirror=True,
+    showline=True,
+    ticks="outside",
+    zeroline=True,
+    linewidth=1,
+    linecolor="black",
+    gridcolor="lightgray",
+)
+pio.templates["plotly_white"].update(
+    layout=dict(xaxis=axis_template, yaxis=axis_template)
+)
 
 
 class SelectionStatus(StrEnum):

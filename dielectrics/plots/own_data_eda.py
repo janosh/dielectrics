@@ -111,8 +111,8 @@ for cry_sys, df_group in df_us.groupby(crystal_sys_col):
 
 fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=list(x_ticks.values()))
 
-# fig.write_image("plots/our-diel-elec-vs-ionic-strip.png", scale=2)
 fig.show()
+# save_fig(fig, f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin.pdf", width=900, height=400)
 
 
 # %%
