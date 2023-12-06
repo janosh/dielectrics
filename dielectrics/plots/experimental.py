@@ -39,7 +39,7 @@ fig_impedance.show()
 
 # %% Tauc Plot
 df_tauc = pd.read_csv(
-    f"{DATA_DIR}/experiment/dielectrics-tauc-bandgaps.csv", header=[0, 1], index_col=0
+    f"{DATA_DIR}/experiment/both-tauc-bandgaps.csv", header=[0, 1], index_col=0
 )
 e_gap_exp = dict(Bi2Zr2O7=2.27, CsTaTeO6=1.05)
 df_tauc = df_tauc.rename(
@@ -112,28 +112,29 @@ save_fig(fig_tauc, f"{PAPER_FIGS}/exp-tauc-bandgaps.pdf")
 
 
 # %% Diffuse Reflectance Plot
-df_refl = pd.read_csv(
-    f"{DATA_DIR}/experiment/dielectrics-diffuse-reflectance.csv", header=[1]
-)
+df_refl = pd.read_csv(f"{DATA_DIR}/experiment/both-diffuse-reflectance.csv", header=[1])
 wave_len_col = "Wavelength (nm)"
 df_refl = df_refl.set_index(wave_len_col).drop(columns=f"{wave_len_col}.1")
 df_refl.columns = formulas
 
-fig = px.line(df_refl, width=360, height=240)
-# fig = px.line(df_refl, width=360, height=240, range_x=[None, 1200])
-fig.layout.margin.update(l=0, r=0, b=0, t=0)
-fig.layout.legend.update(title=None, x=1, y=0, xanchor="right")
-fig.layout.yaxis.title = "Reflectance (%)"
-fig.show()
-save_fig(fig, f"{PAPER_FIGS}/exp-diffuse-reflectance.pdf")
+fig_refl = px.line(df_refl, width=360, height=240)
+# fig_refl = px.line(df_refl, width=360, height=240, range_x=[None, 1200])
+fig_refl.layout.margin.update(l=0, r=0, b=0, t=0)
+fig_refl.layout.legend.update(title=None, x=1, y=0, xanchor="right")
+fig_refl.layout.yaxis.title = "Reflectance (%)"
+fig_refl.show()
+save_fig(fig_refl, f"{PAPER_FIGS}/exp-diffuse-reflectance.pdf")
 
 
 # %% DE-data Plot
 # similar data as in https://doi.org/10.1021/acs.inorgchem.8b02258 fig. 5d and 6e except
 # only at room temperature since the material is unstable at higher temperatures
 # Also, the permittivity e' values in fig 6e dont make any sense for that publications
+# formula = "CsTaTeO6"
 formula = "Bi2Zr2O7"
-df_de = pd.read_csv(f"{DATA_DIR}/experiment/{formula}-DE-data.csv").set_index(freq_col)
+df_de = pd.read_csv(f"{DATA_DIR}/experiment/{formula}-diel-vs-freq.csv").set_index(
+    freq_col
+)
 df_de.columns = df_de.columns.str.title()
 fig_diel = px.line(df_de.filter(like="Permittivity"), log_x=True, width=360, height=215)
 loss_col = "Loss Tangent"
@@ -145,7 +146,7 @@ fig_diel.add_scatter(
     yaxis="y2",
     line=dict(color="darkorange", dash="dot"),
 )
-fig_diel.layout.yaxis1 = dict(title="Permittivity")
+fig_diel.layout.yaxis1 = dict(title="Permittivity", tickformat="1s")
 fig_diel.layout.yaxis2 = dict(
     title=loss_col,
     overlaying="y",
@@ -153,8 +154,10 @@ fig_diel.layout.yaxis2 = dict(
     rangemode="tozero",
     showgrid=False,
     color="darkorange",
-    range=[0, 0.4],
-    title_standoff=8,
+    range=[0, 0.4] if formula == "Bi2Zr2O7" else None,
+    title_standoff=10,
+    # use 1k, 1.5k instead of 1000, 1500
+    tickformat="1s" if formula == "CsTaTeO6" else None,
 )
 
 fig_diel.add_annotation(
@@ -172,6 +175,9 @@ fig_diel.layout.legend.update(
     title=None, x=1, y=1, xanchor="right", bgcolor="rgba(0,0,0,0)"
 )
 fig_diel.show()
+if formula == "Bi2Zr2O7":
+    # hide legend
+    fig_diel.update_layout(showlegend=False)
 save_fig(fig_diel, f"{PAPER_FIGS}/exp-{formula}-dielectric-real-imaginary-loss.pdf")
 
 
@@ -188,13 +194,15 @@ for material in materials:
         f"{DATA_DIR}/experiment/{material}-rietveld-ticks.txt", **kwds
     )
 
-    fig = px.line(df_rietveld, x=theta_col, y=header_cols[1:], width=360, height=240)
+    fig_xrd = px.line(
+        df_rietveld, x=theta_col, y=header_cols[1:], width=360, height=240
+    )
 
     # start x-axis at 0
-    # fig.update_xaxes(range=[0, df_rietveld[theta_col].max()])
+    # fig_xrd.update_xaxes(range=[0, df_rietveld[theta_col].max()])
 
     # Add the ticks for hkl reflections
-    fig.add_scatter(
+    fig_xrd.add_scatter(
         x=rietveld_ticks[theta_col],
         y=[-400] * len(rietveld_ticks),
         mode="markers",
@@ -207,7 +215,7 @@ for material in materials:
         df_Ta2O5 = pd.read_csv(
             f"{DATA_DIR}/experiment/CsTaTeO6-Ta2O5-xrd-ticks.txt", **kwds
         )
-        fig.add_scatter(  # Ta2O5 peaks
+        fig_xrd.add_scatter(  # Ta2O5 peaks
             x=df_Ta2O5[theta_col],
             y=[-800] * len(df_Ta2O5),
             mode="markers",
@@ -215,7 +223,7 @@ for material in materials:
             marker=dict(line_color="orange", symbol="line-ns", line_width=1, size=5),
         )
         # label Ta2O5 peak at (1.7, 700)
-        fig.add_annotation(
+        fig_xrd.add_annotation(
             **dict(x=1.6, y=500, ax=-20, ay=-50),
             text=htmlify("Ta2O5"),
             font=dict(color="orange"),
@@ -225,7 +233,7 @@ for material in materials:
     elif material == "Bi2Zr2O7-Fm3m":
         # label missing (111) peak
         # TODO get precise location for would-be (111) peak if Bi2Zr2O7 were pyrochlore
-        fig.add_annotation(
+        fig_xrd.add_annotation(
             **dict(x=1.2, y=800, ax=0, ay=-50),
             text="no (111)<br>peak",
             font=dict(color="black"),
@@ -233,11 +241,11 @@ for material in materials:
             **arrow_kwds,
         )
 
-    fig.layout.margin.update(l=10, r=10, b=10, t=10)
-    fig.layout.legend.update(title=None, x=1, y=1, xanchor="right", yanchor="top")
-    fig.layout.yaxis.update(
+    fig_xrd.layout.margin.update(l=10, r=10, b=10, t=10)
+    fig_xrd.layout.legend.update(title=None, x=1, y=1, xanchor="right", yanchor="top")
+    fig_xrd.layout.yaxis.update(
         title="Intensity (a.u.)", title_standoff=2, showticklabels=False
     )
-    fig.layout.xaxis.update(title_standoff=0)
-    fig.show()
-    save_fig(fig, f"{PAPER_FIGS}/exp-rietveld-{material}.pdf")
+    fig_xrd.layout.xaxis.update(title_standoff=0)
+    fig_xrd.show()
+    save_fig(fig_xrd, f"{PAPER_FIGS}/exp-rietveld-{material}.pdf")
