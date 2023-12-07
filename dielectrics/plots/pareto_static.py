@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import seaborn as sns
 from matplotlib.patches import Patch
 from pymatviz.io import save_fig
@@ -164,8 +165,6 @@ save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}.pdf")
 
 
 # %%
-
-# %%
 fom_tresh = max(fom_levels)
 fom_count_us = sum(df_us[fom_pbe_col] > fom_tresh)
 print(f"on {today}:\nhit rate of materials with FoM > {fom_tresh}:")
@@ -190,3 +189,75 @@ for name, df in [
 # - Qu et al.: 15 / 441 = 3.4%
 # - us: 155 / 2,680 = 5.8%
 # - us for  band gap > 0.1 eV: 154 / 2,063 = 7.5%
+
+
+# %% reproduce the above plot with plotly express
+fig = px.scatter(
+    df_mp,
+    x=diel_total_mp_col,
+    y=bandgap_mp_col,
+    marginal_x="histogram",
+    marginal_y="histogram",
+)
+fig.data[0].visible = False
+# make right marginal narrower
+fig.layout.xaxis1.update(matches=None, domain=[0, 0.84])
+fig.layout.xaxis2.update(matches=None, domain=[0.85, 1])
+
+markers = ("circle", "diamond", "square", "x", "star")
+colors = sns.color_palette("tab10").as_hex()
+
+datasets = [
+    (df_us[[diel_total_pbe_col, bandgap_us_col]], f"{len(df_us):,} this work"),
+    (df_qz3[[diel_total_pbe_col, "bandgap_pbe"]], f"{len(df_qz3):,} Qu et al. 2020"),
+    (
+        df_petousis[["diel_total_petousis", bandgap_mp_col]],
+        f"{len(df_petousis):,} Petousis et al. 2017",
+    ),
+]
+for idx, (df, label) in enumerate(datasets):
+    diel_col, gap_col = list(df)
+    fig.add_scatter(
+        x=df[diel_col],
+        y=df[gap_col],
+        mode="markers",
+        name=label,
+        marker=dict(symbol=markers[idx], color=colors[idx]),
+        opacity=0.8,
+    )
+
+xmax, ymax = 1000, 14
+fig.layout.xaxis.update(range=[-0.25, np.log10(xmax)], type="log")
+fig.layout.yaxis.update(range=[-2.2, np.log10(ymax)], type="log")
+x_range = np.logspace(np.log10(1), np.log10(xmax), 100)
+y_range = np.logspace(np.log10(0.015), np.log10(ymax), 100)
+xs, ys = np.meshgrid(x_range, y_range)
+zs = xs * ys
+
+# move labels to end of line
+for level in (30, 60, 120, 240):
+    fig.add_contour(
+        x=x_range,
+        y=y_range,
+        z=zs,
+        colorscale="Blues",
+        contours=dict(
+            start=level,
+            end=level,
+            coloring="lines",  # rather than "fill"
+            showlabels=True,
+            labelfont=dict(size=15),
+        ),
+        line=dict(dash="dash", width=2),
+        showscale=False,
+    )
+
+fig.update_layout(
+    # xaxis2_type="log", # make right marginal y-axis log-scaled
+    # yaxis3_type="log",  # make top marginal y-axis log-scaled
+)
+fig.layout.legend.update(x=0, y=0)
+fig.layout.margin.update(l=0, r=0, t=0, b=0)
+
+fig.show()
+save_fig(fig, f"{PAPER_FIGS}/pareto-us-vs-petousis-vs-qu-plotly.pdf")
