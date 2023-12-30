@@ -34,7 +34,7 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
     window = 300
     # bandgap rolling MAE calculation
     bandgap_rolling_err_col = (
-        f"<b>Rolling |E<sub>gap,Wren</sub> - E<sub>gap,PBE</sub>|</b><br>"
+        f"<b>Rolling |E<sub>gap Wren</sub> - E<sub>gap PBE</sub>|</b><br>"
         f"MAE={bandgap_mae:.1f}eV (std={df_vasp[x_axis_bandgap].std():.3})"
     )
     df_plot[bandgap_rolling_err_col] = abs(
@@ -58,7 +58,7 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
     # fig.add_scatter(x=rolling_mp_err.index, y=rolling_mp_err, name=bandgap_mp_err)
 
     diel_rolling_error_col = (
-        f"<b>Rolling |ε<sub>total,Wren</sub> - ε<sub>total,PBE</sub>|</b><br>"
+        f"<b>Rolling |ε<sub>total Wren</sub> - ε<sub>total PBE</sub>|</b><br>"
         f"MAE={diel_mae:.1f} (std={df_vasp[diel_total_pbe_col].std():.3})"
     )
 
@@ -78,8 +78,8 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
         marker=dict(symbol="square"),
     )
 
-    x1_title = f"E<sub>gap,{'Wren' if 'wren' in x_axis_bandgap else 'PBE'}</sub> (eV)"
-    x2_title = f"ε<sub>total,{'Wren' if 'wren' in x_axis_diel else 'PBE'}</sub>"
+    x1_title = f"E<sub>gap {'Wren' if 'wren' in x_axis_bandgap else 'PBE'}</sub> (eV)"
+    x2_title = f"ε<sub>total {'Wren' if 'wren' in x_axis_diel else 'PBE'}</sub>"
     y1_title = "Rolling E<sub>gap</sub> absolute error (eV)"
     y2_title = "Rolling ε<sub>total</sub> absolute error"
 

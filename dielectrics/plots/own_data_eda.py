@@ -3,10 +3,8 @@
 
 # %% from https://colab.research.google.com/drive/131MZKKeOhoseoVTJmPuOXVJvDoNes1ge
 import pandas as pd
-import plotly
 import plotly.express as px
 import plotly.graph_objects as go
-from IPython.display import HTML, display
 from pymatgen.core import Composition
 from pymatviz import (
     count_elements,
@@ -24,18 +22,10 @@ from dielectrics import (
     diel_elec_pbe_col,
     diel_ionic_pbe_col,
     diel_total_pbe_col,
-    fom_col,
+    fom_pbe_col,
     id_col,
 )
 from dielectrics.db.fetch_data import df_diel_from_task_coll
-
-
-plotly.offline.init_notebook_mode()
-math_jax_script = (
-    '<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/'
-    'mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_SVG"></script>'
-)
-display(HTML(math_jax_script))
 
 
 def rgb_color(val: float, max: float) -> str:
@@ -124,14 +114,6 @@ for crystal_sys, df_group in df_us.groupby(crystal_sys_col):
     common_kwds["legendgroup"] = crystal_sys
     common_kwds["showlegend"] = crystal_sys == "cubic"
 
-    fig.add_violin(  # electronic dielectric distribution
-        y=df_group[diel_elec_pbe_col],
-        scalegroup="electronic",
-        name="electronic",
-        side="negative",
-        line_color="blue",
-        **common_kwds,
-    )
     fig.add_violin(  # ionic dielectric distribution
         y=df_group[diel_ionic_pbe_col],
         scalegroup="ionic",
@@ -140,12 +122,14 @@ for crystal_sys, df_group in df_us.groupby(crystal_sys_col):
         line_color="orange",
         **common_kwds,
     )
-
-fig.layout.update(violingap=0, violinmode="overlay")
-fig.layout.margin.update(l=30, r=30, t=30, b=30)
-fig.layout.xaxis.update(title="crystal system", side="top", title_font_size=16)
-fig.layout.yaxis.update(title=r"$\Large\epsilon_\text{poly}$", range=[0, 80])
-fig.layout.legend.update(x=0.91, y=1, bgcolor="rgba(0,0,0,0)", font_size=16)
+    fig.add_violin(  # electronic dielectric distribution
+        y=df_group[diel_elec_pbe_col],
+        scalegroup="electronic",
+        name="electronic",
+        side="negative",
+        line_color="blue",
+        **common_kwds,
+    )
 
 
 n_top, x_ticks = 30, {x: "" for x in cry_sys_order}
@@ -159,10 +143,31 @@ for cry_sys, df_group in df_us.groupby(crystal_sys_col):
         f"<br><span style='color:{elec_clr}'><b>{elec_top:.0f}</b></span>      "
         f"<span style='color:{ionic_clr}'><b>{ionic_top:.0f}</b></span>"
     )
-fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=list(x_ticks.values()))
+fig.layout.xaxis.update(
+    tickvals=list(range(7)),
+    ticktext=list(x_ticks.values()),
+    # increase tick font size
+    tickfont=dict(size=14),
+)
+fig.layout.legend.update(
+    x=0.5,
+    y=1.12,
+    xanchor="center",
+    bgcolor="rgba(0,0,0,0)",
+    font_size=16,
+    orientation="h",
+    traceorder="reversed",
+)
+
+fig.layout.update(violingap=0, violinmode="overlay", width=900, height=400)
+fig.layout.margin.update(l=0, r=0, t=0, b=0)
+fig.layout.xaxis.title.update(text="crystal system", font_size=18)
+fig.layout.yaxis.update(range=[0, 80])
+fig.layout.yaxis.title.update(text="ε<sub>elec / ionic</sub>", font_size=18)
+
 fig.show()
 
-save_fig(fig, f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin.pdf", width=900, height=400)
+save_fig(fig, f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin.pdf")
 
 
 # %%
@@ -213,18 +218,19 @@ df_frac_comp = pd.DataFrame(df_us[frac_comp_col].tolist())
 df_frac_comp = df_frac_comp.where(df_frac_comp.isna(), 1)
 
 for col, title in (
-    (fom_col, "FoM (eV)"),
+    (fom_pbe_col, r"$\mathbf{\Phi_M}$"),
     (diel_ionic_pbe_col, r"$\mathbf{\epsilon}_\text{ionic}$"),
     (diel_elec_pbe_col, r"$\mathbf{\epsilon}_\text{electronic}$"),
-    (bandgap_pbe_col, "Band Gap (eV)"),
+    (bandgap_pbe_col, r"$\mathbf{E}_\text{gap}$"),
 ):
     df_per_elem = df_frac_comp * df_us[col].to_numpy()[:, None]
     srs_per_elem = df_per_elem.mean(axis=0)
-    cbar_title = srs_per_elem.index.name = f"Element-projected {title}"
+    srs_per_elem.index.name = f"Element-projected {title}"
+
     ax = ptable_heatmap(
         srs_per_elem.dropna(),
         colorscale="viridis",
-        cbar_title=cbar_title,
+        cbar_title=srs_per_elem.index.name,
         label_font_size=18,
         value_font_size=18,
         fmt=".0f",
@@ -244,15 +250,17 @@ tex_col_names = {
     "diel_ionic_pbe": r"$\epsilon_\text{ionic}$",
     diel_total_pbe_col: r"$\epsilon_\text{total}$",
     bandgap_pbe_col: "Band Gap (eV)",
-    fom_col: r"$\fom$ (eV)",
+    fom_pbe_col: r"$\fom$ (eV)",
     "nsites": "atoms",
     "nelements": "elements",
 }
 keep_cols = [*col_name_map, *tex_col_names]
-df_high_fom = df_us[df_us[fom_col] > fom_tresh][keep_cols]
+df_high_fom = df_us[df_us[fom_pbe_col] > fom_tresh][keep_cols]
 df_high_fom[bandgap_pbe_col] = df_us.bandgap_pbe.fillna(df_us.bandgap_us)
 
-df_high_fom = df_high_fom.sort_values(fom_col, ascending=False).reset_index(drop=True)
+df_high_fom = df_high_fom.sort_values(fom_pbe_col, ascending=False).reset_index(
+    drop=True
+)
 df_high_fom.index += 1  # start index at 1, must come after reset_index
 
 print(f"Number of materials with FoM > {fom_tresh} eV: {len(df_high_fom)}")
@@ -274,7 +282,7 @@ float_cols = {
 int_cols = {
     "diel_ionic_pbe": "ε<sub>ionic</sub>",
     diel_total_pbe_col: "ε<sub>total</sub>",
-    fom_col: "FoM (eV)",
+    fom_pbe_col: "𝚽<sub>M</sub> (eV)",
     "nsites": "n<sub>sites</sub>",
     "nelements": "n<sub>elems</sub>",
 }
@@ -291,10 +299,13 @@ styler = (
     )
 )
 
-# Export to PDF
 df_to_pdf(styler, f"{PAPER_FIGS}/table-fom-pbe>{fom_tresh}.pdf", size="100cm")
-styler.set_caption(f"Table of materials with FoM > {fom_tresh} eV")
 df_high_fom.to_csv(f"{DATA_DIR}/our-data-with-fom-pbe>{fom_tresh}.csv", index=False)
+styler.set_caption(f"Table of materials with 𝚽<sub>M</sub> > {fom_tresh} eV")
+
+
+# %% inspect non-oxides
+styler.data.query("~Formula.str.contains('O')")
 
 
 # %%

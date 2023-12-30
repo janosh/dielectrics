@@ -15,9 +15,9 @@ px.defaults.labels = dict(
     diel_total="Total dielectric constant",
     diel_elec="Electronic dielectric constant",
     diel_ionic="Ionic dielectric constant",
-    bandgap_us="E<sub>gap,Us</sub> (eV)",
-    bandgap_mp="E<sub>gap,MP</sub> (eV)",
-    bandgap_pbe="E<sub>gap,PBE</sub> (eV)",
+    bandgap_us="E<sub>gap Us</sub> (eV)",
+    bandgap_mp="E<sub>gap MP</sub> (eV)",
+    bandgap_pbe="E<sub>gap PBE</sub> (eV)",
     bandgap_wren="E<sub>Wren</sub> (eV)",
 )
 

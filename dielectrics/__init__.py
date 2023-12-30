@@ -44,7 +44,7 @@ plotly_hover_cols = {
 crystal_sys_col = "crystal_system"
 diel_elec_mp_col = "diel_elec_mp"
 diel_elec_pbe_col = "diel_elec_pbe"
-diel_exp_col = "diel_total_exp"  # total dielectric constant from experiment
+diel_total_exp_col = "diel_total_exp"  # total dielectric constant from experiment
 diel_ionic_mp_col = "diel_ionic_mp"
 diel_ionic_pbe_col = "diel_ionic_pbe"
 diel_total_mp_col = "diel_total_mp"  # total dielectric constant from MP
@@ -52,7 +52,8 @@ diel_total_us_col = "diel_total_us"  # total dielectric constant from our own DF
 e_per_atom_col = "energy_per_atom"
 energy_col = "energy (eV)"
 energy_per_atom_col = "energy_per_atom"
-fom_col = "fom_pbe"
+fom_col = "fom"
+fom_exp_col = "fom_exp"
 fr_min_e_col = "(F(R)-E)^1/2"
 freq_col = "frequency (Hz)"
 icsd_id_col = "icsd_id"
@@ -67,25 +68,25 @@ ev_per_atom = styled_html_tag("(eV/atom)", tag="span", style=small_font)
 eV = styled_html_tag("(eV)", tag="span", style=small_font)
 
 px.defaults.labels = {
-    bandgap_hse_col: f"E<sub>gap,HSE</sub> {eV}",
-    bandgap_mp_col: f"E<sub>gap,MP</sub> {eV}",
-    bandgap_pbe_col: f"E<sub>gap,PBE</sub> {eV}",
-    bandgap_us_col: f"E<sub>gap,us</sub> {eV}",
-    bandgap_wren_col: f"E<sub>gap,Wren</sub> {eV}",
+    bandgap_hse_col: f"E<sub>gap HSE</sub> {eV}",
+    bandgap_mp_col: f"E<sub>gap MP</sub> {eV}",
+    bandgap_pbe_col: f"E<sub>gap PBE</sub> {eV}",
+    bandgap_us_col: f"E<sub>gap us</sub> {eV}",
+    bandgap_wren_col: f"E<sub>gap Wren</sub> {eV}",
     crystal_sys_col: "Crystal system",
     date_col: "Date",
-    diel_elec_mp_col: "ε<sub>elec,MP</sub>",
+    diel_elec_mp_col: "ε<sub>elec MP</sub>",
     diel_elec_pbe_col: "ε<sub>elec</sub>",
     diel_ionic_pbe_col: "ε<sub>ionic</sub>",
-    diel_ionic_mp_col: "ε<sub>ionic,MP</sub>",
+    diel_ionic_mp_col: "ε<sub>ionic MP</sub>",
     diel_total_col: "ε<sub>total</sub>",
-    diel_total_mp_col: "ε<sub>total,MP</sub>",
-    diel_total_pbe_col: "ε<sub>total,PBE</sub>",
-    diel_total_us_col: "ε<sub>total,us</sub>",
-    diel_total_wren_col: "ε<sub>total,Wren</sub>",
-    e_above_hull_mp_col: f"E<sub>hull dist,MP</sub> {ev_per_atom}",
-    e_above_hull_pbe_col: f"E<sub>hull dist,PBE</sub> {ev_per_atom}",
-    e_above_hull_wren_col: f"E<sub>hull dist,Wren</sub> {ev_per_atom}",
+    diel_total_mp_col: "ε<sub>total MP</sub>",
+    diel_total_pbe_col: "ε<sub>total PBE</sub>",
+    diel_total_us_col: "ε<sub>total us</sub>",
+    diel_total_wren_col: "ε<sub>total Wren</sub>",
+    e_above_hull_mp_col: f"E<sub>hull dist MP</sub> {ev_per_atom}",
+    e_above_hull_pbe_col: f"E<sub>hull dist PBE</sub> {ev_per_atom}",
+    e_above_hull_wren_col: f"E<sub>hull dist Wren</sub> {ev_per_atom}",
     e_per_atom_col: f"energy {ev_per_atom}",  # usually PBE energy
     fom_col: "Φ",
     fom_pbe_col: "Φ<sub>PBE</sub>",  # figure of merit from PBE band gap and eps_total

@@ -51,12 +51,12 @@ for wren_csv_path, col, std_col in (
 
 # %% dielectric constant parity plot Wren vs PBE
 axis_labels = {
-    diel_elec_pbe_col: r"$\epsilon_\text{electronic,PBE}$",
-    diel_elec_wren_col: r"$\epsilon_\text{electronic,Wren}$",
-    diel_ionic_pbe_col: r"$\epsilon_\text{ionic,PBE}$",
-    diel_ionic_wren_col: r"$\epsilon_\text{ionic,Wren}$",
-    bandgap_us_col: r"$E_\text{gap,PBE}$ (eV)",
-    bandgap_wren_col: r"$E_\text{gap,Wren}$ (eV)",
+    diel_elec_pbe_col: r"$\epsilon_\text{elec\ PBE}$",
+    diel_elec_wren_col: r"$\epsilon_\text{elec\ Wren}$",
+    diel_ionic_pbe_col: r"$\epsilon_\text{ionic\ PBE}$",
+    diel_ionic_wren_col: r"$\epsilon_\text{ionic\ Wren}$",
+    bandgap_us_col: r"$E_\text{gap\ PBE}$ (eV)",
+    bandgap_wren_col: r"$E_\text{gap\ Wren}$ (eV)",
 }
 
 for pbe_col, wren_col, std_col in (
@@ -64,8 +64,11 @@ for pbe_col, wren_col, std_col in (
     (diel_ionic_pbe_col, diel_ionic_wren_col, diel_ionic_wren_std_col),
     (bandgap_us_col, bandgap_wren_col, bandgap_wren_std_col),
 ):
+    df_plot = df_vasp.sort_values(by=std_col).dropna(subset=[pbe_col, wren_col])
+    if pbe_col == diel_elec_pbe_col:
+        df_plot = df_plot.query(f"{wren_col} < 50")
     grid = sns.jointplot(
-        x=pbe_col, y=wren_col, data=df_vasp, space=0, marginal_kws=dict(bins=60)
+        x=pbe_col, y=wren_col, data=df_plot, space=0, marginal_kws=dict(bins=100)
     )
     ax = grid.ax_joint
     # ax.set_xscale("log")
@@ -75,7 +78,7 @@ for pbe_col, wren_col, std_col in (
     scatter = ax.scatter(
         x=pbe_col,
         y=wren_col,
-        data=df_vasp.sort_values(by=std_col),
+        data=df_plot,
         c=std_col,
         cmap="viridis",
     )
@@ -101,4 +104,4 @@ for pbe_col, wren_col, std_col in (
     )
 
     quantity = pbe_col.rsplit("_", 1)[0].replace("_", "-")
-    save_fig(grid.fig, f"{PAPER_FIGS}/wren-vs-pbe-{quantity}-scatter.pdf")
+    save_fig(grid.fig, f"{PAPER_FIGS}/parity-wren-vs-pbe-{quantity}.pdf")

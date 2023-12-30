@@ -34,11 +34,3 @@ close_to_hull_high_fom = db.tasks.find({
 ```
 
 The most interesting materials in our dataset are also viewable in the interactive Plotly scatter plot at <https://janosh.github.io/dielectrics>.
-
-## Born Charges
-
-Good explanation of Born effective charges from [VASP docs](https://vasp.at/wiki/index.php/Dielectric_properties_of_SiC).
-
-> Roughly speaking, the Born effective tensors provide a measure of how much charge effectively moves with an atom when you displace it.
-
-It applies to insulators where the Born Charge of an atom describes the electrical polarization induced by the displacement of this individual atom.

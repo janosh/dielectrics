@@ -17,6 +17,7 @@ References can be resolved on page 4 of the SI linked above.
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import scipy.stats
 from adjustText import adjust_text
 from aviary.wren.utils import get_aflow_label_from_spglib
 from mp_api.client import MPRester
@@ -27,8 +28,10 @@ from pymatviz.utils import add_identity_line
 from dielectrics import (
     DATA_DIR,
     PAPER_FIGS,
-    diel_exp_col,
+    diel_total_exp_col,
     diel_total_us_col,
+    fom_exp_col,
+    fom_pbe_col,
     formula_col,
     id_col,
     n_sites_col,
@@ -48,18 +51,18 @@ struct_col = "structure_mp"
 # 3 mp-id's appear in both Petousis 2016/17: mp-2964, mp-5238, mp-5342
 df_exp[df_exp.index.duplicated(keep=False)].sort_index()
 df_exp = df_exp.drop_duplicates(keep="first", subset=id_col)
-df_exp = df_exp.sort_values(diel_exp_col, ascending=False)
+df_exp = df_exp.sort_values(diel_total_exp_col, ascending=False)
 assert len(df_exp) == 136
 
 
 # %%
 mp_data = []
-for depr in (True, False):
+for deprecated in (True, False):
     mp_data += MPRester(use_document_model=False).materials.summary.search(
-        deprecated=depr, material_ids=list(df_exp.index)
+        deprecated=deprecated, material_ids=list(df_exp.index)
     )
     # mp_data += MPRester(use_document_model=False).materials.search(
-    #     deprecated=depr, task_ids=list(df_exp.index)
+    #     deprecated=deprecated, task_ids=list(df_exp.index)
     # )
 
 assert len(df_exp) == len(mp_data), f"{len(df_exp)=} != {len(mp_data)=}"
@@ -156,11 +159,11 @@ annotate_metrics(df_exp.n_exp, df_exp.n_petousis, loc="upper left")
 
 
 # %%
-n_points = len(df_exp[["diel_total_petousis", diel_exp_col]].dropna())
+n_points = len(df_exp[["diel_total_petousis", diel_total_exp_col]].dropna())
 
 fig = px.scatter(
     df_exp,
-    x=diel_exp_col,
+    x=diel_total_exp_col,
     y="diel_total_petousis",
     hover_data=[id_col, "formula", "n_petousis", "n_exp", "polycrystalline"],
     color="n_exp",
@@ -169,7 +172,7 @@ fig = px.scatter(
     log_x=(log_log := True),
     log_y=log_log,
     labels={
-        diel_exp_col: "Experimental Permittivity",
+        diel_total_exp_col: "Experimental Permittivity",
         "diel_total_petousis": "Petousis Permittivity",
         "n_exp": "refractive<br>index <i>n<i>",
     },
@@ -271,7 +274,7 @@ plt.savefig(f"{PAPER_FIGS}/exp-vs-us-vs-petousis-vs-mp-diel-total.pdf")
 
 # %%
 color_cols = {
-    diel_exp_col: "ε<sub>exp</sub>",
+    diel_total_exp_col: "ε<sub>exp</sub>",
     diel_total_us_col: "ε<sub>us</sub>",
     "diel_total_petousis": "ε<sub>Petousis</sub>",
     "diel_total_mp": "ε<sub>MP</sub>",
@@ -311,3 +314,36 @@ for idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1
             subset=col, cmap="viridis", axis=None, vmin=vmin[key], vmax=vmax[key]
         )
     df_to_pdf(styler, f"{PAPER_FIGS}/table-exp-data-{idx}.pdf")
+
+
+# %% calculate percentiles for our experimental results w.r.t.
+# Petousis 2016/17-collected experimental data
+us_exp = {
+    "CsTaTeO6": {diel_total_exp_col: 9.5, "bandgap_exp": 1.05, "bandgap_pbe": 2.09},
+    "Bi2Zr2O7": {diel_total_exp_col: 20.5, "bandgap_exp": 2.27, "bandgap_pbe": 3.05},
+}
+
+df_us_exp = pd.DataFrame(us_exp).T
+df_us_exp[fom_exp_col] = df_us_exp[diel_total_exp_col] * df_us_exp.bandgap_exp
+df_us_exp[fom_pbe_col] = df_us_exp[diel_total_exp_col] * df_us_exp.bandgap_pbe
+df_exp[fom_exp_col] = df_exp[diel_total_exp_col] * df_exp.bandgap_mp
+
+for formula in df_us_exp.index:
+    fom_exp, fom_pbe = df_us_exp.loc[formula, [fom_exp_col, fom_pbe_col]]
+    diel_total_exp = df_us_exp.loc[formula, diel_total_exp_col]
+
+    percentile_exp = scipy.stats.percentileofscore(df_exp[fom_exp_col], fom_exp)
+    print(f"{formula} {percentile_exp=:.0f}")
+
+    percentile_pbe = scipy.stats.percentileofscore(df_exp[fom_exp_col], fom_pbe)
+    print(f"{formula} {percentile_pbe=:.0f}")
+
+    percentile_diel = scipy.stats.percentileofscore(
+        df_exp[diel_total_exp_col], diel_total_exp
+    )
+    print(f"{formula} {percentile_diel=:.0f}")
+
+print(
+    f"\nrelative to {len(df_exp):,} Petousis-collected experimental data but using MP "
+    "\nbandgaps with exp. permittivities since exp. bandgaps unavailable!"
+)

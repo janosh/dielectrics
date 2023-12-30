@@ -263,7 +263,7 @@ def get_structures_from_task_db(
     struct = Structure.from_dict(dic["output"]["structure"])
 
     # if save_as is extension, generate filename from date + formula + material ID
-    if fmt not in ("cif", "poscar", "json"):
+    if fmt.lower() not in ("cif", "poscar", "json"):
         raise ValueError(f"{fmt=} is not a valid format")
 
     if save_dir is not None:
@@ -273,7 +273,7 @@ def get_structures_from_task_db(
         filename = (
             f"{datetime.now():%Y-%m-%d}-{formula}={material_id.replace(':', '-')}"
         )
-        filepath = f"{save_dir}/{filename}.{fmt}"
+        filepath = f"{save_dir}/{filename}.{fmt.lower()}"
         if os.path.isfile(filepath) and verbose:
             print(f"{filepath} already exists, not overwriting")
         else:

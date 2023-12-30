@@ -11,6 +11,7 @@ from dielectrics import (
     DATA_DIR,
     PAPER_FIGS,
     bandgap_mp_col,
+    bandgap_pbe_col,
     bandgap_us_col,
     diel_total_mp_col,
     diel_total_pbe_col,
@@ -44,7 +45,7 @@ df_petousis = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv").set_in
 df_petousis[fom_pbe_col] = (
     df_petousis[bandgap_mp_col] * df_petousis["diel_total_petousis"]
 )
-df_qz3[fom_pbe_col] = df_qz3["bandgap_pbe"] * df_qz3[diel_total_pbe_col]
+df_qz3[fom_pbe_col] = df_qz3[bandgap_pbe_col] * df_qz3[diel_total_pbe_col]
 
 
 # %%
@@ -54,7 +55,7 @@ assert all(df_us[diel_total_pbe_col] > 0), "negative dielectric, this shouldn't 
 
 
 # %%
-# plt.figure(figsize=(8, 5))
+plt.figure(figsize=(8, 5))
 mp_kde = False  # whether to plot a kernel density of MP dielectric training data
 names: list[str] = []
 if mp_kde:
@@ -81,7 +82,7 @@ for df, (name, label) in (
         ("us", f"{len(df_us):,} this work"),
     ),
     (  # for SI
-        df_qz3[[diel_total_pbe_col, "bandgap_pbe"]],
+        df_qz3[[diel_total_pbe_col, bandgap_pbe_col]],
         ("qu", f"{len(df_qz3):,} Qu et al. 2020"),
     ),
     (
@@ -118,7 +119,7 @@ if mp_kde:
 ax.add_artist(ax.legend(handles=handles, loc="upper right", frameon=False))
 
 ax.set_xlabel(r"$\epsilon_\text{total}$")
-ax.set_ylabel(r"$E_\text{gap,PBE}$ (eV)")
+ax.set_ylabel(r"$E_\text{gap\ PBE}$ (eV)")
 
 # ax.set(xlim=[0, xmax := 400], ylim=[0, ymax := 8])
 ax.set(xscale="log", yscale="log", xlim=(1, xmax := 1800), ylim=(0.3, ymax := 15))
@@ -161,7 +162,7 @@ for handle, text in zip(
     text.set_color(handle.get_color())
 
 
-save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}.pdf")
+save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}-matplotlib.pdf")
 
 
 # %%
@@ -192,72 +193,70 @@ for name, df in [
 
 
 # %% reproduce the above plot with plotly express
-fig = px.scatter(
-    df_mp,
-    x=diel_total_mp_col,
-    y=bandgap_mp_col,
-    marginal_x="histogram",
-    marginal_y="histogram",
-)
-fig.data[0].visible = False
-# make right marginal narrower
-fig.layout.xaxis1.update(matches=None, domain=[0, 0.84])
-fig.layout.xaxis2.update(matches=None, domain=[0.85, 1])
+col_map = {
+    "diel_total_petousis": diel_total_pbe_col,
+    bandgap_mp_col: bandgap_pbe_col,
+    bandgap_us_col: bandgap_pbe_col,
+}
+src_col = "Source"
 
-markers = ("circle", "diamond", "square", "x", "star")
-colors = sns.color_palette("tab10").as_hex()
-
+df_us[src_col] = f"{len(df_us):,} this work"
+df_qz3[src_col] = f"{len(df_qz3):,} Qu et al. 2020"
+df_petousis[src_col] = f"{len(df_petousis):,} Petousis et al. 2017"
 datasets = [
-    (df_us[[diel_total_pbe_col, bandgap_us_col]], f"{len(df_us):,} this work"),
-    (df_qz3[[diel_total_pbe_col, "bandgap_pbe"]], f"{len(df_qz3):,} Qu et al. 2020"),
-    (
-        df_petousis[["diel_total_petousis", bandgap_mp_col]],
-        f"{len(df_petousis):,} Petousis et al. 2017",
-    ),
+    df_us[[diel_total_pbe_col, bandgap_us_col, src_col]],
+    df_qz3[[diel_total_pbe_col, bandgap_pbe_col, src_col]],
+    df_petousis[["diel_total_petousis", bandgap_mp_col, src_col]],
 ]
-for idx, (df, label) in enumerate(datasets):
-    diel_col, gap_col = list(df)
-    fig.add_scatter(
-        x=df[diel_col],
-        y=df[gap_col],
-        mode="markers",
-        name=label,
-        marker=dict(symbol=markers[idx], color=colors[idx]),
-        opacity=0.8,
-    )
 
+fig = px.scatter(
+    pd.concat(df.rename(columns=col_map) for df in datasets),
+    x=diel_total_pbe_col,
+    y=bandgap_pbe_col,
+    color=src_col,
+    marginal_x="rug",
+    marginal_y="rug",
+    color_discrete_sequence=sns.color_palette("tab10").as_hex(),
+    log_x=True,
+    log_y=True,
+    symbol=src_col,  # change markers for each dataset
+    opacity=0.7,
+)
+
+# make marginals narrower
+fig.layout.xaxis1.update(domain=[0, 0.88])
+fig.layout.xaxis2.update(domain=[0.9, 1], range=(-0.8, 2))
+fig.layout.xaxis3.update(domain=[0, 0.88], mirror=False)
+fig.layout.yaxis1.update(domain=[0, 0.83])
+fig.layout.yaxis2.update(domain=[0, 0.83], mirror=False)
+fig.layout.yaxis3.update(domain=[0.86, 1], range=(-1, 2.5))
+
+# add FoM isolines
 xmax, ymax = 1000, 14
-fig.layout.xaxis.update(range=[-0.25, np.log10(xmax)], type="log")
-fig.layout.yaxis.update(range=[-2.2, np.log10(ymax)], type="log")
+fig.layout.xaxis.update(range=[-0.02, np.log10(xmax)])
+fig.layout.yaxis.update(range=[-2.1, np.log10(ymax)])
 x_range = np.logspace(np.log10(1), np.log10(xmax), 100)
 y_range = np.logspace(np.log10(0.015), np.log10(ymax), 100)
 xs, ys = np.meshgrid(x_range, y_range)
 zs = xs * ys
 
-# move labels to end of line
 for level in (30, 60, 120, 240):
+    contour_kwds = dict(coloring="lines", showlabels=True, labelfont=dict(size=16))
     fig.add_contour(
         x=x_range,
         y=y_range,
         z=zs,
         colorscale="Blues",
-        contours=dict(
-            start=level,
-            end=level,
-            coloring="lines",  # rather than "fill"
-            showlabels=True,
-            labelfont=dict(size=15),
-        ),
+        contours=dict(start=level, end=level, **contour_kwds),
         line=dict(dash="dash", width=2),
         showscale=False,
     )
 
-fig.update_layout(
-    # xaxis2_type="log", # make right marginal y-axis log-scaled
-    # yaxis3_type="log",  # make top marginal y-axis log-scaled
+fig.layout.legend.update(
+    x=0, y=0, title=None, itemsizing="constant", bgcolor="rgba(255,255,255,0.5)"
 )
-fig.layout.legend.update(x=0, y=0)
 fig.layout.margin.update(l=0, r=0, t=0, b=0)
 
 fig.show()
-save_fig(fig, f"{PAPER_FIGS}/pareto-us-vs-petousis-vs-qu-plotly.pdf")
+img_path = f"{PAPER_FIGS}/pareto-us-vs-petousis-vs-qu-plotly.pdf"
+save_fig(fig, img_path, width=550, height=350)

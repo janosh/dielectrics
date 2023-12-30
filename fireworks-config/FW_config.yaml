@@ -1,4 +1,4 @@
-# Uncomment ECHO_TEST to verify that LaunchPad (lpad) finds this file.
+# use ECHO_TEST to verify that LaunchPad (lpad) finds this file.
 # https://atomate.org/installation.html#troubleshooting-and-faq
 ECHO_TEST: lpad found /Users/janosh/dev/dielectrics/FW_config.yaml
 
