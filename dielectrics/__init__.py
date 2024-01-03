@@ -65,7 +65,7 @@ structure_col = "structure"
 
 small_font = "font-size: 0.9em; font-weight: lighter;"
 ev_per_atom = styled_html_tag("(eV/atom)", tag="span", style=small_font)
-eV = styled_html_tag("(eV)", tag="span", style=small_font)
+eV = styled_html_tag("(eV)", tag="span", style=small_font)  # noqa: N816
 
 px.defaults.labels = {
     bandgap_hse_col: f"E<sub>gap HSE</sub> {eV}",

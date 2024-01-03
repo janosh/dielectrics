@@ -256,7 +256,7 @@ fig.layout.margin.update(l=30, r=30, t=30, b=30)
 fig.layout.legend.update(x=1, y=1, xanchor="right")
 
 
-def rgb_color(val: float, max: float) -> str:
+def rgb_color(val: float, max: float) -> str:  # noqa: A002
     """Convert a value between 0 and max to a color between red and blue."""
     return f"rgb({255 * val / max:.1f}, 0, {255 * (max - val) / max:.1f})"
 

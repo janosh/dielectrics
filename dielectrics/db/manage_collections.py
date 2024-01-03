@@ -132,7 +132,7 @@ df_fws.material_id = [
     for mat_id, el_repl in zip(df_fws.material_id, elem_replacements, strict=True)
 ]
 
-for _id, mat_id in zip(df_fws._id, df_fws.material_id, strict=True):
+for _id, mat_id in zip(df_fws["_id"], df_fws.material_id, strict=True):
     print(f"{_id=}, {mat_id=}")
     res = db.tasks.update_one(
         {"_id": _id}, {"$set": {"material_id": mat_id}}

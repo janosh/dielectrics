@@ -85,7 +85,8 @@ for icsd_id in tqdm(df_yim.index):
 
 df_yim[structure_col] = pd.Series(structs)
 df_yim[formula_col] = [
-    struct.formula if struct else None for struct in df_yim.structure.fillna(False)
+    struct.formula if struct else None
+    for struct in df_yim.structure.fillna(value=False)
 ]
 
 print(f"{df_yim.isna().sum()=}")

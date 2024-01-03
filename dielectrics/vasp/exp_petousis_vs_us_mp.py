@@ -138,9 +138,10 @@ ptable_heatmap_plotly(
 
 
 # %%
+ax: plt.Axes
 ax = df_exp.plot.scatter(x="n_exp", y="n_petousis", s=40, backend="matplotlib")
 
-ax.autoscale(False)
+ax.autoscale(enable=False)
 ax.axline([0, 0], slope=1, color="black", ls="dashed", alpha=0.5, zorder=0, lw=2)
 ax.axline([0, 0], slope=1.25, color="red", ls="dotted", alpha=0.5, zorder=0, lw=2)
 ax.axline([0, 0], slope=0.75, color="red", ls="dotted", alpha=0.5, zorder=0, lw=2)
@@ -212,7 +213,6 @@ fig.suptitle(super_title, y=1.15)
 outlier_tresh = 0.5  # 50%
 lb, ub = 1 - outlier_tresh, 1 + outlier_tresh  # lower and upper bounds
 
-
 for ax, (src1, src2) in zip(axs.flat, xy_pairs, strict=True):
     col_name1, col_name2 = f"diel_total_{src1}", f"diel_total_{src2}"
     col1, col2 = df_exp[col_name1], df_exp[col_name2]
@@ -256,7 +256,7 @@ for ax, (src1, src2) in zip(axs.flat, xy_pairs, strict=True):
         annos.append(anno)
     adjust_text(annos, ax=ax, arrowprops=dict(arrowstyle="-", color="black", lw=0.5))
 
-    ax.autoscale(False)
+    ax.autoscale(enable=False)
     ax.axline([0, 0], [1, 1], c="black", ls="dashed", alpha=0.5, zorder=0)
     ax.fill_between([0, 1e4], [0, lb * 1e4], [0, ub * 1e4], color="purple", alpha=0.1)
 

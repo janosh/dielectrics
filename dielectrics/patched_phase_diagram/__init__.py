@@ -27,4 +27,4 @@ def load_ppd(path: str) -> PatchedPhaseDiagram:
     ```
     """
     with gzip.open(f"{MODULE_DIR}/{path}", "rb") as file:
-        return pickle.load(file)
+        return pickle.load(file)  # noqa: S301

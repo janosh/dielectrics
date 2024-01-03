@@ -67,7 +67,7 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
     rolling_diel_err = (
         df_plot[diel_rolling_error_col].dropna().rolling(window=window).mean()
     )
-    # add rolling MAE of Wren dielectric constant into same plot (top x and right y axis)
+    # add rolling MAE of Wren dielectric const into same plot (top x and right y axis)
     fig.add_scatter(
         x=rolling_diel_err.index,
         y=rolling_diel_err,

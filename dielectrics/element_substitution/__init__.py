@@ -41,7 +41,7 @@ def load_icsd_trans_mat() -> NDArray[np.float32]:
     with open(
         f"{DATA_DIR}/element-substitution/rhys-icsd-elem-count-matrix.pkl", "rb"
     ) as icsd_data:
-        trans_mats = pickle.load(icsd_data)
+        trans_mats = pickle.load(icsd_data)  # noqa: S301
 
     # combine per-spacegroup transition matrices to get an overall transition matrix
     trans_mat = np.sum([mat for mat in trans_mats.values() if len(mat) > 0], axis=0)
@@ -101,7 +101,7 @@ def replace_similar_elem(
 
     while True:
         # Z_orig - 1 for 0-indexing
-        z_new = np.random.choice(atomic_nums, p=transition_matrix[z_orig - 1])
+        z_new = np.random.choice(atomic_nums, p=transition_matrix[z_orig - 1])  # noqa: NPY002
 
         # avoid swapping an element for itself
         if z_new not in elem_list:

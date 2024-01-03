@@ -28,7 +28,7 @@ from dielectrics import (
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
-def rgb_color(val: float, max: float) -> str:
+def rgb_color(val: float, max: float) -> str:  # noqa: A002
     """Convert a value between 0 and max to a color between red and blue."""
     return f"rgb({255 * val / max:.1f}, 0, {255 * (max - val) / max:.1f})"
 
@@ -102,7 +102,8 @@ for cry_sys, df_group in df_us.groupby(crystal_sys_col):
 fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=list(x_ticks.values()))
 
 fig.show()
-# save_fig(fig, f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin.pdf", width=900, height=400)
+img_path = f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin.pdf"
+# save_fig(fig, img_path, width=900, height=400)
 
 
 # %%

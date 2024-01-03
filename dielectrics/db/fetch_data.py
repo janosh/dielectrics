@@ -105,7 +105,7 @@ DEFAULT_FIELDS = (
 
 def df_diel_from_task_coll(
     query: dict[str, Any] | Sequence[str],
-    fields: list[str] = DEFAULT_FIELDS,
+    fields: Sequence[str] = DEFAULT_FIELDS,
     col_suffix: str = "_pbe",
     max_diel_total: int = 1000,
     cache: bool = True,
@@ -187,7 +187,7 @@ def df_diel_from_task_coll(
     except KeyError:  # columns are missing
         pass
 
-    df["_id"] = df._id.astype(str)
+    df["_id"] = df["_id"].astype(str)
 
     diel_elec = df[f"diel_elec{suffix}"] = df.epsilon_static.map(diel_tensor_to_const)
 

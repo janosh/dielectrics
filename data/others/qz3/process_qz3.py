@@ -55,7 +55,7 @@ df.hist(bins=100, figsize=(14, 10))
 ppd_path = f"{PKG_DIR}/patched_phase_diagram/2022-01-25-ppd-mp+wbm.pkl.gz"
 
 with gzip.open(ppd_path, "rb") as file:
-    ppd_mp_wbm: PatchedPhaseDiagram = pickle.load(file)
+    ppd_mp_wbm: PatchedPhaseDiagram = pickle.load(file)  # noqa: S301
 
 
 compositions = df.formula.map(Composition)

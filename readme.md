@@ -1,6 +1,12 @@
 # ML-Guided Dielectric Materials Discovery
 
-Developing novel materials with high dielectric constant and low current leakage is required for further miniaturization and optimization of modern electronics. Previous searches for high-$\kappa$ dielectrics tended to be limited to known materials. We chart an extensive search for new dielectrics across unknown material space by combining coarse-grained symmetry features of crystal structures with message-passing neural networks to predict stability as well as material properties. We ran over 2,000 DFPT calculations to verify our model predictions from which we selected xxx candidates for synthesis. xxx were selected for experimental synthesis and xxx confirmed as high-$\kappa$ dielectrics amenable to electronics applications. We believe our approach is transferable to other material properties and brings us a step closer to rational design of functional materials by combining machine learning, ab-initio simulation and experimental synthesis.
+This repo implements a dielectric materials discovery workflow that integrates ML as the first filter in a multi-step funnel.
+We use surrogate models for band gaps, dielectric constants, and formation energies.
+Instead of exact Cartesian coordinates, we use Wyckoff positions as ML inputs for a coordinate-free, coarse-grained crystal structure representation.
+This enables rapid generation, stability prediction and property screening of novel structures through elemental substitutions.
+Following DFPT validation of the most promising candidates, the last selection step is an expert committee to incorporate human intuition when weighing the risks, precursor availability and ease of experimental synthesis of high-expected-reward materials.
+We validate the workflow by feeding it 135k generated structures as well as Materials Project and WBM materials which are ML-screened down to 2.7k DFPT calculations.
+Our deployment culminated in making and characterizing two new metastable materials in the process: CsTaTeO<sub>6</sub> and Bi<sub>2</sub>Zr<sub>2</sub>O<sub>7</sub> which partially and fully satisfy our target metrics, respectively.
 
 ## Interactive Pareto Front Plot
 
@@ -8,7 +14,7 @@ Developing novel materials with high dielectric constant and low current leakage
 
 ## Database Access
 
-The read-only credentials for our MongoDB Atlas M2 instance are:
+Read-only credentials for MongoDB Atlas M2 instance holding 2.7k DFPT results:
 
 ```yml
 host: mongodb+srv://atomate-cluster.q8s9p.mongodb.net

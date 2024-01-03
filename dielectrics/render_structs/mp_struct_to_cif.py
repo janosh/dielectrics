@@ -89,4 +89,4 @@ for png in to_be_cropped:
     cmd = (
         f"convert {png} -gravity Center -crop 1200x1200+0+0 +repage cropped/{png_base}"
     )
-    subprocess.run(cmd.split())  # noqa: PLW1510
+    subprocess.run(cmd.split())  # noqa: PLW1510, S603

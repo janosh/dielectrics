@@ -212,7 +212,7 @@ for material in materials:
 
     arrow_kwds = dict(arrowhead=4, arrowsize=0.6, arrowwidth=1.5)
     if material == "CsTaTeO6-Fd3m":
-        df_Ta2O5 = pd.read_csv(
+        df_Ta2O5 = pd.read_csv(  # noqa: N816
             f"{DATA_DIR}/experiment/CsTaTeO6-Ta2O5-xrd-ticks.txt", **kwds
         )
         fig_xrd.add_scatter(  # Ta2O5 peaks

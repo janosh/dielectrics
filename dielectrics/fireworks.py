@@ -62,7 +62,7 @@ def du(paths: list[str]) -> str:
     """Disk usage in human readable format (e.g. '2,1GB')."""
     if not paths:
         return ""
-    return subprocess.check_output(["du", "-sh", *paths]).split()[0].decode("utf-8")
+    return subprocess.check_output(["du", "-sh", *paths]).split()[0].decode("utf-8")  # noqa: S603
 
 
 def ldir_is_recent(ldir: str, n_days: int) -> bool:

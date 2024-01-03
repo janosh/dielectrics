@@ -1,4 +1,6 @@
 # ruff: noqa: PLW0602 Using global but no assignment is done
+
+
 # %%
 from __future__ import annotations
 
@@ -442,8 +444,8 @@ for xs, ys, clr, txt in [
     fig.add_annotation(
         text=f"<b>{txt}</b>",
         font=dict(color=clr, size=15),
-        x=sum(xs) / 2,  # type: ignore
-        y=sum(ys) / 2,  # type: ignore
+        x=sum(xs) / 2,  # type: ignore[arg-type]
+        y=sum(ys) / 2,  # type: ignore[arg-type]
         showarrow=False,
     )
 
@@ -556,7 +558,8 @@ def fetch_notes(click_data: dict[str, list[dict[str, Any]]]) -> tuple[str, str, 
     Input(status_dd, "value"),
 )
 def update_notes(
-    n_clicks: int,  # unused but needed so the callback triggers on button click
+    # n_clicks unused but needed so the callback triggers on button click
+    n_clicks: int,  # noqa: ARG001
     notes: str,
     click_data: dict[str, list[dict[str, Any]]],
     status_value: str = "",
