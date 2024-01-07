@@ -1,4 +1,4 @@
-frequency (Hz),real permittivity,imaginary permittivity,loss tangent
+Frequency (Hz),Real Permittivity,Dielectric Loss tan(δ),Imaginary Permittivity
 2.00E+01,2.29E+03,1.71E+00,3.92E+03
 2.12E+01,2.21E+03,1.70E+00,3.77E+03
 2.24E+01,2.14E+03,1.69E+00,3.61E+03

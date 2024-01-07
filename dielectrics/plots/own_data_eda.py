@@ -40,7 +40,7 @@ df_us = df_us.rename(columns={"spacegroup.crystal_system": crystal_sys_col})
 
 # filter out rows with diel_elec > 100 since those seem untrustworthy
 # in particular wbm-4-26188 with eps_elec = 515 and mp-865145 with eps_elec = 809
-# (see table-fom-pbe>350.pdf)
+# (see table-fom-pbe-gt-350.pdf)
 df_us = df_us.query(f"{diel_elec_pbe_col} < 100")
 df_us = df_us[~df_us.index.duplicated()]
 
@@ -270,7 +270,7 @@ print(f"Number of materials with FoM > {fom_tresh} eV: {len(df_high_fom)}")
 latex_table = df_high_fom.rename(columns=tex_col_names | col_name_map).to_latex(
     index=False, escape=False, float_format="%.2f"
 )
-# with open(f"{PAPER_FIGS}/table-fom-pbe>{fom_tresh}.tex", "w") as file:
+# with open(f"{PAPER_FIGS}/table-fom-pbe-gt-{fom_tresh}.tex", "w") as file:
 #     file.write(latex_table)
 
 
@@ -300,8 +300,8 @@ styler = (
     )
 )
 
-df_to_pdf(styler, f"{PAPER_FIGS}/table-fom-pbe>{fom_tresh}.pdf", size="100cm")
-df_high_fom.to_csv(f"{DATA_DIR}/our-data-with-fom-pbe>{fom_tresh}.csv", index=False)
+df_to_pdf(styler, f"{PAPER_FIGS}/table-fom-pbe-gt-{fom_tresh}.pdf", size="100cm")
+df_high_fom.to_csv(f"{DATA_DIR}/our-data-with-fom-pbe-gt-{fom_tresh}.csv", index=False)
 styler.set_caption(f"Table of materials with 𝚽<sub>M</sub> > {fom_tresh} eV")
 
 

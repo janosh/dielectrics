@@ -395,7 +395,7 @@ fig.add_contour(
         showlabels=True,
         labelfont=dict(size=12, color="gray"),
         start=100,
-        end=3000,
+        end=800,
         size=200,
     ),
     showscale=False,  # remove color bar
@@ -411,8 +411,7 @@ bgcolor = "rgba(255, 255, 255, 0.8)"  # dark: rgba(0, 0, 0, 0.4)
 fig.layout.legend = dict(
     x=1, y=1, xanchor="right", yanchor="top", bgcolor=bgcolor, groupclick="toggleitem"
 )
-fig.layout.height = 1200
-fig.layout.width = 1200
+fig.layout.update(height=900, width=1200)
 fig.layout.title = (
     f"<b>Pareto Front of Dielectric Constant and Band Gap</b> - data as of {today}"
 )

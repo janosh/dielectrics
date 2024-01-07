@@ -4,14 +4,7 @@ import plotly.express as px
 from pymatgen.util.string import htmlify
 from pymatviz.io import save_fig
 
-from dielectrics import (
-    DATA_DIR,
-    PAPER_FIGS,
-    energy_col,
-    fr_min_e_col,
-    freq_col,
-    imped_col,
-)
+from dielectrics import DATA_DIR, PAPER_FIGS, energy_col, fr_min_e_col, freq_col
 
 
 px.defaults.labels |= {freq_col: "Frequency (Hz)", fr_min_e_col: r"$\sqrt{F(R)-E}$"}
@@ -21,16 +14,11 @@ formulas = tuple(map(htmlify, formulas_plain))
 
 
 # %% Impedance plot
-df_impedance = pd.read_csv(f"{DATA_DIR}/experiment/Bi2Zr2O7-impedance.csv", header=1)
+bzo_impedance_csv = f"{DATA_DIR}/experiment/Bi2Zr2O7-impedance.csv"
+df_impedance = pd.read_csv(bzo_impedance_csv).set_index(freq_col)
 
 fig_impedance = px.line(
-    df_impedance,
-    x=freq_col,
-    y=["real impedance", "imaginary impedance"],
-    labels={"value": imped_col},
-    log_y=True,
-    width=360,
-    height=240,
+    df_impedance, y=list(df_impedance), log_y=True, width=360, height=240
 )
 fig_impedance.layout.margin.update(l=0, r=0, b=0, t=0)
 fig_impedance.layout.legend.update(title=None, x=1, y=1, xanchor="right", yanchor="top")
@@ -43,13 +31,14 @@ df_tauc = pd.read_csv(
 )
 e_gap_exp = dict(Bi2Zr2O7=2.27, CsTaTeO6=1.05)
 df_tauc = df_tauc.rename(
-    columns=lambda col: f"{col}<br>E<sub>gap</sub> = {e_gap_exp[col]} eV", level=0
+    columns=lambda col: f"{htmlify(col)}<br>E<sub>gap</sub> = {e_gap_exp[col]} eV",
+    level=0,
 )
 
 df_tauc = df_tauc.filter(like=fr_min_e_col).droplevel(1, axis=1)
 df_tauc.index.name = energy_col
 
-fig_tauc = px.line(df_tauc, width=360, height=240)
+fig_tauc = px.line(df_tauc, width=380, height=250)
 
 y_max = 4.5  # df_tauc.max().max()
 if auto_slopes := False:
@@ -117,7 +106,7 @@ wave_len_col = "Wavelength (nm)"
 df_refl = df_refl.set_index(wave_len_col).drop(columns=f"{wave_len_col}.1")
 df_refl.columns = formulas
 
-fig_refl = px.line(df_refl, width=360, height=240)
+fig_refl = px.line(df_refl, width=380, height=250)
 # fig_refl = px.line(df_refl, width=360, height=240, range_x=[None, 1200])
 fig_refl.layout.margin.update(l=0, r=0, b=0, t=0)
 fig_refl.layout.legend.update(title=None, x=1, y=0, xanchor="right")
@@ -130,61 +119,85 @@ save_fig(fig_refl, f"{PAPER_FIGS}/exp-diffuse-reflectance.pdf")
 # similar data as in https://doi.org/10.1021/acs.inorgchem.8b02258 fig. 5d and 6e except
 # only at room temperature since the material is unstable at higher temperatures
 # Also, the permittivity e' values in fig 6e dont make any sense for that publications
-# formula = "CsTaTeO6"
-formula = "Bi2Zr2O7"
-df_de = pd.read_csv(f"{DATA_DIR}/experiment/{formula}-diel-vs-freq.csv").set_index(
-    freq_col
-)
-df_de.columns = df_de.columns.str.title()
-fig_diel = px.line(df_de.filter(like="Permittivity"), log_x=True, width=360, height=215)
-loss_col = "Loss Tangent"
-# add loss tangent column on secondary y-axis
-fig_diel.add_scatter(
-    x=df_de.index,
-    y=df_de[loss_col],
-    name=loss_col,
-    yaxis="y2",
-    line=dict(color="darkorange", dash="dot"),
-)
-fig_diel.layout.yaxis1 = dict(title="Permittivity", tickformat="1s")
-fig_diel.layout.yaxis2 = dict(
-    title=loss_col,
-    overlaying="y",
-    side="right",
-    rangemode="tozero",
-    showgrid=False,
-    color="darkorange",
-    range=[0, 0.4] if formula == "Bi2Zr2O7" else None,
-    title_standoff=10,
-    # use 1k, 1.5k instead of 1000, 1500
-    tickformat="1s" if formula == "CsTaTeO6" else None,
-)
+for formula in formulas_plain:
+    csv_path = f"{DATA_DIR}/experiment/{formula}-diel-vs-freq.csv"
+    df_diel = pd.read_csv(csv_path).set_index(freq_col)
 
-fig_diel.add_annotation(
-    x=0.5,
-    y=0.4,
-    text=htmlify(formula),
-    showarrow=False,
-    font=dict(size=15),
-    xref="paper",
-    yref="paper",
-)
+    blue, red, *_ = px.colors.qualitative.Plotly
+    fig_diel = px.line(
+        df_diel.filter(like="Permittivity"),
+        log_x=True,
+        width=380,
+        height=220,
+        color_discrete_sequence=(blue, "darkblue")
+        if formula == "Bi2Zr2O7"
+        else (red, "darkred"),
+    )
+    loss_col = "Dielectric Loss tan(δ)"
+    # add loss tangent column on secondary y-axis
+    fig_diel.add_scatter(
+        x=df_diel.index,
+        y=df_diel[loss_col],
+        name=loss_col,
+        yaxis="y2",
+        line=dict(color="darkorange", dash="dot"),
+        showlegend=False,
+    )
+    x_title = "Dielectric Constant ε<sub>rel</sub>"
+    fig_diel.layout.yaxis1.update(title=x_title, tickformat="1s")
+    fig_diel.layout.yaxis2 = dict(
+        title=loss_col,
+        overlaying="y",
+        side="right",
+        rangemode="tozero",
+        showgrid=False,
+        color="darkorange",
+        # range=[0, 0.4] if formula == "Bi2Zr2O7" else None,
+        title_standoff=9,
+    )
 
-fig_diel.layout.margin.update(l=0, r=0, b=0, t=0)
-fig_diel.layout.legend.update(
-    title=None, x=1, y=1, xanchor="right", bgcolor="rgba(0,0,0,0)"
-)
-fig_diel.show()
-if formula == "Bi2Zr2O7":
-    # hide legend
-    fig_diel.update_layout(showlegend=False)
-save_fig(fig_diel, f"{PAPER_FIGS}/exp-{formula}-dielectric-real-imaginary-loss.pdf")
+    fig_diel.add_annotation(
+        x=0.5,
+        y=0.4,
+        text=htmlify(formula),
+        showarrow=False,
+        font=dict(size=15),
+        xref="paper",
+        yref="paper",
+    )
+
+    fig_diel.layout.margin.update(l=0, r=0, b=0, t=0)
+    fig_diel.layout.legend.update(
+        title=None, x=1, y=1, xanchor="right", bgcolor="rgba(0,0,0,0)"
+    )
+
+    fig_diel.show()
+    # hide legend since figures will be shown side-by-side
+    # fig_diel.update_layout(showlegend=formula == "Bi2Zr2O7")
+    img_name = f"exp-{formula}-diel-real-imag-loss-vs-freq"
+    save_fig(fig_diel, f"{PAPER_FIGS}/{img_name}.pdf")
+
+    # save inset for CsTaTeO6 plot at 1MHz
+    if formula == "CsTaTeO6":
+        y1_max = df_diel.filter(like="Permittivity").loc[1e6].max().max()
+        fig_diel.layout.xaxis.update(  # hide title, only 3 x-axis tick labels
+            range=(5.88, 6.1), title="", tickvals=(0.8e6, 1e6, 1.2e6)
+        )
+        fig_diel.layout.yaxis1.update(range=(0, 1.4 * y1_max), title="")
+        fig_diel.update_layout(showlegend=False, font_size=22)
+        fig_diel.layout.annotations = []  # remove formula annotation
+        fig_diel.update_traces(line=dict(width=6))  # increase line width
+        fig_diel.layout.paper_bgcolor = "rgba(0,0,0,0)"  # has no effect on pdf
+        fig_diel.data = fig_diel.data[:-1]  # remove diel loss tangent from inset
+
+        fig_diel.show()
+        save_fig(fig_diel, f"{PAPER_FIGS}/{img_name}-inset.png")
 
 
 # %% Rietveld XRD fits for Zr2Bi2O7 Fm3m (227) and CsTaTeO6 Fd3m
 for material in materials:
-    theta_col = "Q"
-    header_cols = [theta_col, "Observed", "Fit", "Difference"]
+    x_col = "Q (Å⁻¹)"
+    header_cols = [x_col, "Observed", "Fit", "Difference"]
 
     kwds = dict(sep=r"\s+", header=None, names=header_cols)
     df_rietveld = pd.read_csv(
@@ -194,16 +207,14 @@ for material in materials:
         f"{DATA_DIR}/experiment/{material}-rietveld-ticks.txt", **kwds
     )
 
-    fig_xrd = px.line(
-        df_rietveld, x=theta_col, y=header_cols[1:], width=360, height=240
-    )
+    fig_xrd = px.line(df_rietveld, x=x_col, y=header_cols[1:], width=360, height=240)
 
     # start x-axis at 0
     # fig_xrd.update_xaxes(range=[0, df_rietveld[theta_col].max()])
 
     # Add the ticks for hkl reflections
     fig_xrd.add_scatter(
-        x=rietveld_ticks[theta_col],
+        x=rietveld_ticks[x_col],
         y=[-400] * len(rietveld_ticks),
         mode="markers",
         name=htmlify(material),
@@ -216,7 +227,7 @@ for material in materials:
             f"{DATA_DIR}/experiment/CsTaTeO6-Ta2O5-xrd-ticks.txt", **kwds
         )
         fig_xrd.add_scatter(  # Ta2O5 peaks
-            x=df_Ta2O5[theta_col],
+            x=df_Ta2O5[x_col],
             y=[-800] * len(df_Ta2O5),
             mode="markers",
             name=htmlify("Ta2O5"),

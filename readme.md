@@ -10,6 +10,8 @@ Our deployment culminated in making and characterizing two new metastable materi
 
 ## Interactive Pareto Front Plot
 
+The most interesting materials in our dataset are viewable in an interactive Plotly scatter plot at
+
 <https://janosh.github.io/dielectrics>
 
 ## Database Access
@@ -25,7 +27,7 @@ readonly_user: readonly
 readonly_password: kHsBcWwTb4
 ```
 
-As an example, Python code using `pymongo` to get all materials with $\fom > 200$ and $E_\text{hull-dist} < \SI{0.05}{eV}$ would be:
+Example Python code using `pymongo` to filter our 2.7k DFPT results for all materials with figure or merit $\Phi_\text{M} > 200$ (defined as $\Phi_\text{M} = E_\text{gap} \cdot \epsilon_\text{total}$) and $E_\text{hull-dist} < 0.05\ \text{eV}$:
 
 ```py
 from pymongo import MongoClient
@@ -38,5 +40,3 @@ close_to_hull_high_fom = db.tasks.find({
   "fom_pbe": {"$gt": 200},
 })
 ```
-
-The most interesting materials in our dataset are also viewable in the interactive Plotly scatter plot at <https://janosh.github.io/dielectrics>.

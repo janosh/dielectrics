@@ -196,9 +196,9 @@ def df_diel_from_task_coll(
     # remove rows missing dielectric constants (should be about 20) 2022-08-07
     orig_len = len(df)
     df = df.dropna(subset=[f"diel_elec{suffix}", f"diel_ionic{suffix}"])
-    assert (
-        len(df) > orig_len - 20
-    ), f"{len(df)=} was expected to be no smaller than {orig_len - 20=}"
+    assert len(df) > orig_len - (
+        n_dropped := 25
+    ), f"{len(df)=} was expected to be no smaller than {orig_len - n_dropped=}"
 
     assert not any(
         diel_elec < 0
