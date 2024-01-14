@@ -94,7 +94,7 @@ def get_mp_link(data: str, text: str | None = None) -> str:
     return f"<a {href=} {style=}>{text or 'x'}</a>"
 
 
-def create_text_col(df: pd.DataFrame, annotate_min_fom: float = 150) -> list[str]:
+def create_text_col(df: pd.DataFrame, annotate_min_fom: float = None) -> list[str]:
     """Insert a 'text' column into df with the materials's formula which when clicked
     links to its Materials Project details page if an MP ID is available.
 
@@ -112,7 +112,7 @@ def create_text_col(df: pd.DataFrame, annotate_min_fom: float = 150) -> list[str
         raise ValueError(f"None of {fom_cols} found in df") from None
     # only show formula as link text if material's FoM is > annotate_min_fom, else
     # scatter point will be clickable but without text
-    text_col = df.formula.where(df[fom_col] > annotate_min_fom, None)
+    text_col = df.formula.where(df[fom_col] > (annotate_min_fom or 300), None)
     mat_id_col = df.material_id.where(
         df.material_id.str.startswith(("mp-", "mvc-")), df.formula
     )
@@ -135,7 +135,7 @@ def scatter(
     MP detail pages where MP IDs are available.
     Can be used on its own but mostly called by scatter_with_quiver().
     """
-    df["text"] = create_text_col(df, kwargs.pop("annotate_min_fom", 150))
+    df["text"] = create_text_col(df, kwargs.pop("annotate_min_fom", None))
 
     # drop cols with > 90% missing data
     df = df.dropna(thresh=0.1 * len(df), axis=1)
@@ -247,6 +247,7 @@ fig.add_histogram2dcontour(
     colorscale=[[0, "rgba(0, 0, 0, 0)"], [1, "red"]],
     showscale=False,
     hoverinfo="skip",
+    visible="legendonly",
 )
 
 
@@ -407,9 +408,8 @@ fig.update_yaxes(range=[0, 7], mirror=True, showline=True)
 
 
 fig.layout.margin = dict(l=80, r=30, t=80, b=60)
-bgcolor = "rgba(255, 255, 255, 0.8)"  # dark: rgba(0, 0, 0, 0.4)
 fig.layout.legend = dict(
-    x=1, y=1, xanchor="right", yanchor="top", bgcolor=bgcolor, groupclick="toggleitem"
+    x=1, y=1, xanchor="right", yanchor="top", groupclick="toggleitem"
 )
 fig.layout.update(height=900, width=1200)
 fig.layout.title = (
@@ -425,7 +425,14 @@ legend_toggle = dict(
     method="relayout",
 )
 fig.layout.updatemenus = [
-    dict(type="buttons", buttons=[legend_toggle], showactive=True)
+    dict(
+        type="buttons",
+        buttons=[legend_toggle],
+        showactive=True,
+        x=1,
+        y=1,
+        yanchor="bottom",
+    )
 ]
 
 # draw ellipses indicating regions of desirable material properties for widely used
@@ -454,8 +461,12 @@ fig.write_html(f"{module_dir}/pareto-plotly.html", include_plotlyjs="cdn")
 fig.show()
 
 
-# %%
-app = Dash(prevent_initial_callbacks=True, assets_folder=CTK_SETTINGS.ASSETS_PATH)
+# %% Dash app to display structure and notes for selected material next to Pareto plot
+app = Dash(
+    prevent_initial_callbacks=True,
+    assets_folder=CTK_SETTINGS.ASSETS_PATH,
+    # external_stylesheets=[f"{module_dir}/static.css"],
+)
 app.title = "Dielectric Pareto Front"  # browser tab title
 
 graph = dcc.Graph(
@@ -507,6 +518,14 @@ structure_component = ctc.StructureMoleculeComponent(id="structure")
 side_components_style = dict(
     display="flex", flexDirection="column", gap="1em", alignItems="center"
 )
+global_styles = dict(
+    display="flex",
+    justifyContent="center",
+    alignItems="center",
+    gap="1em",
+    margin="0 2em 2em",
+)
+
 main_layout = html.Main(
     [
         html.Div([control_div, textarea], style=side_components_style),
@@ -516,13 +535,7 @@ main_layout = html.Main(
             style=side_components_style,
         ),
     ],
-    style=dict(
-        display="flex",
-        justifyContent="center",
-        alignItems="center",
-        gap="1em",
-        margin="0 2em 2em",
-    ),
+    style=global_styles,
 )
 
 app.layout = html.Div([h1, main_layout])
