@@ -31,7 +31,7 @@ print(f"materials matching filters: {len(mp_data):,}")
 
 
 # %%
-# df_dos = pd.DataFrame(mp_data).set_index(id_col)
+# df_dos = pd.DataFrame(mp_data).set_index(Keys.mat_id)
 
 # df_dos.round(4).to_csv("data/mp-doses.csv")
 

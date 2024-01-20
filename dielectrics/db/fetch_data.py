@@ -9,15 +9,7 @@ from numpy.linalg import LinAlgError
 from numpy.typing import NDArray
 from pymatgen.core import Structure
 
-from dielectrics import (
-    DATA_DIR,
-    ROOT,
-    bandgap_us_col,
-    date_col,
-    formula_col,
-    structure_col,
-    symmetry_col,
-)
+from dielectrics import DATA_DIR, ROOT, Key
 from dielectrics.db import db
 
 
@@ -73,21 +65,21 @@ REQUIRED_FIELDS = (
 )
 
 DEFAULT_FIELDS = (
-    "bandgap_pbe",
-    "bandgap_wren",
-    "diel_elec_wren",
-    "diel_ionic_wren",
-    "diel_total_wren",
-    "e_above_hull_mp",
-    "e_above_hull_pbe",
-    "e_above_hull_wren",
+    Key.bandgap_pbe,
+    Key.bandgap_wren,
+    Key.diel_elec_wren,
+    Key.diel_ionic_wren,
+    Key.diel_total_wren,
+    Key.e_above_hull_mp,
+    Key.e_above_hull_pbe,
+    Key.e_above_hull_wren,
     "e_form_wren",
     "elements",
     "fom_wren_rank",
     "fom_wren_std_adj_rank",
     "fom_wren_std_adj",
-    "fom_wren",
-    "formula",
+    Key.fom_wren,
+    Key.formula,
     "nelements",
     "nsites",
     "orig_formula",
@@ -99,7 +91,7 @@ DEFAULT_FIELDS = (
     "task_id",
     "vbm",
     "which_hull",
-    "wyckoff",
+    Key.wyckoff,
 )
 
 
@@ -153,8 +145,8 @@ def df_diel_from_task_coll(
             "data from DB."
         )
         df_from_cache = pd.read_json(json_path).set_index("material_id", drop=False)
-        if date_col in df_from_cache:
-            df_from_cache[date_col] = df_from_cache[date_col].astype(str)
+        if Key.date in df_from_cache:
+            df_from_cache[Key.date] = df_from_cache[Key.date].astype(str)
         return df_from_cache
 
     data = list(db.tasks.find(query, (*fields, *REQUIRED_FIELDS)))
@@ -162,22 +154,22 @@ def df_diel_from_task_coll(
     if len(data) == 0:
         raise ValueError(f"{query=} matched 0 docs in '{db.tasks.name}' collection")
 
-    df = pd.DataFrame(data).rename(columns={"formula_pretty": formula_col})
+    df = pd.DataFrame(data).rename(columns={"formula_pretty": Key.formula})
 
     output_series = df.pop("output")
     try:
-        df[structure_col] = output_series.map(
+        df[Key.structure] = output_series.map(
             lambda x: Structure.from_dict(x.pop("structure"))
         )
     except KeyError:  # no structure key in output dict
         pass
     df_output = pd.json_normalize(output_series).rename(
-        columns={"bandgap": bandgap_us_col}
+        columns={"bandgap": Key.bandgap_us}
     )
     df[list(df_output)] = df_output
 
     try:
-        df[symmetry_col] = (
+        df[Key.symmetry] = (
             df["spacegroup.crystal_system"]
             + " | "
             + df["spacegroup.number"].astype(str)
@@ -227,7 +219,7 @@ def df_diel_from_task_coll(
 
     df = df.round(2)
 
-    df[date_col] = df.completed_at.str.split(" ").str[0]
+    df[Key.date] = df.completed_at.str.split(" ").str[0]
 
     # convert structures to dict before saving to CSV
     df.to_json(json_path, index=False, default_handler=lambda x: x.as_dict())

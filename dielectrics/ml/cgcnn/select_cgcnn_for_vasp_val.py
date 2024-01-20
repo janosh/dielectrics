@@ -1,7 +1,7 @@
 # %%
 import pandas as pd
 
-from dielectrics import DATA_DIR, id_col
+from dielectrics import DATA_DIR, Key
 from dielectrics.plots import plt
 
 
@@ -12,13 +12,15 @@ df_diel_train = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-{expt}-train.js
 
 df_diel_screen = pd.read_csv(
     f"{DATA_DIR}/mp-exploration/mp-diel-screen.csv.bz2"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 
 # %%
-df_cgcnn = pd.read_csv(f"{DATA_DIR}/cgcnn/cgcnn-refract-{expt}.csv").set_index(id_col)
+df_cgcnn = pd.read_csv(f"{DATA_DIR}/cgcnn/cgcnn-refract-{expt}.csv").set_index(
+    Key.mat_id
+)
 df_wren = pd.read_csv(f"{DATA_DIR}/wren/enrich/wren-refract-{expt}.csv").set_index(
-    id_col
+    Key.mat_id
 )
 
 

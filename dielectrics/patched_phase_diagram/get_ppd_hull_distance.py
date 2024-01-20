@@ -12,7 +12,7 @@ from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
-from dielectrics import DATA_DIR, PKG_DIR, id_col
+from dielectrics import DATA_DIR, PKG_DIR, Key
 from dielectrics.db import db
 from dielectrics.plots import plt
 
@@ -144,7 +144,7 @@ if mp_ids:
         ["e_above_hull", "material_id"],
     )
 
-    df_mp = pd.DataFrame(data).set_index(id_col)
+    df_mp = pd.DataFrame(data).set_index(Key.mat_id)
 
     df["e_above_hull_mp"] = df.material_id.map(df_mp.e_above_hull)
 

@@ -4,7 +4,7 @@ import plotly.express as px
 from pymatgen.ext.matproj import MPRester
 from pymatviz.utils import add_identity_line
 
-from dielectrics import id_col, today
+from dielectrics import Key, today
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 from dielectrics.plots import plt
 
@@ -28,7 +28,7 @@ df_mp = pd.DataFrame(mp_data).rename(columns={"pretty_formula": "formula"})
 
 df_mp = pd.concat([df_mp, pd.json_normalize(df_mp.pop("diel"))], axis=1)
 
-df_mp = df_mp.set_index(id_col)
+df_mp = df_mp.set_index(Key.mat_id)
 
 
 # %%
@@ -107,7 +107,7 @@ df_mp["diel_ionic_mp"] = df_mp.diel_total_mp - df_mp.diel_electronic_mp
 
 
 # %%
-diel_cols = ["diel_elec_pbe", "diel_total_pbe", "diel_ionic_pbe"]
+diel_cols = [Key.diel_elec_pbe, Key.diel_total_pbe, Key.diel_ionic_pbe]
 df_mp[diel_cols] = df_vasp_mp_wbm[diel_cols]
 
 

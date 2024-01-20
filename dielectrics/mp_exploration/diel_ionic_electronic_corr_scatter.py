@@ -5,7 +5,7 @@ from matplotlib.offsetbox import AnchoredText
 from pymatviz.io import save_fig
 from sklearn.metrics import r2_score
 
-from dielectrics import PAPER_FIGS, bandgap_mp_col
+from dielectrics import PAPER_FIGS, Key
 from dielectrics.plots import plt
 
 
@@ -21,8 +21,8 @@ ax_title = f"MP dielectric constants ({len(df_diel_mp):,})"
 x_col, y_col = "diel_ionic_mp", "diel_elec_mp"
 color_map = "viridis"
 ax = (
-    df_diel_mp.sort_values(by=bandgap_mp_col).plot.scatter(
-        x=x_col, y=y_col, c=bandgap_mp_col, alpha=0.5, cmap=color_map
+    df_diel_mp.sort_values(by=Key.bandgap_mp).plot.scatter(
+        x=x_col, y=y_col, c=Key.bandgap_mp, alpha=0.5, cmap=color_map
     )
     # for smaller file size can also plot as hexbin but looses color for band gap info
     # .plot.hexbin(x=x_col, y=y_col, cmap=cmap, yscale="log", xscale="log", mincnt=1)
@@ -46,10 +46,10 @@ ax.set_title(ax_title, fontsize=15)
 
 # %% same plot but with plotly
 fig = px.scatter(
-    df_diel_mp.query(f"1 < {x_col} < 2000").sort_values(by=bandgap_mp_col),
+    df_diel_mp.query(f"1 < {x_col} < 2000").sort_values(by=Key.bandgap_mp),
     x=x_col,
     y=y_col,
-    color=bandgap_mp_col,  # This automatically creates a color bar
+    color=Key.bandgap_mp,  # This automatically creates a color bar
     log_x=True,  # Set x-axis to log scale
     log_y=True,  # Set y-axis to log scale
     color_continuous_scale=color_map,  # Set the colormap to 'viridis'

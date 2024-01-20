@@ -21,17 +21,7 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from plotly.validators.scatter.marker import SymbolValidator
 
-from dielectrics import (
-    DATA_DIR,
-    SelectionStatus,
-    bandgap_mp_col,
-    bandgap_us_col,
-    diel_total_pbe_col,
-    id_col,
-    plotly_hover_cols,
-    selection_status_col,
-    today,
-)
+from dielectrics import DATA_DIR, Key, PlotlyHoverData, SelectionStatus, today
 from dielectrics.db import db
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
@@ -55,14 +45,14 @@ df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 2000").round(3)
 df_qz3 = pd.read_csv(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2").round(3)
 
 df_yim = pd.read_json(f"{DATA_DIR}/others/yim/dielectrics.json.bz2")
-df_yim = df_yim.query(f"0 < {diel_total_pbe_col} < 1000").rename(
-    columns={"possible_mp_id": id_col, "bandgap_gga": "bandgap_pbe"}
+df_yim = df_yim.query(f"0 < {Key.diel_total_pbe} < 1000").rename(
+    columns={"possible_mp_id": Key.mat_id, "bandgap_gga": "bandgap_pbe"}
 )
-df_yim = df_yim.dropna(subset=[id_col, "formula"])
+df_yim = df_yim.dropna(subset=[Key.mat_id, "formula"])
 for accu in ["pbe", "hse"]:
-    df_yim = df_yim.eval(f"fom_{accu} = bandgap_{accu} * {diel_total_pbe_col};")
+    df_yim = df_yim.eval(f"fom_{accu} = bandgap_{accu} * {Key.diel_total_pbe};")
 
-df_yim = df_yim.nlargest(500, "fom_pbe")
+df_yim = df_yim.nlargest(500, Key.fom_pbe)
 
 
 # %%
@@ -102,23 +92,23 @@ def create_text_col(df: pd.DataFrame, annotate_min_fom: float = None) -> list[st
         df (pd.DataFrame): DataFrame with a 'formula' column.
         annotate_min_fom (float): minimum figure of merit to annotate a data point.
     """
-    if id_col not in df:
-        df[id_col] = ""
+    if Key.mat_id not in df:
+        df[Key.mat_id] = ""
 
     # prioritize VASP over Wren over MP FoM, throw error if none found
     try:
-        fom_col = next(filter(lambda c: c in df, fom_cols := ["fom_pbe", "fom_mp"]))
+        fom_col = next(filter(lambda c: c in df, fom_cols := [Key.fom_pbe, "fom_mp"]))
     except StopIteration:
         raise ValueError(f"None of {fom_cols} found in df") from None
     # only show formula as link text if material's FoM is > annotate_min_fom, else
     # scatter point will be clickable but without text
     text_col = df.formula.where(df[fom_col] > (annotate_min_fom or 300), None)
-    mat_id_col = df.material_id.where(
-        df.material_id.str.startswith(("mp-", "mvc-")), df.formula
+    srs_mat_id = df[Key.mat_id].where(
+        df[Key.mat_id].str.startswith(("mp-", "mvc-")), df[Key.formula]
     )
     return [
         get_mp_link(mat_id, text)
-        for mat_id, text in zip(mat_id_col, text_col, strict=True)
+        for mat_id, text in zip(srs_mat_id, text_col, strict=True)
     ]
 
 
@@ -141,7 +131,7 @@ def scatter(
     df = df.dropna(thresh=0.1 * len(df), axis=1)
     df = df.fillna("n/a")  # fill remaining NaNs to avoid %{customdata[idx]}
 
-    hover_keys = plotly_hover_cols & set(df)
+    hover_keys = {x.value for x in PlotlyHoverData} & set(df)
     # hover_keys = sorted(hover_keys, key=list(pretty_col_names.values()).index)
     hover_keys = sorted(hover_keys)
     hover_data = dict.fromkeys(hover_keys, True)
@@ -151,7 +141,7 @@ def scatter(
     global color_iter
     kwargs["color_discrete_sequence"] = [next(color_iter)]
     # use formula as default tooltip title
-    kwargs["hover_name"] = kwargs.get("hover_name", id_col)
+    kwargs["hover_name"] = kwargs.get("hover_name", Key.mat_id)
     if "_id" in df:
         # pass MongoDB object ID to dash callbacks, not user-visible but included in
         # events emitted by the figure
@@ -268,7 +258,7 @@ df_petousis = (
 petousis_mp = scatter(
     df_petousis,
     x_col="diel_total_mp",
-    y_col=bandgap_mp_col,
+    y_col=Key.bandgap_mp,
     legend_name=f"{len(df_petousis):,} Best Petousis 2017 Candidates (MP data)",
 )
 petousis_mp.update_traces(marker=dict(size=15, symbol="star", color="teal"))
@@ -279,7 +269,7 @@ n_top_fom = 200
 best_fom_mp = scatter(
     df_diel_mp.query("index not in @df_petousis.index").nlargest(200, "fom_mp"),
     x_col="diel_total_mp",
-    y_col=bandgap_mp_col,
+    y_col=Key.bandgap_mp,
     legend_name=f"Top {n_top_fom:,} MP Training Points",
 )
 fig.add_traces(data=best_fom_mp.data)
@@ -298,7 +288,7 @@ selected_for_synth_points = scatter(
         f"selection_status == '{SelectionStatus.selected_for_synthesis}'"
     ),
     x_col="diel_total_pbe",
-    y_col=bandgap_us_col,
+    y_col=Key.bandgap_us,
     legend_name=f"{len(df_synth):,} Selected for synthesis",
     annotate_min_fom=0,
 )
@@ -320,10 +310,10 @@ df_our_best = df_unselected.query(
 scatter_with_quiver(
     df_best_elemsub := df_unselected.query('material_id.str.contains("->")')
     .query("e_above_hull_pbe < 0.1")
-    .nlargest(top_n := 100, "fom_pbe"),
-    scatter_1=dict(x="diel_total_wren", y=bandgap_us_col),
+    .nlargest(top_n := 100, Key.fom_pbe),
+    scatter_1=dict(x="diel_total_wren", y=Key.bandgap_us),
     # make VASP scatter points visible by default
-    scatter_2=dict(x="diel_total_pbe", y=bandgap_us_col, visible=True),
+    scatter_2=dict(x="diel_total_pbe", y=Key.bandgap_us, visible=True),
     legend_labels=(
         f"Top {top_n} elemental substitution structures",
         f"Wren mean FoM = {df_best_elemsub.fom_wren.mean():.0f}",
@@ -337,7 +327,7 @@ trace["marker"]["color"] = "rgba(0, 100, 255, 0.8)"
 airss_points = scatter(
     df_airss := df_unselected.query('material_id.str.startswith("airss")'),
     x_col="diel_total_pbe",
-    y_col=bandgap_us_col,
+    y_col=Key.bandgap_us,
     legend_name=f"{len(df_airss):,} AIRSS structures mean FoM = "
     f"{df_airss.fom_pbe.mean():.0f}",
 )
@@ -345,8 +335,8 @@ fig.add_traces(data=airss_points.data)
 
 scatter_with_quiver(
     df_our_best,
-    scatter_1=dict(x="diel_total_wren", y=bandgap_us_col),
-    scatter_2=dict(x="diel_total_pbe", y=bandgap_us_col),
+    scatter_1=dict(x="diel_total_wren", y=Key.bandgap_us),
+    scatter_2=dict(x="diel_total_pbe", y=Key.bandgap_us),
     legend_labels=(
         "Best from all Series",
         f"Wren mean FoM = {df_our_best.fom_wren.mean():.0f}",
@@ -360,8 +350,8 @@ scatter_with_quiver(
     df_2022 := df_unselected.query(
         "completed_at > '2022-01-01' & e_above_hull_pbe < 0.1"
     ),
-    scatter_1=dict(x="diel_total_wren", y=bandgap_us_col),
-    scatter_2=dict(x="diel_total_pbe", y=bandgap_us_col),
+    scatter_1=dict(x="diel_total_wren", y=Key.bandgap_us),
+    scatter_2=dict(x="diel_total_pbe", y=Key.bandgap_us),
     legend_labels=(
         "2022 calcs < 0.1 eV above hull",
         f"Wren mean FoM = {df_2022.fom_wren.mean():.0f}",
@@ -372,8 +362,8 @@ scatter_with_quiver(
 
 scatter_with_quiver(
     df_yim,
-    scatter_1=dict(x=diel_total_pbe_col, y="bandgap_pbe"),
-    scatter_2=dict(x=diel_total_pbe_col, y="bandgap_hse"),
+    scatter_1=dict(x=Key.diel_total_pbe, y="bandgap_pbe"),
+    scatter_2=dict(x=Key.diel_total_pbe, y="bandgap_hse"),
     legend_labels=(
         "Yim et al. 2015",
         f"GGA mean FoM = {df_yim.fom_pbe.mean():.0f}",
@@ -556,7 +546,7 @@ def fetch_notes(click_data: dict[str, list[dict[str, Any]]]) -> tuple[str, str, 
     except (InvalidId, TypeError):
         return "", "", ""
 
-    fields = ["notes", "selection_status", "formula_pretty", id_col]
+    fields = ["notes", "selection_status", "formula_pretty", Key.mat_id]
     doc: dict[str, str] = db.tasks.find_one({"_id": mongo_id}, fields) or {}
     notes, status, formula, mat_id = (doc.get(key, "") for key in fields)
     return notes, status, f"{formula} ({mat_id})".replace("->", "→")
@@ -591,7 +581,7 @@ def update_notes(
     try:
         payload = {"notes": notes}
         if status_value:
-            payload[selection_status_col] = status_value
+            payload[Key.selection_status] = status_value
         db.tasks.update_one({"_id": mongo_id}, {"$set": payload})
     except Exception as err:
         print(f"{err=}")

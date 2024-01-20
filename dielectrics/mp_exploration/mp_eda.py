@@ -17,7 +17,7 @@ from pymatgen.util.string import latexify
 from pymatviz import ptable_heatmap, spacegroup_hist
 from pymatviz.io import save_fig
 
-from dielectrics import PAPER_FIGS, bandgap_mp_col, crystal_sys_col
+from dielectrics import PAPER_FIGS, Key
 from dielectrics.plots import plt
 
 
@@ -25,7 +25,7 @@ from dielectrics.plots import plt
 df_diel_mp = pd.read_json("data/mp-diel-train.json.bz2")
 
 df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 2000")
-# df_diel_mp[crystal_sys_col] = df_diel_mp.pop("spacegroup.crystal_system")
+# df_diel_mp[Keys.crystal_sys] = df_diel_mp.pop("spacegroup.crystal_system")
 
 
 # %% Band gap vs different parts of dielectric constant
@@ -43,7 +43,7 @@ for ax, x_col in zip(
 ):
     df = df_diel_mp.query(f"0 < {x_col} < {x_max}")
     *_, mappable = ax.hist2d(
-        df[x_col], df[bandgap_mp_col], bins=(150, 150), cmin=1, cmap="Blues_r"
+        df[x_col], df[Key.bandgap_mp], bins=(150, 150), cmin=1, cmap="Blues_r"
     )
 
     diel_part = x_col.split("_")[1]  # "diel_total_mp" -> "total"
@@ -72,12 +72,12 @@ for ax, x_col in zip(
 
     # Annotation of scatter points with fom_level > 240
     for row in df.to_dict(orient="records"):
-        fom_row = row[x_col] * row[bandgap_mp_col]
+        fom_row = row[x_col] * row[Key.bandgap_mp]
         if "total" in x_col and fom_row > 600:
             continue  # don't overwrite the 'Flash storage'/'CPU'/'RAM' bubbles
         if fom_row > (50 if "elec" in x_col else 500):
             anno = latexify(row["formula"])  # make numbers in formula subscript
-            ax.annotate(anno, (row[x_col], row[bandgap_mp_col]), ha="right", va="top")
+            ax.annotate(anno, (row[x_col], row[Key.bandgap_mp]), ha="right", va="top")
 
 
 handles, labels = fom_iso_lines.legend_elements()
@@ -147,7 +147,7 @@ plt.title(f"{len(df_diel_mp):,} MP materials with computed dielectric properties
 plt.hexbin(
     # squared refractive index n^2 = electronic dielectric constant epsilon_r
     df_diel_mp.query("n_mp < 4").n_mp ** 2,
-    df_diel_mp.query("n_mp < 4")[bandgap_mp_col],
+    df_diel_mp.query("n_mp < 4")[Key.bandgap_mp],
     mincnt=1,
 )
 
@@ -172,7 +172,7 @@ plt.figure(figsize=(10, 8))
 
 plt.title(f"{len(df_diel_mp):,} MP materials with computed dielectric properties")
 
-plt.hexbin(np.log(df_diel_mp.diel_ionic_mp), df_diel_mp[bandgap_mp_col], mincnt=1)
+plt.hexbin(np.log(df_diel_mp.diel_ionic_mp), df_diel_mp[Key.bandgap_mp], mincnt=1)
 
 
 # epsilon = np.linspace(0.1, 16, 50)
@@ -226,7 +226,7 @@ df_diel_mp[["diel_elec_mp", "diel_ionic_mp"]].hist(bins=100, log=True, figsize=[
 df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 1000")
 
 df_melted = df_diel_mp.melt(
-    id_vars=[crystal_sys_col, "material_id", "formula"],
+    id_vars=[Key.crystal_sys, "material_id", "formula"],
     value_vars=["diel_elec_mp", "diel_ionic_mp"],
     var_name="component",
     value_name="dielectric constant",
@@ -242,13 +242,13 @@ cry_sys_order = (
 
 fig = px.strip(
     df_melted,
-    x=crystal_sys_col,
+    x=Key.crystal_sys,
     y="dielectric constant",
     color="component",
     color_discrete_map={"electronic": "blue", "ionic": "green"},
-    hover_data={"material_id": True, "formula": True, crystal_sys_col: False},
+    hover_data={"material_id": True, "formula": True, Key.crystal_sys: False},
     # sort strips from high to low spacegroup number
-    category_orders={crystal_sys_col: cry_sys_order},
+    category_orders={Key.crystal_sys: cry_sys_order},
     height=500,
     width=1000,
 ).update_traces(jitter=1)
@@ -262,7 +262,7 @@ def rgb_color(val: float, max: float) -> str:  # noqa: A002
 
 
 n_top, x_ticks = 30, {x: "" for x in cry_sys_order}
-for cry_sys, df_group in df_diel_mp.groupby(crystal_sys_col):
+for cry_sys, df_group in df_diel_mp.groupby(Key.crystal_sys):
     ionic_top = df_group.diel_ionic_mp.nlargest(n_top).mean()
     elec_top = df_group.diel_elec_mp.nlargest(n_top).mean()
     ionic_clr = rgb_color(ionic_top, 212)

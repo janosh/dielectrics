@@ -5,14 +5,7 @@ import pandas as pd
 from pymatviz import ptable_heatmap
 from sklearn.metrics import r2_score
 
-from dielectrics import (
-    DATA_DIR,
-    bandgap_mp_col,
-    bandgap_us_col,
-    bandgap_wren_col,
-    diel_total_wren_col,
-    id_col,
-)
+from dielectrics import DATA_DIR, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
@@ -26,11 +19,11 @@ expt = "enrich-big"  # one of enrich-small|enrich-big or train/screen
 # %%
 df_diel_train = pd.read_json(
     f"{DATA_DIR}/mp-exploration/mp-diel-{expt}-train.json.bz2"
-).rename(columns={"band_gap": bandgap_mp_col})
+).rename(columns={"band_gap": Key.bandgap_mp})
 
 df_diel_screen = pd.read_json(
     f"{DATA_DIR}/mp-exploration/mp-diel-{expt}-test.json.bz2"
-).rename(columns={"band_gap": bandgap_mp_col})
+).rename(columns={"band_gap": Key.bandgap_mp})
 
 df_vasp = df_diel_from_task_coll({})
 
@@ -43,22 +36,24 @@ train_plus_screen_index = df_diel_screen.index.append(df_diel_train.index)
 
 # %%
 df_wren = pd.read_csv(
-    f"{DATA_DIR}/wren/enrich/wren-diel-{expt}-total.csv", index_col=id_col
+    f"{DATA_DIR}/wren/enrich/wren-diel-{expt}-total.csv", index_col=Key.mat_id
 )
 df_wren.columns = df_wren.columns.str.replace("_pred_n0", "_wren")
-df_cgcnn = pd.read_csv(f"{DATA_DIR}/cgcnn/cgcnn-refract-{expt}.csv", index_col=id_col)
+df_cgcnn = pd.read_csv(
+    f"{DATA_DIR}/cgcnn/cgcnn-refract-{expt}.csv", index_col=Key.mat_id
+)
 
 df_ml = df_wren[df_wren.index.isin(train_plus_screen_index)]
 
 df_ml["n_cgcnn"] = df_cgcnn.n_pred_n0
-df_ml[bandgap_mp_col] = df_diel_screen[bandgap_mp_col]
+df_ml[Key.bandgap_mp] = df_diel_screen[Key.bandgap_mp]
 
 
 # %%
-df_ml["fom_wren"] = df_ml.diel_total_wren * df_ml.bandgap_mp
+df_ml[Key.fom_wren] = df_ml.diel_total_wren * df_ml.bandgap_mp
 df_ml["fom_cgcnn"] = df_ml.n_cgcnn**2 * df_ml.bandgap_mp
 
-wren_top_fom = df_ml.nlargest(n_top, "fom_wren")
+wren_top_fom = df_ml.nlargest(n_top, Key.fom_wren)
 cgcnn_top_fom = df_ml.nlargest(n_top, "fom_cgcnn")
 
 n_wren_matches = train_top_fom.index.isin(wren_top_fom.index).sum()
@@ -77,7 +72,7 @@ plt.figure(figsize=(10, 8))
 plt.hexbin(
     # squared refractive index n^2 = dielectric constant epsilon_r
     df_diel_train.query("n < 5").n ** 2,
-    df_diel_train.query("n < 5")[bandgap_mp_col],
+    df_diel_train.query("n < 5")[Key.bandgap_mp],
     mincnt=1,
 )
 
@@ -99,8 +94,8 @@ assert (n_missed_wren := len(wren_top_not_in_train)) == len(top_train_not_found_
 assert (n_missed_cgcnn := len(cgcnn_top_not_in_train)) == len(top_train_not_found_cgcnn)
 
 plt.scatter(
-    wren_top_fom[diel_total_wren_col],
-    wren_top_fom[bandgap_mp_col],
+    wren_top_fom[Key.diel_total_wren],
+    wren_top_fom[Key.bandgap_mp],
     color="orange",
     label=f"Wren-predicted top {n_top} FoM materials",
     s=75,
@@ -108,15 +103,15 @@ plt.scatter(
 )
 plt.scatter(
     cgcnn_top_fom.n_cgcnn**2,
-    cgcnn_top_fom[bandgap_mp_col],
+    cgcnn_top_fom[Key.bandgap_mp],
     color="green",
     label=f"CGCNN-predicted top {n_top} FoM materials",
     s=75,
     alpha=0.8,
 )
 plt.scatter(
-    wren_top_not_in_train[diel_total_wren_col],
-    wren_top_not_in_train[bandgap_mp_col],
+    wren_top_not_in_train[Key.diel_total_wren],
+    wren_top_not_in_train[Key.bandgap_mp],
     color="orange",
     label=f"{n_missed_wren} new candidates from Wren",
     s=75,
@@ -125,7 +120,7 @@ plt.scatter(
 )
 plt.scatter(
     cgcnn_top_not_in_train.n_cgcnn**2,
-    cgcnn_top_not_in_train[bandgap_mp_col],
+    cgcnn_top_not_in_train[Key.bandgap_mp],
     color="green",
     label=f"{n_missed_cgcnn} new candidates from CGCNN",
     s=75,
@@ -133,7 +128,7 @@ plt.scatter(
     alpha=0.8,
 )
 # plt.scatter(
-#     df_ml.loc[top_train_not_found_wren.index][diel_total_wren_col] ** 2,
+#     df_ml.loc[top_train_not_found_wren.index][Keys.diel_total_wren] ** 2,
 #     df_ml.loc[top_train_not_found_wren.index].bandgap_ml,
 #     color="red",
 #     label=f"Wren missed {n_missed_wren}/{n_top} top FoM training materials",
@@ -189,8 +184,8 @@ df_vasp["n_cgcnn"] = df_cgcnn.n_pred_n0
 
 
 # %%
-df_vasp["fom_pbe"] = df_vasp.n_pbe**2 * df_vasp.bandgap
-df_vasp["fom_wren"] = df_vasp[diel_total_wren_col] * df_vasp.bandgap
+df_vasp[Key.fom_pbe] = df_vasp.n_pbe**2 * df_vasp.bandgap
+df_vasp[Key.fom_wren] = df_vasp[Key.diel_total_wren] * df_vasp.bandgap
 df_vasp["fom_cgcnn"] = df_vasp.n_cgcnn**2 * df_vasp.bandgap
 
 
@@ -239,14 +234,14 @@ fom_wren_perf = f"Wren:  R$^2$ = {fom_r2_wren:.2f},  MAE = {fom_mae_wren:.2f}"
 fom_cgcnn_perf = f"CGCNN:  R$^2$ = {fom_r2_cgcnn:.2f},  MAE = {fom_mae_cgcnn:.2f}"
 
 ax = df_vasp.plot.scatter(
-    x="fom_pbe",
-    y="fom_wren",
+    x=Key.fom_pbe,
+    y=Key.fom_wren,
     color="orange",
     figsize=(12, 8),
     label=fom_wren_perf,
     s=75,
 )
-df_vasp.plot.scatter(x="fom_pbe", y="fom_cgcnn", ax=ax, label=fom_cgcnn_perf, s=75)
+df_vasp.plot.scatter(x=Key.fom_pbe, y="fom_cgcnn", ax=ax, label=fom_cgcnn_perf, s=75)
 
 line_styles = dict(alpha=0.5, zorder=0, linestyle="dashed", color="black")
 ax.axline((0, 0), (1, 1), label="ideal", **line_styles)
@@ -262,7 +257,7 @@ plt.savefig("plots/wren+cgcnn-vs-vasp-top-fom-scatter.pdf")
 
 
 # %%
-df_vasp.plot.bar(y=["fom_pbe", "fom_wren", "fom_cgcnn"], figsize=(10, 7))
+df_vasp.plot.bar(y=[Key.fom_pbe, Key.fom_wren, "fom_cgcnn"], figsize=(10, 7))
 plt.title(
     "VASP vs CGCNN vs WREN figure of merit (FoM) predictions"
     " on top 100 CGCNN-predicted FoM materials"
@@ -347,7 +342,7 @@ plt.figure(figsize=(8, 8))
 n_max = 6
 
 df_vasp_wren["diel_elec_pbe"] = df_vasp_wren.n_pbe**2
-df_vasp_wren["diel_elec_wren"] = df_vasp_wren[diel_total_wren_col]
+df_vasp_wren["diel_elec_wren"] = df_vasp_wren[Key.diel_total_wren]
 ax = df_vasp_wren.plot.scatter(
     x="diel_elec_pbe", y="bandgap", color="orange", label="VASP", figsize=(8, 8)
 )
@@ -355,9 +350,9 @@ df_vasp_wren.plot.scatter(
     x="diel_elec_wren", y="bandgap", color="magenta", label="CGCNN", ax=ax
 )
 
-dx = df_vasp_wren.n_pbe**2 - df_vasp_wren[diel_total_wren_col]
+dx = df_vasp_wren.n_pbe**2 - df_vasp_wren[Key.diel_total_wren]
 plt.quiver(
-    df_vasp_wren[diel_total_wren_col],
+    df_vasp_wren[Key.diel_total_wren],
     df_vasp_wren.bandgap,
     dx,
     len(df_vasp_wren) * [0],
@@ -432,20 +427,20 @@ plt.savefig("plots/quiver-cgcnn.pdf")
 
 
 # %%
-df_vasp = df_vasp.sort_values(by=bandgap_us_col)
+df_vasp = df_vasp.sort_values(by=Key.bandgap_us)
 
 df_wren_bandgap = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-bandgap-mp+wbm-ensemble-screen-mp-top1k-fom-elemsub.csv",
-    index_col=id_col,
+    index_col=Key.mat_id,
 )
 
 wren_bg_cols = list(df_wren_bandgap.filter(regex=r"bandgap_pred_n\d"))
 assert len(wren_bg_cols) == 10
-df_wren_bandgap[bandgap_wren_col] = df_wren_bandgap[wren_bg_cols].mean(axis=1)
+df_wren_bandgap[Key.bandgap_wren] = df_wren_bandgap[wren_bg_cols].mean(axis=1)
 bandgap_wren_std_col = "bandgap_wren_std"
 df_wren_bandgap[bandgap_wren_std_col] = df_wren_bandgap[wren_bg_cols].std(axis=1)
-df_vasp[bandgap_wren_col] = df_wren_bandgap[bandgap_wren_col]
+df_vasp[Key.bandgap_wren] = df_wren_bandgap[Key.bandgap_wren]
 df_vasp[bandgap_wren_std_col] = df_wren_bandgap[bandgap_wren_std_col]
 
-ax = df_wren_bandgap[bandgap_wren_col].hist(bins=50, figsize=[10, 6])
+ax = df_wren_bandgap[Key.bandgap_wren].hist(bins=50, figsize=[10, 6])
 ax.set(xlabel="Wren band gap (eV)", ylabel="Count", xlim=(0, None))

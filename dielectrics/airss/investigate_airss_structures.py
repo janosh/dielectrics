@@ -15,7 +15,7 @@ from pymatgen.io.res import AirssProvider
 from pymatviz import plot_structure_2d
 from robocrys import StructureCondenser, StructureDescriber
 
-from dielectrics import DATA_DIR, id_col, n_sites_col, structure_col, today
+from dielectrics import DATA_DIR, Key, today
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
@@ -82,14 +82,14 @@ df_res = pd.DataFrame(
     [AirssProvider.from_file(file).as_dict(verbose=False) for file in res_files]
 ).set_index("seed")
 
-df_res[structure_col] = df_res.structure.map(Structure.from_dict)
-df_res[n_sites_col] = df_res[structure_col].map(len)
+df_res[Key.structure] = df_res.structure.map(Structure.from_dict)
+df_res[Key.n_sites] = df_res[Key.structure].map(len)
 
-df_res["energy_per_atom"] = df_res.energy / df_res[n_sites_col]
-df_res = df_res.sort_values(by="energy_per_atom")
+df_res[Key.e_per_atom] = df_res.energy / df_res[Key.n_sites]
+df_res = df_res.sort_values(by=Key.e_per_atom)
 
 df_res["mev_above_lowest"] = 1e3 * (
-    df_res.energy_per_atom - df_res.energy_per_atom.min()
+    df_res[Key.e_per_atom] - df_res[Key.e_per_atom].min()
 )
 
 
@@ -167,7 +167,7 @@ df_mp = pd.DataFrame(
         ("mp-560842", "spinel_sicd2O4"),
     ],
     columns=["material_id", "name"],
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 with MPRester() as mpr:
     df_mp["structure"] = df_mp.material_id.map(mpr.get_structure_by_material_id)

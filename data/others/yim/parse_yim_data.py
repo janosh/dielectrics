@@ -17,16 +17,7 @@ from pymatgen.core import Structure
 from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
-from dielectrics import (
-    ROOT,
-    bandgap_mp_col,
-    diel_elec_pbe_col,
-    diel_ionic_pbe_col,
-    diel_total_pbe_col,
-    formula_col,
-    icsd_id_col,
-    structure_col,
-)
+from dielectrics import ROOT, Key
 
 
 # %% Parse data from archive
@@ -48,7 +39,11 @@ for member in arxiv:
     eps_elec = np.fromstring("\n".join(lines[1:4]), sep="\t").reshape(-1, 3)
     eps_ionic = np.fromstring("\n".join(lines[5:8]), sep="\t").reshape(-1, 3)
 
-    dct = {diel_total_pbe_col: diel_total, "eps_elec": eps_elec, "eps_ionic": eps_ionic}
+    dct = {
+        Key.diel_total_pbe: diel_total,
+        "eps_elec": eps_elec,
+        "eps_ionic": eps_ionic,
+    }
     data[int(icsd_id.replace("ICSD_", ""))] = dct
 
 arxiv.close()
@@ -56,10 +51,10 @@ arxiv.close()
 
 # %%
 df_yim = pd.DataFrame(data).T
-df_yim.index.name = icsd_id_col
+df_yim.index.name = Key.icsd_id
 
-df_yim[diel_elec_pbe_col] = [np.linalg.eigvalsh(x).mean() for x in df_yim.eps_elec]
-df_yim[diel_ionic_pbe_col] = [np.linalg.eigvalsh(x).mean() for x in df_yim.eps_ionic]
+df_yim[Key.diel_elec_pbe] = [np.linalg.eigvalsh(x).mean() for x in df_yim.eps_elec]
+df_yim[Key.diel_ionic_pbe] = [np.linalg.eigvalsh(x).mean() for x in df_yim.eps_ionic]
 
 assert (
     max(df_yim.diel_elec + df_yim.diel_ionic - df_yim.diel_total) < 0.002
@@ -83,8 +78,8 @@ for icsd_id in tqdm(df_yim.index):
     except (FileNotFoundError, ValueError):
         continue
 
-df_yim[structure_col] = pd.Series(structs)
-df_yim[formula_col] = [
+df_yim[Key.structure] = pd.Series(structs)
+df_yim[Key.formula] = [
     struct.formula if struct else None
     for struct in df_yim.structure.fillna(value=False)
 ]
@@ -110,14 +105,14 @@ df_mp = pd.read_json("mp_data.json.bz2")
 
 # df.groupby(level=0).first() removes rows with duplicate index (i.e. icsd_id)
 df_map = df_mp.explode("icsd_ids").set_index("icsd_ids").groupby(level=0).first()
-df_yim[bandgap_mp_col] = df_map.band_gap
+df_yim[Key.bandgap_mp] = df_map.band_gap
 df_yim["possible_mp_id"] = df_map.material_id
 df_yim[diel_cols] = df_map[diel_cols]
 
 
 # %%
 df_yim[["bandgap_gga", "bandgap_hse"]] = pd.read_csv("bandgaps.csv").set_index(
-    icsd_id_col
+    Key.icsd_id
 )
 
 
@@ -126,4 +121,4 @@ df_yim.to_json("dielectrics.json.bz2", default_handler=lambda x: x.as_dict())
 
 
 df_yim = pd.read_json("dielectrics.json.bz2")
-df_yim.index.name = icsd_id_col
+df_yim.index.name = Key.icsd_id

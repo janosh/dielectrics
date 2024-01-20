@@ -5,7 +5,7 @@ from pymatgen.ext.matproj import MPRester
 from pymatviz import count_elements, ptable_heatmap, ptable_heatmap_ratio
 from tqdm import tqdm
 
-from dielectrics import DATA_DIR, id_col
+from dielectrics import DATA_DIR, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 from dielectrics.element_substitution import (
     load_icsd_trans_mat,
@@ -24,7 +24,7 @@ df_vasp_ens_std_adj = df_diel_from_task_coll(
     {"series": "MP+WBM top 1k FoM std-adjusted by Wren diel ens"}
 )
 
-df_elem_sub_seeds = df_vasp_ens_std_adj.nlargest(200, "fom_pbe")
+df_elem_sub_seeds = df_vasp_ens_std_adj.nlargest(200, Key.fom_pbe)
 
 
 # %%
@@ -115,7 +115,7 @@ except FileNotFoundError:
     with MPRester() as mpr:
         data = mpr.query({}, ["material_id", "pretty_formula"], chunk_size=5000)
 
-    df_all_mp_formulas = pd.DataFrame(data).set_index(id_col)
+    df_all_mp_formulas = pd.DataFrame(data).set_index(Key.mat_id)
     df_all_mp_formulas = df_all_mp_formulas.rename(
         columns={"pretty_formula": "formula"}
     )

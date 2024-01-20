@@ -4,10 +4,13 @@ import plotly.express as px
 from pymatgen.util.string import htmlify
 from pymatviz.io import save_fig
 
-from dielectrics import DATA_DIR, PAPER_FIGS, energy_col, fr_min_e_col, freq_col
+from dielectrics import DATA_DIR, PAPER_FIGS, Key
 
 
-px.defaults.labels |= {freq_col: "Frequency (Hz)", fr_min_e_col: r"$\sqrt{F(R)-E}$"}
+px.defaults.labels |= {
+    Key.freq: "Frequency (Hz)",
+    Key.fr_min_e: r"$\sqrt{F(R)-E}$",
+}
 materials = ("Bi2Zr2O7-Fm3m", "CsTaTeO6-Fd3m")
 formulas_plain = [x.split("-")[0] for x in materials]
 formulas = tuple(map(htmlify, formulas_plain))
@@ -15,7 +18,7 @@ formulas = tuple(map(htmlify, formulas_plain))
 
 # %% Impedance plot
 bzo_impedance_csv = f"{DATA_DIR}/experiment/Bi2Zr2O7-impedance.csv"
-df_impedance = pd.read_csv(bzo_impedance_csv).set_index(freq_col)
+df_impedance = pd.read_csv(bzo_impedance_csv).set_index(Key.freq)
 
 fig_impedance = px.line(
     df_impedance, y=list(df_impedance), log_y=True, width=360, height=240
@@ -35,8 +38,8 @@ df_tauc = df_tauc.rename(
     level=0,
 )
 
-df_tauc = df_tauc.filter(like=fr_min_e_col).droplevel(1, axis=1)
-df_tauc.index.name = energy_col
+df_tauc = df_tauc.filter(like=Key.fr_min_e).droplevel(1, axis=1)
+df_tauc.index.name = Key.energy
 
 fig_tauc = px.line(df_tauc, width=380, height=250)
 
@@ -121,7 +124,7 @@ save_fig(fig_refl, f"{PAPER_FIGS}/exp-diffuse-reflectance.pdf")
 # Also, the permittivity e' values in fig 6e dont make any sense for that publications
 for formula in formulas_plain:
     csv_path = f"{DATA_DIR}/experiment/{formula}-diel-vs-freq.csv"
-    df_diel = pd.read_csv(csv_path).set_index(freq_col)
+    df_diel = pd.read_csv(csv_path).set_index(Key.freq)
 
     blue, red, *_ = px.colors.qualitative.Plotly
     fig_diel = px.line(

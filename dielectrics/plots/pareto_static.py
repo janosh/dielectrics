@@ -7,18 +7,7 @@ import seaborn as sns
 from matplotlib.patches import Patch
 from pymatviz.io import save_fig
 
-from dielectrics import (
-    DATA_DIR,
-    PAPER_FIGS,
-    bandgap_mp_col,
-    bandgap_pbe_col,
-    bandgap_us_col,
-    diel_total_mp_col,
-    diel_total_pbe_col,
-    fom_pbe_col,
-    id_col,
-    today,
-)
+from dielectrics import DATA_DIR, PAPER_FIGS, Key, today
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
@@ -30,7 +19,7 @@ __date__ = "2022-03-02"
 df_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 # discard negative and unrealistically large dielectric constants
-df_mp = df_mp.query(f"0 < {diel_total_mp_col} < 2000")
+df_mp = df_mp.query(f"0 < {Key.diel_total_mp} < 2000")
 
 
 # %% qz3 for author last name initials (https://rdcu.be/cCMga)
@@ -39,19 +28,18 @@ df_qz3 = pd.read_csv(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2")
 
 # Petousis 2017: https://nature.com/articles/sdata2016134
 df_petousis = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv").set_index(
-    id_col, drop=False
+    Key.mat_id, drop=False
 )
 
-df_petousis[fom_pbe_col] = (
-    df_petousis[bandgap_mp_col] * df_petousis["diel_total_petousis"]
+df_petousis[Key.fom_pbe] = (
+    df_petousis[Key.bandgap_mp] * df_petousis["diel_total_petousis"]
 )
-df_qz3[fom_pbe_col] = df_qz3[bandgap_pbe_col] * df_qz3[diel_total_pbe_col]
+df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
 
 
 # %%
 df_us = df_diel_from_task_coll({})
-df_us = df_us.rename(columns={"fom_pbe": fom_pbe_col})
-assert all(df_us[diel_total_pbe_col] > 0), "negative dielectric, this shouldn't happen"
+assert all(df_us[Key.diel_total_pbe] > 0), "negative dielectric, this shouldn't happen"
 
 
 # %%
@@ -60,8 +48,8 @@ mp_kde = False  # whether to plot a kernel density of MP dielectric training dat
 names: list[str] = []
 if mp_kde:
     ax = sns.kdeplot(
-        x=df_mp[diel_total_mp_col],
-        y=df_mp[bandgap_mp_col],
+        x=df_mp[Key.diel_total_mp],
+        y=df_mp[Key.bandgap_mp],
         # cut=0,  # how far evaluation grid extends, 0 truncates at data limits
         fill=True,
         cmap="Blues",
@@ -78,26 +66,26 @@ markers = iter(["o", "D", "s", "x", "P"])  # circle, diamond, square, cross, plu
 
 for df, (name, label) in (
     (  # for main text
-        df_us[[diel_total_pbe_col, bandgap_us_col]],
+        df_us[[Key.diel_total_pbe, Key.bandgap_us]],
         ("us", f"{len(df_us):,} this work"),
     ),
     (  # for SI
-        df_qz3[[diel_total_pbe_col, bandgap_pbe_col]],
+        df_qz3[[Key.diel_total_pbe, Key.bandgap_pbe]],
         ("qu", f"{len(df_qz3):,} Qu et al. 2020"),
     ),
     (
-        df_petousis[["diel_total_petousis", bandgap_mp_col]],
+        df_petousis[["diel_total_petousis", Key.bandgap_mp]],
         ("petousis", f"{len(df_petousis):,} Petousis et al. 2017"),
     ),
     # (  # splitting by substitution and MP/WBM structures, not used in paper
-    #     df_us.query(f"~{id_col}.str.contains('->')")[
-    #         [diel_total_pbe_col, bandgap_us_col]
+    #     df_us.query(f"~{Keys.mat_id}.str.contains('->')")[
+    #         [Keys.diel_total_pbe, Keys.bandgap_us]
     #     ],
     #     f"{sum(~df_us.index.str.contains('->')):,} MP/WBM structures",
     # ),
     # (
-    #     df_us.query(f"{id_col}.str.contains('->')")[
-    #         [diel_total_pbe_col, bandgap_us_col]
+    #     df_us.query(f"{Keys.mat_id}.str.contains('->')")[
+    #         [Keys.diel_total_pbe, Keys.bandgap_us]
     #     ],
     #     f"{sum(df_us.index.str.contains('->')):,} substitution structures",
     # ),
@@ -167,7 +155,7 @@ save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}-matplotlib.pdf")
 
 # %%
 fom_tresh = max(fom_levels)
-fom_count_us = sum(df_us[fom_pbe_col] > fom_tresh)
+fom_count_us = sum(df_us[Key.fom_pbe] > fom_tresh)
 print(f"on {today}:\nhit rate of materials with FoM > {fom_tresh}:")
 
 
@@ -180,7 +168,7 @@ for name, df in [
     # https://rdcu.be/cCMga for materials to be included in their results
     ("us for band gap > 0.1 eV", df_us.query("bandgap_us > 0.1")),
 ]:
-    high_fom_count = sum(df[fom_pbe_col] > fom_tresh)
+    high_fom_count = sum(df[Key.fom_pbe] > fom_tresh)
     hit_rate = high_fom_count / len(df)
     print(f" - {name}: {high_fom_count:,} / {len(df):,} = {hit_rate:.1%}")
 
@@ -194,9 +182,9 @@ for name, df in [
 
 # %% reproduce the above plot with plotly express
 col_map = {
-    "diel_total_petousis": diel_total_pbe_col,
-    bandgap_mp_col: bandgap_pbe_col,
-    bandgap_us_col: bandgap_pbe_col,
+    "diel_total_petousis": Key.diel_total_pbe,
+    Key.bandgap_mp: Key.bandgap_pbe,
+    Key.bandgap_us: Key.bandgap_pbe,
 }
 src_col = "Source"
 
@@ -204,15 +192,15 @@ df_us[src_col] = f"{len(df_us):,} this work"
 df_qz3[src_col] = f"{len(df_qz3):,} Qu et al. 2020"
 df_petousis[src_col] = f"{len(df_petousis):,} Petousis et al. 2017"
 datasets = [
-    df_us[[diel_total_pbe_col, bandgap_us_col, src_col]],
-    df_qz3[[diel_total_pbe_col, bandgap_pbe_col, src_col]],
-    df_petousis[["diel_total_petousis", bandgap_mp_col, src_col]],
+    df_us[[Key.diel_total_pbe, Key.bandgap_us, src_col]],
+    df_qz3[[Key.diel_total_pbe, Key.bandgap_pbe, src_col]],
+    df_petousis[["diel_total_petousis", Key.bandgap_mp, src_col]],
 ]
 
 fig = px.scatter(
     pd.concat(df.rename(columns=col_map) for df in datasets),
-    x=diel_total_pbe_col,
-    y=bandgap_pbe_col,
+    x=Key.diel_total_pbe,
+    y=Key.bandgap_pbe,
     color=src_col,
     marginal_x="rug",
     marginal_y="rug",

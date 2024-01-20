@@ -6,7 +6,7 @@ from dash import html
 from mp_api.client import MPRester
 from pymatgen.core import Structure
 
-from dielectrics import SelectionStatus, selection_status_col, structure_col
+from dielectrics import Key, SelectionStatus
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
@@ -16,23 +16,23 @@ __date__ = "2023-10-22"
 
 # %%
 df_all = df_diel_from_task_coll(
-    {selection_status_col: {"$exists": 1}},
+    {Key.selection_status: {"$exists": 1}},
     # {"nsites": {"$lt": 5}, "nelements": {"$gt": 2}},
     # crystal system is cubic and less than 5 sites
     # {"spacegroup.number": {"$in": [195, 221, 229, 230, 231]}},
     # {id_col: {"$regex": "^mp-.+->"}, "nsites": {"$lt": 12}},
-    fields=["formula", "output.structure", selection_status_col],
+    fields=["formula", "output.structure", Key.selection_status],
 )
 
-df_all[structure_col] = [
+df_all[Key.structure] = [
     Structure.from_dict(obj) if isinstance(obj, dict) else obj
-    for obj in df_all[structure_col]
+    for obj in df_all[Key.structure]
 ]
 for row in df_all.itertuples():
     row.structure.properties["id"] = row.material_id
-if selection_status_col in df_all:
+if Key.selection_status in df_all:
     df_synth = df_all.query(
-        f"{selection_status_col} == '{SelectionStatus.selected_for_synthesis}'"
+        f"{Key.selection_status} == '{SelectionStatus.selected_for_synthesis}'"
     )
 
 

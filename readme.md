@@ -1,11 +1,11 @@
 # ML-Guided Dielectric Materials Discovery
 
-[![arXiv](https://img.shields.io/badge/arXiv-2401.05848-blue?logo=arxiv)](https://arxiv.org/abs/2401.05848)
+[![arXiv](https://img.shields.io/badge/arXiv-2401.05848-blue?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2401.05848)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/janosh/dielectrics/main.svg)](https://results.pre-commit.ci/latest/github/janosh/dielectrics/main)
 [![Requires Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg?logo=python&logoColor=white)](https://python.org/downloads)
 ![GitHub repo size](https://img.shields.io/github/repo-size/janosh/dielectrics?color=darkblue&label=Repo%20Size&logo=github&logoColor=white)
 [![Pareto Plot](https://img.shields.io/badge/Plotly-Pareto%20Front-purple?logo=Plotly&logoColor=white)](https://janosh.github.io/dielectrics)
-[![arXiv](https://img.shields.io/badge/DOI-10.5281/zenodo.10456384-blue?logo=Zenodo&logoColor=white)](https://zenodo.org/records/10456384)
+[![Zenodo](https://img.shields.io/badge/DOI-10.5281/zenodo.10456384-blue?logo=Zenodo&logoColor=white)](https://zenodo.org/records/10456384)
 
 This repo implements a dielectric materials discovery workflow that integrates ML as the first filter in a multi-step funnel.
 We use surrogate models for band gaps, dielectric constants, and formation energies.

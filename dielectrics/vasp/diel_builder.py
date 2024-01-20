@@ -13,7 +13,7 @@ dielectric_builder = DielectricBuilder(db_rw.materials)
 
 # Doesn't work for bringing the material ID along into the materials collection
 # default: ['bandgap', 'energy_per_atom']
-# tasks.properties_root = ["bandgap", "energy_per_atom", "material_id"]
+# tasks.properties_root = [Keys.bandgap, Keys.e_per_atom, Keys.mat_id]
 
 
 # %%

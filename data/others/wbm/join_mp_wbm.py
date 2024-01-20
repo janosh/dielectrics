@@ -6,7 +6,7 @@ from matbench_discovery.data import DATA_FILES
 from matbench_discovery.data import df_wbm as df_summary
 from pymatgen.ext.matproj import MPRester
 
-from dielectrics import DATA_DIR, id_col
+from dielectrics import DATA_DIR, Key
 from dielectrics import plots as plots
 
 
@@ -14,9 +14,9 @@ module_dir = os.path.dirname(__file__)
 
 
 # %%
-df_mp_wbm = pd.read_csv(f"{module_dir}/data/mp+wbm-all.csv.bz2").set_index(id_col)
+df_mp_wbm = pd.read_csv(f"{module_dir}/data/mp+wbm-all.csv.bz2").set_index(Key.mat_id)
 
-df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(id_col)
+df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(Key.mat_id)
 df_wbm[list(df_summary)] = df_summary
 
 
@@ -40,7 +40,7 @@ mp_data = MPRester().query(
 )
 
 df_mp_wbm["bandgap"] = df_wbm.bandgap.append(
-    pd.DataFrame(mp_data).set_index(id_col).bandgap
+    pd.DataFrame(mp_data).set_index(Key.mat_id).bandgap
 )
 
 # 3,314 MP materials with mvc-... IDs have no band gap, we drop them
@@ -109,7 +109,7 @@ print(f"{df_wbm_screen.columns.intersection(df_mp_screening_set.columns)=}")
 print(f"{df_wbm_screen.columns.difference(df_mp_screening_set.columns)=}")
 print(f"{df_mp_screening_set.columns.difference(df_wbm_screen.columns)=}")
 
-df_wbm_screen[id_col] = df_wbm_screen.index
+df_wbm_screen[Key.mat_id] = df_wbm_screen.index
 
 print(f"{len(df_mp_screening_set) = :,} + {len(df_wbm_screen) = :,} ")
 # len(df_mp_screen) = 25,296 + len(df_wbm_screen) = 22,026

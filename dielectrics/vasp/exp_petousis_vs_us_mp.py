@@ -25,33 +25,22 @@ from pymatviz import annotate_metrics, ptable_heatmap_plotly
 from pymatviz.io import df_to_pdf
 from pymatviz.utils import add_identity_line
 
-from dielectrics import (
-    DATA_DIR,
-    PAPER_FIGS,
-    diel_total_exp_col,
-    diel_total_us_col,
-    fom_exp_col,
-    fom_pbe_col,
-    formula_col,
-    id_col,
-    n_sites_col,
-    spg_col,
-)
+from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 from dielectrics.plots import plt
 
 
 # %%
 df_exp = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv").set_index(
-    id_col, drop=False
+    Key.mat_id, drop=False
 )
 
-df_exp.index.name = id_col
+df_exp.index.name = Key.mat_id
 struct_col = "structure_mp"
 # 3 mp-id's appear in both Petousis 2016/17: mp-2964, mp-5238, mp-5342
 df_exp[df_exp.index.duplicated(keep=False)].sort_index()
-df_exp = df_exp.drop_duplicates(keep="first", subset=id_col)
-df_exp = df_exp.sort_values(diel_total_exp_col, ascending=False)
+df_exp = df_exp.drop_duplicates(keep="first", subset=Key.mat_id)
+df_exp = df_exp.sort_values(Key.diel_total_exp, ascending=False)
 assert len(df_exp) == 136
 
 
@@ -69,7 +58,7 @@ assert len(df_exp) == len(mp_data), f"{len(df_exp)=} != {len(mp_data)=}"
 
 
 # %%
-df_mp = pd.DataFrame(mp_data).set_index(id_col, drop=False)
+df_mp = pd.DataFrame(mp_data).set_index(Key.mat_id, drop=False)
 
 df_mp = df_mp.rename(columns={"band_gap": "bandgap"})
 cols = "material_id structure bandgap e_total e_ionic e_electronic n".split()
@@ -85,15 +74,15 @@ df_us = df_diel_from_task_coll(
 
 df_us = df_us[~df_us.index.duplicated()]
 
-df_exp[diel_total_us_col] = df_us[diel_total_us_col]
+df_exp[Key.diel_total_us] = df_us[Key.diel_total_us]
 
 
 # %%
-df_exp[n_sites_col] = df_exp[struct_col].map(len)
+df_exp[Key.n_sites] = df_exp[struct_col].map(len)
 df_exp["formula"] = df_exp[struct_col].map(lambda x: x.composition.reduced_formula)
 df_exp["n_elems"] = df_exp[struct_col].map(lambda x: len(x.composition))
-df_exp[n_sites_col] = df_exp[struct_col].map(len)
-df_exp[spg_col] = df_exp[struct_col].map(lambda x: x.get_space_group_info())
+df_exp[Key.n_sites] = df_exp[struct_col].map(len)
+df_exp[Key.spg] = df_exp[struct_col].map(lambda x: x.get_space_group_info())
 
 df_exp["wyckoff"] = [
     get_aflow_label_from_spglib(struct) for struct in df_exp[struct_col]
@@ -130,7 +119,7 @@ def diel_tensor_to_const(csv: str) -> float:
 
 # %%
 ptable_heatmap_plotly(
-    df_exp[formula_col],
+    df_exp[Key.formula],
     color_bar=dict(title="Element count"),
     count_mode="occurrence",
     fmt=".0f",
@@ -160,20 +149,20 @@ annotate_metrics(df_exp.n_exp, df_exp.n_petousis, loc="upper left")
 
 
 # %%
-n_points = len(df_exp[["diel_total_petousis", diel_total_exp_col]].dropna())
+n_points = len(df_exp[["diel_total_petousis", Key.diel_total_exp]].dropna())
 
 fig = px.scatter(
     df_exp,
-    x=diel_total_exp_col,
+    x=Key.diel_total_exp,
     y="diel_total_petousis",
-    hover_data=[id_col, "formula", "n_petousis", "n_exp", "polycrystalline"],
+    hover_data=[Key.mat_id, "formula", "n_petousis", "n_exp", "polycrystalline"],
     color="n_exp",
     height=700,
     width=1000,
     log_x=(log_log := True),
     log_y=log_log,
     labels={
-        diel_total_exp_col: "Experimental Permittivity",
+        Key.diel_total_exp: "Experimental Permittivity",
         "diel_total_petousis": "Petousis Permittivity",
         "n_exp": "refractive<br>index <i>n<i>",
     },
@@ -274,23 +263,23 @@ plt.savefig(f"{PAPER_FIGS}/exp-vs-us-vs-petousis-vs-mp-diel-total.pdf")
 
 # %%
 color_cols = {
-    diel_total_exp_col: "ε<sub>exp</sub>",
-    diel_total_us_col: "ε<sub>us</sub>",
+    Key.diel_total_exp: "ε<sub>exp</sub>",
+    Key.diel_total_us: "ε<sub>us</sub>",
     "diel_total_petousis": "ε<sub>Petousis</sub>",
     "diel_total_mp": "ε<sub>MP</sub>",
-    n_sites_col: "n<sub>sites</sub>",
+    Key.n_sites: "n<sub>sites</sub>",
     "n_elems": "n<sub>elems</sub>",
 }
 info_cols = {
     "material_id": "Material ID",
     "formula": "Formula",
     # "polycrystalline": "Polycrystalline",
-    spg_col: "Spacegroup",
+    Key.spg: "Spacegroup",
 }
 if "spacegroup symbol" not in df_exp:
     spg_dict = zip(
-        ["spacegroup symbol", spg_col],
-        zip(*df_exp[spg_col], strict=True),
+        ["spacegroup symbol", Key.spg],
+        zip(*df_exp[Key.spg], strict=True),
         strict=True,
     )
     df_exp = df_exp.assign(**dict(spg_dict))
@@ -319,27 +308,35 @@ for idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1
 # %% calculate percentiles for our experimental results w.r.t.
 # Petousis 2016/17-collected experimental data
 us_exp = {
-    "CsTaTeO6": {diel_total_exp_col: 9.5, "bandgap_exp": 1.05, "bandgap_pbe": 2.09},
-    "Bi2Zr2O7": {diel_total_exp_col: 20.5, "bandgap_exp": 2.27, "bandgap_pbe": 3.05},
+    "CsTaTeO6": {
+        Key.diel_total_exp: 9.5,
+        "bandgap_exp": 1.05,
+        "bandgap_pbe": 2.09,
+    },
+    "Bi2Zr2O7": {
+        Key.diel_total_exp: 20.5,
+        "bandgap_exp": 2.27,
+        "bandgap_pbe": 3.05,
+    },
 }
 
 df_us_exp = pd.DataFrame(us_exp).T
-df_us_exp[fom_exp_col] = df_us_exp[diel_total_exp_col] * df_us_exp.bandgap_exp
-df_us_exp[fom_pbe_col] = df_us_exp[diel_total_exp_col] * df_us_exp.bandgap_pbe
-df_exp[fom_exp_col] = df_exp[diel_total_exp_col] * df_exp.bandgap_mp
+df_us_exp[Key.fom_exp] = df_us_exp[Key.diel_total_exp] * df_us_exp.bandgap_exp
+df_us_exp[Key.fom_pbe] = df_us_exp[Key.diel_total_exp] * df_us_exp.bandgap_pbe
+df_exp[Key.fom_exp] = df_exp[Key.diel_total_exp] * df_exp.bandgap_mp
 
 for formula in df_us_exp.index:
-    fom_exp, fom_pbe = df_us_exp.loc[formula, [fom_exp_col, fom_pbe_col]]
-    diel_total_exp = df_us_exp.loc[formula, diel_total_exp_col]
+    fom_exp, fom_pbe = df_us_exp.loc[formula, [Key.fom_exp, Key.fom_pbe]]
+    diel_total_exp = df_us_exp.loc[formula, Key.diel_total_exp]
 
-    percentile_exp = scipy.stats.percentileofscore(df_exp[fom_exp_col], fom_exp)
+    percentile_exp = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_exp)
     print(f"{formula} {percentile_exp=:.0f}")
 
-    percentile_pbe = scipy.stats.percentileofscore(df_exp[fom_exp_col], fom_pbe)
+    percentile_pbe = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_pbe)
     print(f"{formula} {percentile_pbe=:.0f}")
 
     percentile_diel = scipy.stats.percentileofscore(
-        df_exp[diel_total_exp_col], diel_total_exp
+        df_exp[Key.diel_total_exp], diel_total_exp
     )
     print(f"{formula} {percentile_diel=:.0f}")
 

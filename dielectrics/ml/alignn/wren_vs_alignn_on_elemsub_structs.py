@@ -9,7 +9,7 @@ from pymatviz.utils import add_identity_line
 from sklearn.metrics import r2_score
 from tqdm import tqdm
 
-from dielectrics import DATA_DIR, formula_col, id_col, structure_col, today
+from dielectrics import DATA_DIR, Key, today
 from dielectrics.db import db
 from dielectrics.plots import px
 
@@ -20,7 +20,7 @@ __date__ = "2022-06-06"
 
 # %% load 1st step WBM step structures to compare Wren and Alignn performance on them
 df_wbm_step1 = pd.read_json(f"{DATA_DIR}/wbm/step-1.json.bz2")
-df_wbm_step1.index.name = id_col
+df_wbm_step1.index.name = Key.mat_id
 
 df_wbm_step1[list(df_summary)] = df_summary
 df_wbm_step1["jarvis_atoms"] = df_wbm_step1.computed_structure_entry.map(
@@ -31,7 +31,7 @@ df_wbm_step1["jarvis_atoms"] = df_wbm_step1.computed_structure_entry.map(
 # %%
 df_wren_bandgaps = pd.read_csv(
     f"{DATA_DIR}/wren/bandgap/wren-bandgap-mp+wbm-ensemble.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 df_wren_bandgaps["bandgap_pred"] = df_wren_bandgaps.filter(like="pred_n").mean(1)
 df_wren_bandgaps["bandgap_std"] = df_wren_bandgaps.filter(like="pred_n").std(1)
@@ -42,13 +42,13 @@ df_wbm_step1["bandgap_wren"] = df_wren_bandgaps.bandgap_pred
 # %%
 df_elemsub_wren = pd.read_json(
     f"{DATA_DIR}/element-substitution/wren-elemsub-mp+wbm-substituted-structs.json.bz2"
-).set_index([id_col, formula_col])
+).set_index([Key.mat_id, Key.formula])
 
 
 # %%
 filters = {"task_label": "structure optimization", "bandgap_wren": {"$exists": True}}
 fields = [
-    id_col,
+    Key.mat_id,
     "formula_pretty",
     "output.bandgap",
     "bandgap_wren",
@@ -71,9 +71,9 @@ for dct in db_data:
 
 df_db = pd.DataFrame(db_data)
 
-df_db = df_db.rename(columns={"formula_pretty": formula_col})
+df_db = df_db.rename(columns={"formula_pretty": Key.formula})
 
-df_db = df_db.set_index([id_col, formula_col], drop=False)
+df_db = df_db.set_index([Key.mat_id, Key.formula], drop=False)
 
 assert not df_db.index.duplicated().any()
 df_db = df_db.groupby(level=[0, 1]).last()  # drop duplicate indices
@@ -99,7 +99,7 @@ device = "cpu"
 
 # %% save Alignn predictions in new column named pred_col on df_db
 if "jarvis_atoms" not in df_db:
-    df_db["jarvis_atoms"] = df_db[structure_col].map(JarvisAtomsAdaptor().get_atoms)
+    df_db["jarvis_atoms"] = df_db[Key.structure].map(JarvisAtomsAdaptor().get_atoms)
     df_db[["alignn_atom_graph", "alignn_line_graph"]] = [
         Graph.atom_dgl_multigraph(x, cutoff=8) for x in tqdm(df_db.jarvis_atoms)
     ]
@@ -112,7 +112,7 @@ for row in tqdm(df_db.itertuples(), total=len(df_db), desc=desc):
 
     for property_name, model in alignn_models.items():
         pred_col = (
-            f"{property_name}_alignn_{'' if 'final' in structure_col else 'un'}relaxed"
+            f"{property_name}_alignn_{'' if 'final' in Key.structure else 'un'}relaxed"
         )
         if pred_col in df_db and not pd.isna(df_db[pred_col][idx]):
             continue
@@ -159,7 +159,7 @@ fig = px.scatter(
     df_db.round(2).rename(columns=col_labels),
     x=target,
     y=list(col_labels.values()),
-    hover_data=[id_col, formula_col],
+    hover_data=[Key.mat_id, Key.formula],
     labels={
         "e_above_hull_pbe": "PBE hull distance (eV)",
         "value": "ML hull distance (eV)",

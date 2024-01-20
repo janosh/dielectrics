@@ -3,7 +3,7 @@ from typing import Any
 import pandas as pd
 from pymatgen.ext.matproj import MPRester
 
-from dielectrics import formula_col, n_sites_col, structure_col
+from dielectrics import Key
 
 
 target_properties = [
@@ -23,9 +23,9 @@ target_properties = [
     "final_structure",
 ]
 column_rename_map = {
-    "final_structure": structure_col,
-    "pretty_formula": formula_col,
-    "nsites": n_sites_col,
+    "final_structure": Key.structure,
+    "pretty_formula": Key.formula,
+    "nsites": Key.n_sites,
     "nelements": "n_elements",
     "band_gap": "bandgap_mp",
     "poly_total": "diel_total_mp",

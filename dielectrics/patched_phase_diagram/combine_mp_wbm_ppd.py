@@ -27,7 +27,7 @@ from pymatgen.entries.computed_entries import ComputedStructureEntry
 from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
-from dielectrics import id_col, today
+from dielectrics import Key, today
 from dielectrics.patched_phase_diagram import MODULE_DIR
 
 
@@ -36,7 +36,7 @@ __date__ = "2021-08-05"
 
 
 # %%
-df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(id_col)
+df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(Key.mat_id)
 
 df_wbm.computed_structure_entry = df_wbm.computed_structure_entry.map(
     ComputedStructureEntry.from_dict
@@ -125,7 +125,7 @@ correction_cols = [
     "correction_uncertainty_per_atom",
     "energy",
     "energy_adjustments",
-    "energy_per_atom",
+    Key.e_per_atom,
     "entry_id",
     "name",
     "uncorrected_energy",
@@ -170,7 +170,7 @@ fig = px.scatter(
     y="e_form_wbm",
     labels={
         "energy_per_atom_wbm": "WBM Energy/atom (eV)",
-        "energy_per_atom": "MP 2020 Compat Energy/atom (eV)",
+        Key.e_per_atom: "MP 2020 Compat Energy/atom (eV)",
     },
     marginal_x="violin",
     marginal_y="violin",

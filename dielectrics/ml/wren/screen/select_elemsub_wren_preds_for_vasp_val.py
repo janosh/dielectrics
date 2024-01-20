@@ -5,26 +5,26 @@ from matplotlib.transforms import blended_transform_factory
 from pymatgen.core import Composition
 from pymatviz import ptable_heatmap
 
-from dielectrics import DATA_DIR, diel_total_wren_col, id_col
+from dielectrics import DATA_DIR, Key
 from dielectrics.element_substitution import df_struct_apply_elem_substitution
 
 
 # %%
 df_ene = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-e_form-ens-rhys-screen-mp-top1k-fom-elemsub.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 df_elec = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-diel-elec-ens-trained-on-all-mp-screen-mp-top1k-fom-elemsub.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 df_ionic = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-diel-ionic-ens-trained-on-all-mp-screen-mp-top1k-fom-elemsub.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 df_bandgap = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-bandgap-mp+wbm-ensemble-screen-mp-top1k-fom-elemsub.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 
 for df in [df_ene, df_elec, df_ionic, df_bandgap]:
@@ -51,9 +51,9 @@ for col, df in zip(cols, dfs, strict=True):
 
 
 # %%
-df_wren[diel_total_wren_col] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
+df_wren[Key.diel_total_wren] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
 
-df_wren["fom_wren"] = (df_wren.diel_total_wren * df_wren.bandgap_wren).clip(0)
+df_wren[Key.fom_wren] = (df_wren.diel_total_wren * df_wren.bandgap_wren).clip(0)
 
 df_wren["fom_wren_rank"] = df_wren.fom_wren.rank(ascending=False).astype(int)
 
@@ -82,22 +82,22 @@ df_wren["fom_wren_std"] = (
     + (df_wren.bandgap_wren * df_wren.diel_total_wren_std) ** 2
 ) ** 0.5
 
-fom_std_spearmen = df_wren[["fom_wren_std", "fom_wren"]].corr(method="spearman")
+fom_std_spearmen = df_wren[["fom_wren_std", Key.fom_wren]].corr(method="spearman")
 print(f"FoM Wren with std correlation: {fom_std_spearmen}")
 
 df_wren.query("fom_wren > 100 and diel_total_wren < 2000").sample(5000).plot.scatter(
-    x=diel_total_wren_col, y="fom_wren", yerr="fom_wren_std"
+    x=Key.diel_total_wren, y=Key.fom_wren, yerr="fom_wren_std"
 )
 
 df_wren.query("fom_wren > 100 and diel_total_wren < 2000").sample(5000).plot.scatter(
-    x="bandgap_wren", y="fom_wren", yerr="fom_wren_std"
+    x="bandgap_wren", y=Key.fom_wren, yerr="fom_wren_std"
 )
 
 ax1 = (df_wren.fom_wren - 0.5 * df_wren.fom_wren_std).hist(bins=100, log=True)
 ax1.set(title="fom_wren - fom_wren_std")
 plt.show()
 ax2 = df_wren.fom_wren.hist(bins=100, log=True)
-ax2.set(title="fom_wren")
+ax2.set(title=Key.fom_wren)
 
 # pick as uncertainty adjusted figure of merit FoM_std_adj = FoM - c * FoM_std
 df_wren["fom_wren_std_adj"] = df_wren.fom_wren - 0.5 * df_wren.fom_wren_std
@@ -110,7 +110,7 @@ df_wren["fom_wren_std_adj_rank"] = df_wren.fom_wren_std_adj.rank(
 # %%
 df_all_mp_formulas = pd.read_csv(
     f"{DATA_DIR}/mp-exploration/all-mp-formulas.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 
 # %% makes little difference whether comparing formula strings or Composition objects
@@ -142,7 +142,7 @@ df_clean = df_clean[~small_bandgap]
 # %%
 axs1 = df_clean[["e_form_wren", "bandgap_wren"]].hist(bins=100, figsize=[18, 4])
 axs2 = df_clean[
-    ["fom_wren", "diel_ionic_wren", diel_total_wren_col, "diel_elec_wren"]
+    [Key.fom_wren, "diel_ionic_wren", Key.diel_total_wren, "diel_elec_wren"]
 ].hist(bins=100, figsize=[18, 8], log=True)
 
 
@@ -193,7 +193,7 @@ top_fom.to_json(
 hist_args = dict(bins=100, log=True, density=True, alpha=0.8, layout=(1, 3))
 
 axs = df_wren.query("0 < diel_total_wren < 800")[
-    ["diel_elec_wren", "diel_ionic_wren", diel_total_wren_col]
+    ["diel_elec_wren", "diel_ionic_wren", Key.diel_total_wren]
 ].hist(figsize=[15, 3], **hist_args)
 
 df_mp_diel.query("0 < diel_total_mp < 800")[

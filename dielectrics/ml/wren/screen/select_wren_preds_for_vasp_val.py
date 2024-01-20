@@ -5,27 +5,27 @@ from matbench_discovery.data import df_wbm as df_summary
 from pymatgen.ext.matproj import MPRester
 from pymatviz import ptable_heatmap
 
-from dielectrics import DATA_DIR, diel_total_wren_col, id_col
+from dielectrics import DATA_DIR, Key
 from dielectrics.plots import plt
 
 
 # %%
 df_elec = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-screen-mp+wbm-diel-elec-ensemble-robust-trained-on-all-mp.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 df_ionic = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-screen-mp+wbm-diel-ionic-ensemble-robust-trained-on-all-mp.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 
 # %%
-df_wren = df_ionic[["formula", "wyckoff", "bandgap_pbe"]].copy()
+df_wren = df_ionic[[Key.formula, Key.wyckoff, Key.bandgap_pbe]].copy()
 
 df_wren["diel_elec_wren"] = df_elec.filter(like="_pred_n").mean(1)
 df_wren["diel_ionic_wren"] = df_ionic.filter(like="_pred_n").mean(1)
-df_wren[diel_total_wren_col] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
+df_wren[Key.diel_total_wren] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
 
-df_wren["fom_wren"] = df_wren.diel_total_wren * df_wren.bandgap_pbe
+df_wren[Key.fom_wren] = df_wren.diel_total_wren * df_wren.bandgap_pbe
 
 df_wren["fom_wren_rank"] = df_wren.fom_wren.rank(ascending=False).astype(int)
 
@@ -45,7 +45,7 @@ assert n_from_mp + n_from_wbm == len(df_wren)
 
 print(f"{n_from_mp = :,}\t{n_from_wbm = :,}\ttotal = {len(df_wren):,} non-metals")
 
-df_top_1k = df_wren.nlargest(1000, "fom_wren")
+df_top_1k = df_wren.nlargest(1000, Key.fom_wren)
 df_top_1k.describe().round(2)
 
 #       bandgap_pbe   diel_elec_wren    diel_ionic_wren     diel_total_wren     fom_wren
@@ -70,7 +70,7 @@ plt.title(f"{len(df_mp_diel)} MP materials with computed dielectric properties")
 
 plt.hexbin(df_mp_diel.diel_total_mp, df_mp_diel.bandgap_mp, mincnt=1)
 
-df_top_1k.plot.scatter(x=diel_total_wren_col, y="bandgap_pbe", ax=plt.gca())
+df_top_1k.plot.scatter(x=Key.diel_total_wren, y="bandgap_pbe", ax=plt.gca())
 
 plt.xlim((0, 1500))
 
@@ -83,9 +83,9 @@ plt.legend()
 
 # %%
 mp_data = MPRester().query(
-    criteria={id_col: {"$in": list(df_top_1k.index)}},
+    criteria={Key.mat_id: {"$in": list(df_top_1k.index)}},
     properties=[
-        id_col,
+        Key.mat_id,
         "final_structure",
         "final_energy",
         "formation_energy_per_atom",
@@ -93,7 +93,7 @@ mp_data = MPRester().query(
     ],
 )
 
-df_mp = pd.DataFrame(mp_data).set_index(id_col)
+df_mp = pd.DataFrame(mp_data).set_index(Key.mat_id)
 df_mp.columns = df_mp.columns.str.replace("final_", "")
 df_mp = df_mp.rename(
     columns={"formation_energy_per_atom": "e_form", "e_above_hull": "e_hull"}
@@ -101,7 +101,7 @@ df_mp = df_mp.rename(
 
 
 # %%
-df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(id_col)
+df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(Key.mat_id)
 df_wbm[list(df_summary)] = df_summary
 df_wbm = df_wbm.query("bandgap_pbe > 0")  # discard metals
 
@@ -132,13 +132,13 @@ df_top_1k.to_json(
 # FoM = (diel_total_wren - diel_total_wren_std) * bandgap_pbe
 df_elec = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-mp+wbm-for-screen-diel-elec-ensemble-trained-on-all-mp.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 df_ionic = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-mp+wbm-for-screen-diel-ionic-ensemble-trained-on-all-mp.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 df_mp_wbm_screen = pd.read_json(f"{DATA_DIR}/wbm/mp+wbm-for-screen.json.gz").set_index(
-    id_col
+    Key.mat_id
 )
 
 
@@ -151,7 +151,7 @@ df_wren["diel_elec_wren_std"] = df_elec.filter(like="_pred_n").std(1)
 df_wren["diel_ionic_wren"] = df_ionic.filter(like="_pred_n").mean(1)
 df_wren["diel_ionic_wren_std"] = df_ionic.filter(like="_pred_n").std(1)
 
-df_wren[diel_total_wren_col] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
+df_wren[Key.diel_total_wren] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
 df_wren["diel_total_wren_std"] = (
     df_wren.diel_elec_wren_std**2 + df_wren.diel_ionic_wren_std**2
 ) ** 0.5
@@ -160,7 +160,7 @@ df_wren["diel_total_wren_std"] = (
 df_wren[list(df_mp_wbm_screen)] = df_mp_wbm_screen
 df_wren = df_wren.rename(columns={"bandgap": "bandgap_pbe"})
 
-df_wren["fom_wren"] = df_wren.diel_total_wren * df_wren.bandgap_pbe
+df_wren[Key.fom_wren] = df_wren.diel_total_wren * df_wren.bandgap_pbe
 df_wren["fom_wren_std_adj"] = (
     df_wren.diel_total_wren - df_wren.diel_total_wren_std
 ) * df_wren.bandgap_pbe
@@ -180,7 +180,7 @@ plt.suptitle(f"{len(df_wren):,} samples", y=1.02)
 
 
 # %%
-ptable_heatmap(df_wren.nlargest(1000, "fom_wren").formula, heat_label="percent")
+ptable_heatmap(df_wren.nlargest(1000, Key.fom_wren).formula, heat_label="percent")
 
 ptable_heatmap(df_wren.sample(1000).formula, heat_label="percent")
 

@@ -4,7 +4,7 @@ from itertools import combinations
 import pandas as pd
 from pymatviz import annotate_metrics
 
-from dielectrics import DATA_DIR, diel_total_wren_col, id_col
+from dielectrics import DATA_DIR, Key
 from dielectrics.plots import plt
 
 
@@ -24,20 +24,20 @@ dfs = {
 
 
 df_exp = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv")
-df_exp = df_exp.drop_duplicates("material_id").set_index(id_col)
+df_exp = df_exp.drop_duplicates("material_id").set_index(Key.mat_id)
 
 
 # %% drop meaningless target columns (only needed once)
 # for idx, df in enumerate(dfs.values()):
 #     df = df.drop(df.filter(like="_target"), axis=1)
-#     df.set_index(id_col).round(4).to_csv(path_fn(models[idx]))
+#     df.set_index(Keys.mat_id).round(4).to_csv(path_fn(models[idx]))
 
 
 # %%
 for key, df in dfs.items():
     df = df.drop(df.filter(like="_target"), axis=1).drop_duplicates("material_id")
 
-    df = df.set_index(id_col)
+    df = df.set_index(Key.mat_id)
 
     df[f"diel_{key}_pred"] = df.filter(like="_pred_n").mean(1)
 
@@ -54,7 +54,7 @@ for key, df in dfs.items():
 
 
 # %%
-df_exp[diel_total_wren_col] = df_exp.diel_elec_wren + df_exp.diel_ionic_wren
+df_exp[Key.diel_total_wren] = df_exp.diel_elec_wren + df_exp.diel_ionic_wren
 df_exp["diel_total_robust_wren"] = (
     df_exp.diel_elec_robust_wren + df_exp.diel_ionic_robust_wren
 )
@@ -101,7 +101,7 @@ fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 for ax, wren in zip(axs, ("wren", "robust_wren"), strict=True):
     df_exp.plot.scatter(
         x="diel_total_exp",
-        y=diel_total_wren_col,
+        y=Key.diel_total_wren,
         yerr="diel_total_wren_std",
         ax=ax,
         loglog=True,

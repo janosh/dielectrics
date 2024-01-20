@@ -11,49 +11,39 @@ from pymatviz import annotate_bars, spacegroup_sunburst
 from pymatviz.utils import add_identity_line, crystal_sys_from_spg_num
 from tqdm import tqdm
 
-from dielectrics import (
-    DATA_DIR,
-    crystal_sys_col,
-    diel_total_mp_col,
-    diel_total_pbe_col,
-    e_above_hull_mp_col,
-    formula_col,
-    icsd_id_col,
-    spg_col,
-    structure_col,
-)
+from dielectrics import DATA_DIR, Key
 from dielectrics.plots import plt
 
 
 # %%
 df_yim = pd.read_json(f"{DATA_DIR}/others/yim/dielectrics.json.bz2")
-df_yim.index.name = icsd_id_col
+df_yim.index.name = Key.icsd_id
 
-df_yim[structure_col] = [
+df_yim[Key.structure] = [
     Structure.from_str(x, fmt="json") if x else None for x in df_yim.structure
 ]
 
 
 for row in tqdm(df_yim.itertuples(), total=len(df_yim)):
     try:
-        cols = ["spg_symbol", spg_col]
+        cols = ["spg_symbol", Key.spg]
         if struct := row.structure:
             df_yim.loc[row.Index, cols] = _, spg_num = struct.get_space_group_info()
-            df_yim.loc[row.Index, crystal_sys_col] = crystal_sys_from_spg_num(spg_num)
+            df_yim.loc[row.Index, Key.crystal_sys] = crystal_sys_from_spg_num(spg_num)
     except TypeError:  # 'NoneType' object is not subscriptable
         continue
 
-df_yim = df_yim.dropna(subset=crystal_sys_col)
+df_yim = df_yim.dropna(subset=Key.crystal_sys)
 
 
 # %%
 fig = px.scatter(
     df_yim.reset_index(),
-    x=diel_total_pbe_col,
-    y=diel_total_mp_col,
-    color=crystal_sys_col,
-    hover_data=[icsd_id_col, spg_col],
-    hover_name=formula_col,
+    x=Key.diel_total_pbe,
+    y=Key.diel_total_mp,
+    color=Key.crystal_sys,
+    hover_data=[Key.icsd_id, Key.spg],
+    hover_name=Key.formula,
 )
 
 xy_range = [0.2, 3]
@@ -80,9 +70,9 @@ for idx, (xcol, ycol) in enumerate(combinations(labels, 2), 1):
         df_yim.reset_index(),
         x=xcol,
         y=ycol,
-        hover_data=[icsd_id_col, spg_col],
-        hover_name=formula_col,
-        color=crystal_sys_col,
+        hover_data=[Key.icsd_id, Key.spg],
+        hover_name=Key.formula,
+        color=Key.crystal_sys,
     )
     # don't show repeated legend labels, only show those of first subplot
     sub_fig.update_traces(showlegend=idx == 1)
@@ -100,21 +90,21 @@ fig.show()
 
 
 # %%
-fig = spacegroup_sunburst(df_yim[spg_col], show_counts="percent")
+fig = spacegroup_sunburst(df_yim[Key.spg], show_counts="percent")
 title = "Space distribution of Yin et al. dielectric materials"
 fig.layout.title.update(text=title, x=0.5, font=dict(color="lightgray"))
 fig.show()
 
 
 # %%
-df_no_nan = df_yim.dropna(subset=[diel_total_pbe_col, crystal_sys_col])
+df_no_nan = df_yim.dropna(subset=[Key.diel_total_pbe, Key.crystal_sys])
 fig = px.strip(
     df_no_nan.reset_index(),
-    color=crystal_sys_col,
-    x=crystal_sys_col,
-    y=diel_total_pbe_col,
-    hover_data=[icsd_id_col, spg_col],
-    hover_name=formula_col,
+    color=Key.crystal_sys,
+    x=Key.crystal_sys,
+    y=Key.diel_total_pbe,
+    hover_data=[Key.icsd_id, Key.spg],
+    hover_name=Key.formula,
     labels=labels,
     log_y=True,
     title="Dielectric constant by crystal system",
@@ -124,7 +114,7 @@ fig.update_layout(showlegend=False)
 
 x_ticks = [
     f"{key}<br>points: {val:,} ({val/len(df_no_nan):.0%})"
-    for key, val in df_yim[crystal_sys_col].value_counts().items()
+    for key, val in df_yim[Key.crystal_sys].value_counts().items()
 ]
 fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=x_ticks)
 fig.show()
@@ -148,7 +138,7 @@ plt.savefig(f"{mp_ids_col}_lens.pdf")
 # %% where there are several mp_ids, pick the one with lowest energy above convex hull
 # since these are ICSD structures and lowest lying polymorph is the one most likely to
 # be stable
-df_yim[e_above_hull_mp_col] = df_yim[mp_ids_col].map(
+df_yim[Key.e_above_hull_mp] = df_yim[mp_ids_col].map(
     lambda ids: [mpr.query(mp_id, ["e_above_hull"])["e_above_hull"] for mp_id in ids]
 )
 

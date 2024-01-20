@@ -4,15 +4,7 @@ from pymatviz import density_hexbin, scatter_with_err_bar
 from pymatviz.io import save_fig
 from pymatviz.utils import annotate_metrics
 
-from dielectrics import (
-    DATA_DIR,
-    PAPER_FIGS,
-    diel_elec_mp_col,
-    diel_total_mp_col,
-    diel_total_pbe_col,
-    diel_total_wren_col,
-    id_col,
-)
+from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 from dielectrics.plots import plt
 
@@ -70,12 +62,12 @@ for ax, df, title in zip(
 # %%
 df_wren_seed = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-diel-single-robust-mp+wbm.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 df_wren_seed.describe()
 
 
 # %%
-ax_res = (df_wren_seed[diel_total_wren_col] - df_wren_seed.diel_total_wren_indi).hist(
+ax_res = (df_wren_seed[Key.diel_total_wren] - df_wren_seed.diel_total_wren_indi).hist(
     log=True, bins=70, figsize=[10, 6]
 )
 
@@ -89,12 +81,12 @@ ax_res.set_title(
 # %%
 df_wren_elemsub = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-elemsub-mp+wbm+hull.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 
 # %% write elemental substitution seeds to disk, we'll use these to perform formula
 # mutations based on chemical similarity
-# df_wren_seed.nlargest(1000, "fom_wren").round(4).to_csv(
+# df_wren_seed.nlargest(1000, Keys.fom_wren).round(4).to_csv(
 #     f"{DATA_DIR}/wren/screen/wren-diel-single-robust-mp+wbm-fom-elemsub-seeds.csv"
 # )
 
@@ -105,7 +97,7 @@ ax = fom_wren_top.hist(
     bins=70, figsize=[12, 6], label="top 1k Wren FoM elemsub < 0.1 eV above hull"
 )
 
-df_wren_seed.nlargest(1000, "fom_wren").fom_wren.hist(
+df_wren_seed.nlargest(1000, Key.fom_wren).fom_wren.hist(
     ax=ax, bins=70, color="orange", label="top 1k from MP+WBM"
 )
 
@@ -117,15 +109,15 @@ save_fig(f"{PAPER_FIGS}/wren/screen/top-1k-elemsub-vs-mp+wbm.pdf")
 df_elec = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-screen-mp+wbm-diel-elec-ensemble-robust"
     "-trained-on-all-mp.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 df_ionic = pd.read_csv(
     f"{DATA_DIR}/wren/screen/wren-screen-mp+wbm-diel-ionic-ensemble-robust"
     "-trained-on-all-mp.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 
 # %%
-df_wren = df_ionic[["formula", "wyckoff", "bandgap_pbe"]].copy()
+df_wren = df_ionic[[Key.formula, Key.wyckoff, Key.bandgap_pbe]].copy()
 
 for key, df in zip(("elec", "ionic"), (df_elec, df_ionic), strict=True):
     df_wren[f"diel_{key}_wren"] = df.filter(like="_pred_n").mean(1)
@@ -139,9 +131,9 @@ df_wren["diel_total_wren_std"] = (
     df_wren.diel_elec_wren_std**2 + df_wren.diel_ionic_wren_std**2
 ) ** 0.5
 
-df_wren[diel_total_wren_col] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
+df_wren[Key.diel_total_wren] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
 
-df_wren["fom_wren"] = df_wren[diel_total_wren_col] * df_wren.bandgap_pbe
+df_wren[Key.fom_wren] = df_wren[Key.diel_total_wren] * df_wren.bandgap_pbe
 
 df_wren["fom_wren_rank"] = df_wren.fom_wren.rank(ascending=False).astype(int)
 
@@ -155,7 +147,7 @@ df_vasp_single = df_diel_from_task_coll({"series": "MP+WBM top 1k Wren-pred FoM"
 wren_cols = ["diel_total_wren_std", "diel_total_wren"]
 
 df_vasp_ens[wren_cols] = df_wren[wren_cols]
-df_vasp_single[diel_total_wren_col] = df_wren_seed[diel_total_wren_col]
+df_vasp_single[Key.diel_total_wren] = df_wren_seed[Key.diel_total_wren]
 
 
 # %% Compare Wren 2 months older single predictions with recent ensemble preds
@@ -163,19 +155,19 @@ df = df_vasp_ens.query("fom_wren_rank < 1000 and diel_total_wren_std < 1000")
 
 plt.figure(figsize=(12, 8))
 scatter_with_err_bar(
-    df[diel_total_pbe_col],
-    df[diel_total_wren_col],
+    df[Key.diel_total_pbe],
+    df[Key.diel_total_wren],
     yerr=df.diel_total_wren_std,
 )
 
 
 # %%
 ax = df_vasp_single.plot.scatter(
-    x="diel_total_pbe", y=diel_total_wren_col, figsize=(12, 8)
+    x="diel_total_pbe", y=Key.diel_total_wren, figsize=(12, 8)
 )
 
 annotate_metrics(
-    df_vasp_single[diel_total_pbe_col], df_vasp_single[diel_total_wren_col]
+    df_vasp_single[Key.diel_total_pbe], df_vasp_single[Key.diel_total_wren]
 )
 ax.axline((0, 0), (1, 1), alpha=0.5, zorder=0, linestyle="dashed", color="black")
 
@@ -190,8 +182,8 @@ df_elec_ens = pd.read_csv(
     f"{DATA_DIR}/wren/diel/wren-mp-diel-elec-ensemble-excl-petousis.csv"
 ).set_index(idx_cols)
 
-df_elec_ens["diel_elec_target"] = df_exp[diel_elec_mp_col]
-df_ionic_ens["diel_ionic_target"] = df_exp[diel_total_mp_col] - df_exp[diel_elec_mp_col]
+df_elec_ens["diel_elec_target"] = df_exp[Key.diel_elec_mp]
+df_ionic_ens["diel_ionic_target"] = df_exp[Key.diel_total_mp] - df_exp[Key.diel_elec_mp]
 
 # filter out obviously wrong highly negative targets (if any)
 print(df_elec_ens.diel_elec_target.nsmallest(5))

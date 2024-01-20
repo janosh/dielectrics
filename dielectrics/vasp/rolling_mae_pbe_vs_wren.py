@@ -1,14 +1,9 @@
 # %%
+import pandas as pd
 import plotly.express as px
 from pymatviz.io import save_fig
 
-from dielectrics import (
-    PAPER_FIGS,
-    bandgap_us_col,
-    bandgap_wren_col,
-    diel_total_pbe_col,
-    diel_total_wren_col,
-)
+from dielectrics import PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
@@ -22,14 +17,20 @@ df_vasp = df_diel_from_task_coll({})
 # %% Plot rolling MAE of Wren band gap and dielectric models vs DFT
 # swap these to use either Wren or our DFT band gaps as x-axis values
 for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
-    [(bandgap_wren_col, bandgap_us_col), (diel_total_wren_col, diel_total_pbe_col)],
-    [(bandgap_us_col, bandgap_wren_col), (diel_total_pbe_col, diel_total_wren_col)],
+    [
+        (Key.bandgap_wren, Key.bandgap_us),
+        (Key.diel_total_wren, Key.diel_total_pbe),
+    ],
+    [
+        (Key.bandgap_us, Key.bandgap_wren),
+        (Key.diel_total_pbe, Key.diel_total_wren),
+    ],
 ]:
     df_plot = df_vasp.set_index(x_axis_bandgap, drop=False).sort_index()
 
     # compute MAE and R^2 for dielectric and bandgap line to show in plot annotation
     bandgap_mae = (df_vasp[other_bandgap] - df_vasp[x_axis_bandgap]).abs().mean()
-    diel_mae = (df_vasp[diel_total_wren_col] - df_vasp[diel_total_pbe_col]).abs().mean()
+    diel_mae = (df_vasp[Key.diel_total_wren] - df_vasp[Key.diel_total_pbe]).abs().mean()
 
     window = 300
     # bandgap rolling MAE calculation
@@ -59,7 +60,7 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
 
     diel_rolling_error_col = (
         f"<b>Rolling |ε<sub>total Wren</sub> - ε<sub>total PBE</sub>|</b><br>"
-        f"MAE={diel_mae:.1f} (std={df_vasp[diel_total_pbe_col].std():.3})"
+        f"MAE={diel_mae:.1f} (std={df_vasp[Key.diel_total_pbe].std():.3})"
     )
 
     df_plot = df_plot.set_index(x_axis_diel, drop=False).sort_index()
@@ -113,3 +114,37 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
     )
     suffix = f"{'wren' if 'wren' in x_axis_bandgap else 'pbe'}-as-x.pdf"
     save_fig(fig, f"{PAPER_FIGS}/rolling-bandgap+diel-error-{suffix}")
+
+
+# %% plot wren and PBE rolling MAE into same plot
+# swap these to use either Wren or our DFT band gaps as x-axis values
+
+for ml_col, pbe_col in [
+    # (Keys.diel_total_wren, Keys.diel_total_pbe),
+    (Key.bandgap_wren, Key.bandgap_us),
+]:
+    # compute rolling error as a function of Wren band gap and PBE band gap
+    df_ml_idx = (
+        df_vasp.dropna(subset=[pbe_col, ml_col])
+        .set_index(ml_col, drop=False)
+        .sort_index()
+    )
+    ml_rolling_err = (
+        (df_ml_idx[ml_col] - df_ml_idx[pbe_col]).abs().rolling(window=300).mean()
+    )
+    df_ml_idx["rolling_error"] = ml_rolling_err
+
+    df_dft_idx = df_vasp.set_index(pbe_col, drop=False).sort_index()
+    dft_rolling_err = (
+        (df_dft_idx[ml_col] - df_dft_idx[pbe_col]).abs().rolling(window=300).mean()
+    )
+    df_dft_idx["rolling_error"] = dft_rolling_err
+
+    df_plot = pd.DataFrame(
+        {
+            "Wren": ml_rolling_err,
+            "PBE": dft_rolling_err,
+        }
+    )
+
+    fig = px.line(df_plot, marginal_x="histogram", marginal_y="histogram")

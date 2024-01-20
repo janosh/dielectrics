@@ -5,7 +5,7 @@ import pandas as pd
 from pymatgen.core import Composition
 from tqdm import tqdm
 
-from dielectrics import id_col
+from dielectrics import Key
 from dielectrics.db import db, md_field_map
 
 
@@ -109,7 +109,7 @@ print(f"{n_del=}")
 # %% display the list of WBM materials for a given 'series' field
 pd.DataFrame(
     db.tasks.find({"series": "MP+WBM top 1k Wren-pred FoM elemsub"}, ["material_id"])
-).set_index(id_col).filter(like="wbm", axis=0)
+).set_index(Key.mat_id).filter(like="wbm", axis=0)
 
 
 # %% fix elemsub material IDs missing element replacement descriptor

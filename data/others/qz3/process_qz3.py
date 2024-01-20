@@ -9,7 +9,7 @@ import pandas as pd
 from pymatgen.core import Composition
 from tqdm import tqdm
 
-from dielectrics import PKG_DIR, fom_pbe_col, formula_col, today
+from dielectrics import PKG_DIR, Key, today
 
 
 if TYPE_CHECKING:
@@ -38,10 +38,10 @@ for col in df:
     df[col] = df[col].map(extract_len1_lists)
     df[col] = df[col].map(extract_len1_lists)
 
-df[[formula_col, "formula_factor"]] = pd.DataFrame(df.formula.to_list())
+df[[Key.formula, "formula_factor"]] = pd.DataFrame(df.formula.to_list())
 df = df.round(4)
 
-df[fom_pbe_col] = df.bandgap_pbe * df.diel_total_pbe
+df[Key.fom_pbe] = df.bandgap_pbe * df.diel_total_pbe
 
 # rename columns containing dielectric tensors
 df = df.rename(columns={"e_total": "eps_total", "e_electronic": "eps_electronic"})

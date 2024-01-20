@@ -1,7 +1,7 @@
 # %%
 import pandas as pd
 
-from dielectrics import DATA_DIR, id_col
+from dielectrics import DATA_DIR, Key
 from dielectrics.plots import plt
 
 
@@ -24,10 +24,10 @@ model_2 = "wren"
 
 df_enrich_1 = pd.read_csv(
     f"{DATA_DIR}/cgcnn/results/{model_1}-refract-{expt}.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 df_enrich_2 = pd.read_csv(
     f"{DATA_DIR}/wren/enrich/{model_2}-refract-{expt}.csv"
-).set_index(id_col)
+).set_index(Key.mat_id)
 
 for df in [df_enrich_1, df_enrich_2]:
     df.columns = df.columns.str.replace("_n0", "")

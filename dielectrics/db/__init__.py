@@ -8,6 +8,8 @@ from pymongo import MongoClient
 from pymongo.database import Database
 from tqdm import tqdm
 
+from dielectrics import Key
+
 
 MONGO_SRV = "mongodb+srv://janosh:WVX8HtsAJo@atomate-cluster.q8s9p.mongodb.net/atomate"
 db = MongoClient(MONGO_SRV).dielectrics
@@ -20,7 +22,7 @@ float_fields = [
     "bandgap_wren_std",
     "bandgap_wren",
     "diel_elec_wren_std",
-    "diel_elec_wren",
+    Key.diel_elec_wren,
     "diel_ionic_wren_std",
     "diel_ionic_wren",
     "diel_total_wren_std",

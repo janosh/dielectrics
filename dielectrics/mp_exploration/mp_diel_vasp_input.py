@@ -9,7 +9,7 @@ from pymatgen.core import Composition
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp import Kpoints
 
-from dielectrics import id_col
+from dielectrics import Key
 from dielectrics.plots import plt
 
 
@@ -21,7 +21,7 @@ mp_diel_inputs = MPRester().query(
 
 
 # %%
-df_input = pd.json_normalize(mp_diel_inputs).set_index(id_col)
+df_input = pd.json_normalize(mp_diel_inputs).set_index(Key.mat_id)
 
 df_input["date"] = pd.to_datetime(df_input.pop("created_at")).dt.date
 
@@ -57,7 +57,7 @@ df_input[kpoint_cols] = pd.json_normalize(df_input.kpoints.map(lambda x: x.as_di
 # %%
 # df_input.round(4).to_csv("data/mp-diel-vasp-input.csv")
 
-df_input = pd.read_csv("data/mp-diel-vasp-input.csv").set_index(id_col)
+df_input = pd.read_csv("data/mp-diel-vasp-input.csv").set_index(Key.mat_id)
 
 df_input["date"] = pd.to_datetime(df_input.date)
 

@@ -18,7 +18,7 @@ from pymatgen.io.res import AirssProvider
 from pymatgen.io.vasp import Kpoints
 from pymatviz import ptable_heatmap
 
-from dielectrics import DATA_DIR, ROOT, SCRIPTS_DIR, formula_col, id_col, structure_col
+from dielectrics import DATA_DIR, ROOT, SCRIPTS_DIR, Key
 from dielectrics.db import db
 from dielectrics.mp_exploration import fetch_mp_dielectric_structures
 
@@ -81,11 +81,11 @@ df_submit = df.head(3).rename(
     }
 )
 
-df_submit[structure_col] = df_submit.filepath.map(
+df_submit[Key.structure] = df_submit.filepath.map(
     lambda fp: Structure.from_file(fp.replace(".res", ".cif"))
 )
-df_submit[formula_col] = df_submit.structure.map(lambda struct: struct.formula)
-df_submit[id_col] = [f"airss-{idx}" for idx in range(1, len(df_submit) + 1)]
+df_submit[Key.formula] = df_submit.structure.map(lambda struct: struct.formula)
+df_submit[Key.mat_id] = [f"airss-{idx}" for idx in range(1, len(df_submit) + 1)]
 df_submit.head()
 
 
@@ -100,7 +100,7 @@ for idx, row in enumerate(df_submit.itertuples()):
     mat_id, mp_id = row.material_id, row.Index
 
     if mat_id in existing_material_ids:
-        print(f"{idx}: {mp_id} ({row[formula_col]}) already in DB, skipping")
+        print(f"{idx}: {mp_id} ({row[Key.formula]}) already in DB, skipping")
         skipped_ids.append(mat_id)
         continue
 
@@ -162,7 +162,7 @@ for idx, row in enumerate(df_submit.itertuples()):
 
     add_trackers(wf, ["std_err.txt", "vasp.out", "custodian.json"])
 
-    auto_kpts = Kpoints.automatic_density(row[structure_col], 3000)
+    auto_kpts = Kpoints.automatic_density(row[Key.structure], 3000)
     add_modify_kpoints(
         wf,
         {"kpoints_update": {"kpts": auto_kpts.kpts}},
@@ -173,7 +173,7 @@ for idx, row in enumerate(df_submit.itertuples()):
     # W_pv POTCAR available in older releases replaced by W_sv in v5.4
     # https://bit.ly/3z8PETR
 
-    meta_dict = {"series": "airss-from-chris-pickard", id_col: mat_id}
+    meta_dict = {"series": "airss-from-chris-pickard", Key.mat_id: mat_id}
     for key, val in row._asdict().items():
         if val is None:
             continue
@@ -199,10 +199,10 @@ for idx, row in enumerate(df_submit.itertuples()):
     if not dry_run:
         launchpad.add_wf(wf)
     # only add formula at the end for later printing, not needed in launchpad workflow
-    meta_dict[formula_col] = row[formula_col]
+    meta_dict[Key.formula] = row[Key.formula]
     new_wf_metadata.append(meta_dict)
 
-    print(f"- {mat_id} ({row[formula_col]})")
+    print(f"- {mat_id} ({row[Key.formula]})")
 
 print("\n" + "-" * 30)
 print(
@@ -210,7 +210,7 @@ print(
     f" new ones and skipped {len(skipped_ids)} pre-existing workflows"
 )
 
-df_new_wfs = pd.DataFrame(new_wf_metadata or [{formula_col: ""}]).set_index(formula_col)
+df_new_wfs = pd.DataFrame(new_wf_metadata or [{Key.formula: ""}]).set_index(Key.formula)
 
 assert not any(
     nans_per_col := df_new_wfs.isna().sum()
