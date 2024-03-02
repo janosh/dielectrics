@@ -90,8 +90,10 @@ top_train_not_found_cgcnn = train_top_fom.loc[
     train_top_fom.index.difference(cgcnn_top_fom.index)
 ]
 
-assert (n_missed_wren := len(wren_top_not_in_train)) == len(top_train_not_found_wren)
-assert (n_missed_cgcnn := len(cgcnn_top_not_in_train)) == len(top_train_not_found_cgcnn)
+n_missed_wren = len(wren_top_not_in_train)
+assert n_missed_wren == len(top_train_not_found_wren)
+n_missed_cgcnn = len(cgcnn_top_not_in_train)
+assert n_missed_cgcnn == len(top_train_not_found_cgcnn)
 
 plt.scatter(
     wren_top_fom[Key.diel_total_wren],

@@ -2,7 +2,6 @@
 calcs.
 """
 
-
 # %%
 import pandas as pd
 from pymatgen.core import Composition

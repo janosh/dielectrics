@@ -13,7 +13,6 @@ Fetch MP dielectric structures for training ML models and assemble screening set
 defined by screening_set_filters.
 """
 
-
 # %%
 df_diel_train = fetch_mp_dielectric_structures({"has": "diel"})
 

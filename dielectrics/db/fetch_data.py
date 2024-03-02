@@ -102,7 +102,7 @@ def df_diel_from_task_coll(
     max_diel_total: int = 1000,
     cache: bool = True,
 ) -> pd.DataFrame:
-    """Fetch dielectric calculation results from a Fireworks Mongo task collection.
+    """Fetch dielectric calculation results from a Fireworks MongoDB task collection.
 
     Args:
         query (dict[str, any]): Filters for which DB entries to fetch.
@@ -188,8 +188,9 @@ def df_diel_from_task_coll(
     # remove rows missing dielectric constants (should be about 20) 2022-08-07
     orig_len = len(df)
     df = df.dropna(subset=[f"diel_elec{suffix}", f"diel_ionic{suffix}"])
+    n_dropped = 25
     assert len(df) > orig_len - (
-        n_dropped := 25
+        n_dropped
     ), f"{len(df)=} was expected to be no smaller than {orig_len - n_dropped=}"
 
     assert not any(

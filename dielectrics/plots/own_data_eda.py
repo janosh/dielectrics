@@ -1,6 +1,5 @@
 """Exploratory data analysis of this work's high-throughput DFPT data."""
 
-
 # %% from https://colab.research.google.com/drive/131MZKKeOhoseoVTJmPuOXVJvDoNes1ge
 import pandas as pd
 import plotly.express as px

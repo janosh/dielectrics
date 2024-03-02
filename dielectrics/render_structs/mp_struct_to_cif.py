@@ -16,7 +16,6 @@ Cropped PNGs used to be in in an earlier version of discovery-workflow.drawio.
 No they're unused.
 """
 
-
 # %%
 import os
 import subprocess

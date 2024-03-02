@@ -111,9 +111,8 @@ df_top_1k["structure"] = df_wbm.computed_structure_entry.map(
 cols = ["energy", "e_form", "e_hull"]
 df_top_1k[cols] = df_wbm.append(df_mp)[cols]
 
-assert not any(
-    nans_per_col := df_top_1k.isna().sum()
-), f"some columns have missing data:\n{nans_per_col}"
+nans_per_col = df_top_1k.isna().sum()
+assert not any(nans_per_col), f"some columns have missing data:\n{nans_per_col}"
 
 
 # %%

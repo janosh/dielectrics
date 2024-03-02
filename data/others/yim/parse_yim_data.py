@@ -5,7 +5,6 @@ It contains binary and ternary oxides. Each file is named after by the structure
 collection code and contains information of dielectric properties.
 """
 
-
 # %%
 import tarfile
 import warnings
@@ -64,9 +63,8 @@ assert all(df_yim.isna().sum() == 0)
 
 
 # %%
-assert isdir(
-    cif_dir := f"{ROOT}/../icsd/icsd_cifs"
-), "Looking for CIFs in the wrong place"
+cif_dir = f"{ROOT}/../icsd/icsd_cifs"
+assert isdir(cif_dir), "Looking for CIFs in the wrong place"
 
 warnings.simplefilter("ignore")
 structs = {}

@@ -12,7 +12,6 @@ electronic dielectric tensors.
 References can be resolved on page 4 of the SI linked above.
 """
 
-
 # %%
 import numpy as np
 import pandas as pd

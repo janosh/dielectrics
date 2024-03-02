@@ -2,7 +2,6 @@
 workflows and tasks collections.
 """
 
-
 # %%
 from itertools import product
 

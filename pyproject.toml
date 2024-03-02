@@ -53,6 +53,8 @@ no_implicit_optional = false
 
 [tool.ruff]
 target-version = "py310"
+
+[tool.ruff.lint]
 select = ["ALL"]
 ignore = [
   "ANN401",
@@ -72,6 +74,7 @@ ignore = [
   "FBT002",  # boolean positional argument
   "FIX002",
   "INP001",  # implicit namespace package
+  "ISC001",
   "PD901",   # pandas-df-variable-name
   "PERF203", # try-except-in-loop
   "PLC0414", # useless-import-alias

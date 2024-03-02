@@ -97,7 +97,8 @@ skipped_ids: list[str] = []
 new_wf_metadata = []
 
 for idx, row in enumerate(df_submit.itertuples()):
-    mat_id, mp_id = row.material_id, row.Index
+    mat_id: str = row[Key.mat_id]
+    mp_id: str = row.Index
 
     if mat_id in existing_material_ids:
         print(f"{idx}: {mp_id} ({row[Key.formula]}) already in DB, skipping")
@@ -212,8 +213,9 @@ print(
 
 df_new_wfs = pd.DataFrame(new_wf_metadata or [{Key.formula: ""}]).set_index(Key.formula)
 
+nans_per_col = df_new_wfs.isna().sum()
 assert not any(
-    nans_per_col := df_new_wfs.isna().sum()
+    nans_per_col
 ), f"some new workflows have missing metadata:\n{nans_per_col}"
 
 
