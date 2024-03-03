@@ -44,7 +44,9 @@ server = f"mongodb+srv://readonly:kHsBcWwTb4@{cluster}"
 db = MongoClient(server).dielectrics
 close_to_hull_high_fom = db.tasks.find({
   "e_above_hull_pbe": {"$lt": 0.1},
-  "fom_pbe": {"$gt": 200},
+  "output.bandgap": { "$gt": 3 },
+  "output.epsilon_static.0.0": { "$gt": 10 },
+  "output.epsilon_ionic.0.0": { "$gt": 50 },
 })
 ```
 
