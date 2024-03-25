@@ -135,9 +135,9 @@ def df_diel_from_task_coll(
     if not (suffix := col_suffix).startswith("_"):
         raise ValueError(f"{col_suffix=} must start with underscore")
 
-    query_str = "&".join(f"{k}={v}" for k, v in query.items())
     os.makedirs(cache_dir := f"{DATA_DIR}/.db_cache", exist_ok=True)
-    json_path = f"{cache_dir}/{query_str}_fields={','.join(fields[:5])}.json.gz"
+    hash_val = hash(str(query) + str(sorted(fields)))
+    json_path = f"{cache_dir}/{hash_val}.json.gz"
 
     if cache and os.path.isfile(json_path):
         print(
@@ -154,11 +154,11 @@ def df_diel_from_task_coll(
     if len(data) == 0:
         raise ValueError(f"{query=} matched 0 docs in '{db.tasks.name}' collection")
 
-    df = pd.DataFrame(data).rename(columns={"formula_pretty": Key.formula})
+    df_diel = pd.DataFrame(data).rename(columns={"formula_pretty": Key.formula})
 
-    output_series = df.pop("output")
+    output_series = df_diel.pop("output")
     try:
-        df[Key.structure] = output_series.map(
+        df_diel[Key.structure] = output_series.map(
             lambda x: Structure.from_dict(x.pop("structure"))
         )
     except KeyError:  # no structure key in output dict
@@ -166,32 +166,36 @@ def df_diel_from_task_coll(
     df_output = pd.json_normalize(output_series).rename(
         columns={"bandgap": Key.bandgap_us}
     )
-    df[list(df_output)] = df_output
+    df_diel[list(df_output)] = df_output
 
     try:
-        df[Key.symmetry] = (
-            df["spacegroup.crystal_system"]
+        df_diel[Key.symmetry] = (
+            df_diel["spacegroup.crystal_system"]
             + " | "
-            + df["spacegroup.number"].astype(str)
+            + df_diel["spacegroup.number"].astype(str)
             + " | "
-            + df["spacegroup.symbol"].astype(str)
+            + df_diel["spacegroup.symbol"].astype(str)
         )
     except KeyError:  # columns are missing
         pass
 
-    df["_id"] = df["_id"].astype(str)
+    df_diel["_id"] = df_diel["_id"].astype(str)
 
-    diel_elec = df[f"diel_elec{suffix}"] = df.epsilon_static.map(diel_tensor_to_const)
+    diel_elec = df_diel[f"diel_elec{suffix}"] = df_diel.epsilon_static.map(
+        diel_tensor_to_const
+    )
 
-    diel_ionic = df[f"diel_ionic{suffix}"] = df.epsilon_ionic.map(diel_tensor_to_const)
+    diel_ionic = df_diel[f"diel_ionic{suffix}"] = df_diel.epsilon_ionic.map(
+        diel_tensor_to_const
+    )
 
     # remove rows missing dielectric constants (should be about 20) 2022-08-07
-    orig_len = len(df)
-    df = df.dropna(subset=[f"diel_elec{suffix}", f"diel_ionic{suffix}"])
+    orig_len = len(df_diel)
+    df_diel = df_diel.dropna(subset=[f"diel_elec{suffix}", f"diel_ionic{suffix}"])
     n_dropped = 25
-    assert len(df) > orig_len - (
+    assert len(df_diel) > orig_len - (
         n_dropped
-    ), f"{len(df)=} was expected to be no smaller than {orig_len - n_dropped=}"
+    ), f"{len(df_diel)=} was expected to be no smaller than {orig_len - n_dropped=}"
 
     assert not any(
         diel_elec < 0
@@ -200,36 +204,36 @@ def df_diel_from_task_coll(
         diel_ionic < 0
     ), f"negative ionic diel const shouldn't happen, found {sum(diel_ionic < 0):,}"
 
-    df[f"diel_total{suffix}"] = diel_elec + diel_ionic
+    df_diel[f"diel_total{suffix}"] = diel_elec + diel_ionic
 
     # use database bandgap where available, fall back on our own VASP bandgap else
     bandgaps = (
-        df[f"bandgap{suffix}"].fillna(df.bandgap_us)
-        if f"bandgap{suffix}" in df
-        else df.bandgap_us
+        df_diel[f"bandgap{suffix}"].fillna(df_diel.bandgap_us)
+        if f"bandgap{suffix}" in df_diel
+        else df_diel.bandgap_us
     )
 
-    df[f"fom{suffix}"] = df[f"diel_total{suffix}"] * bandgaps
+    df_diel[f"fom{suffix}"] = df_diel[f"diel_total{suffix}"] * bandgaps
 
-    df[f"fitness{suffix}"] = [
+    df_diel[f"fitness{suffix}"] = [
         get_fitness(*tup)
-        for tup in zip(df[f"diel_total{suffix}"], bandgaps, strict=True)
+        for tup in zip(df_diel[f"diel_total{suffix}"], bandgaps, strict=True)
     ]
 
-    df = df.query(f"diel_total{suffix} <= {max_diel_total}")
+    df_diel = df_diel.query(f"diel_total{suffix} <= {max_diel_total}")
 
-    df = df.round(2)
+    df_diel = df_diel.round(2)
 
-    df[Key.date] = df.completed_at.str.split(" ").str[0]
+    df_diel[Key.date] = df_diel.completed_at.str.split(" ").str[0]
 
     # convert structures to dict before saving to CSV
-    df.to_json(json_path, index=False, default_handler=lambda x: x.as_dict())
-    return df.set_index("material_id", drop=False)
+    df_diel.to_json(json_path, index=False, default_handler=lambda x: x.as_dict())
+    return df_diel.set_index("material_id", drop=False)
 
 
 def get_structures_from_task_db(
     material_id: str,
-    save_dir: str = f"{ROOT}/tmp/cifs",
+    save_dir: str = f"{ROOT}/tmp/structs",
     fmt: Literal["cif", "poscar", "json"] = "cif",
     verbose: bool = False,
 ) -> Structure:
@@ -238,7 +242,7 @@ def get_structures_from_task_db(
 
     Args:
         material_id (str): Material ID.
-        save_dir (str, optional): Directory to save CIF file. Defaults to 'tmp/cifs'.
+        save_dir (str, optional): Directory to save CIF file. Defaults to 'tmp/structs'.
         fmt ("cif" | "poscar" | "json", optional): Format to save structure as.
             Defaults to "cif".
         verbose (bool, optional): If True, print warnings about existing CIF files.

@@ -60,8 +60,8 @@ ax3.set_xlabel("band gap [eV]")
 n_metals = sum(df_mp_wbm.bandgap == 0)
 
 print(
-    f"{n_metals:,} / {len(df_mp_wbm):,} = {n_metals/len(df_mp_wbm):.1%} of materials in"
-    " combined MP + WBM dataset are metals"
+    f"{n_metals:,} / {len(df_mp_wbm):,} = {n_metals / len(df_mp_wbm):.1%} of materials "
+    "in combined MP + WBM dataset are metals"
 )
 # 243,095 / 319,601 = 76.1% of materials in combined MP + WBM dataset are metals
 
@@ -86,12 +86,12 @@ df_wbm.e_above_hull.describe()
 
 print(
     f"leaves {len(df_wbm_screen):,} out of {len(df_wbm):,} "
-    f"({len(df_wbm_screen)/len(df_wbm):.1%})"
+    f"({len(df_wbm_screen) / len(df_wbm):.1%})"
 )
-print(f"excluded by {sum(df_wbm.bandgap < 0.5) = :,}")
-print(f"excluded by {sum(df_wbm.n_sites > 40) = :,}")
-print(f"excluded by {sum(df_wbm.e_above_hull > 0.1) = :,}")
-print(f"excluded by {sum(df_wbm.n_elems > 5) = :,}")
+print(f"excluded by {sum(df_wbm.bandgap < 0.5)=:,}")
+print(f"excluded by {sum(df_wbm.n_sites > 40)=:,}")
+print(f"excluded by {sum(df_wbm.e_above_hull > 0.1)=:,}")
+print(f"excluded by {sum(df_wbm.n_elems > 5)=:,}")
 
 # leaves 22,026 out of 257,489 (8.6%)
 # excluded by sum(df_all_steps.bandgap < 0.5) = 229,989
@@ -111,7 +111,7 @@ print(f"{df_mp_screening_set.columns.difference(df_wbm_screen.columns)=}")
 
 df_wbm_screen[Key.mat_id] = df_wbm_screen.index
 
-print(f"{len(df_mp_screening_set) = :,} + {len(df_wbm_screen) = :,} ")
+print(f"{len(df_mp_screening_set)=:,} + {len(df_wbm_screen)=:,} ")
 # len(df_mp_screen) = 25,296 + len(df_wbm_screen) = 22,026
 
 df_mp_wbm_screen = df_mp_screening_set.rename(

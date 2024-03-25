@@ -67,11 +67,11 @@ stability_cutoff = 0.1
 n_meta_stable = sum(df.e_above_hull_wren < stability_cutoff)
 n_meta_stable_std_adj = sum(df.e_above_hull_wren_std_adj < stability_cutoff)
 print(
-    f"{n_meta_stable:,} / {len(df):,} ({n_meta_stable/len(df):.1%}) are < "
+    f"{n_meta_stable:,} / {len(df):,} ({n_meta_stable / len(df):.1%}) are < "
     f"{stability_cutoff} eV above the hull."
 )
 print(
-    f"{n_meta_stable_std_adj:,} / {len(df):,} ({n_meta_stable_std_adj/len(df):.1%}) "
+    f"{n_meta_stable_std_adj:,} / {len(df):,} ({n_meta_stable_std_adj / len(df):.1%}) "
     f"are < {stability_cutoff} eV above the hull when adding Wren std to e_form."
 )
 print(f"{sum(df.e_form_wren > 0):,} have positive Wren formation energy.")
@@ -217,9 +217,9 @@ n_meta_stable = sum(df[hull_col] < stability_cutoff)
 n_below = sum(df[hull_col] < 0)
 print(f"\n{hull_col}")
 print(
-    f"{n_meta_stable:,} / {len(df):,} ({n_meta_stable/len(df):.1%}) materials less"
+    f"{n_meta_stable:,} / {len(df):,} ({n_meta_stable / len(df):.1%}) materials less"
     f" than {stability_cutoff} eV above the hull. {n_below:,} / {len(df):,} "
-    f"({n_below/len(df):.1%}) are below the hull."
+    f"({n_below / len(df):.1%}) are below the hull."
 )
 print(f"Materials with positive PBE formation energy: {sum(df[form_col] > 0):,}")
 # Incorrect (forgetting MP compat energy corrections) For all materials with elemental

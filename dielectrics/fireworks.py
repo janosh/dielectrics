@@ -156,7 +156,7 @@ def rm_launchdirs(
 
     space_gained = du(dirs_removed)
 
-    msg = f"Deleted {n_removed} of {n_dirs} dirs ({n_removed/n_dirs:.1%})."
+    msg = f"Deleted {n_removed} of {n_dirs} dirs ({n_removed / n_dirs:.1%})."
     if space_gained:
         msg += f" {space_gained=}."
     if n_removed < n_dirs:

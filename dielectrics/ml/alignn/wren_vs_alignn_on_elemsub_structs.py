@@ -153,7 +153,7 @@ for y_col in y_cols:
     y_col_pretty = y_col.replace("_", " ").title()
     xs, ys = df_db[[target, y_col]].dropna().to_numpy().T
     R2 = r2_score(xs, ys)
-    col_labels[y_col] = f"{y_col_pretty} ({len(xs):,})<br>{MAE = :.2f}, {R2 = :.2f}"
+    col_labels[y_col] = f"{y_col_pretty} ({len(xs):,})<br>{MAE=:.2f}, {R2=:.2f}"
 
 fig = px.scatter(
     df_db.round(2).rename(columns=col_labels),

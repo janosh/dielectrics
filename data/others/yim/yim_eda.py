@@ -59,7 +59,7 @@ labels = {"bandgap_hse": "HSE", "bandgap_gga": "GGA", "bandgap_mp": "MP"}
 
 corr_mat = df_yim[list(labels)].corr() ** 2
 keep = np.triu(np.ones(corr_mat.shape, dtype=bool), 1).reshape(corr_mat.size)
-titles = [f"{R2 = :.2f}" for R2 in corr_mat.melt()[keep].value]
+titles = [f"{R2=:.2f}" for R2 in corr_mat.melt()[keep].value]
 
 fig = make_subplots(
     rows=1, cols=3, shared_xaxes=True, shared_yaxes=True, subplot_titles=titles
@@ -113,7 +113,7 @@ fig = px.strip(
 fig.update_layout(showlegend=False)
 
 x_ticks = [
-    f"{key}<br>points: {val:,} ({val/len(df_no_nan):.0%})"
+    f"{key}<br>points: {val:,} ({val / len(df_no_nan):.0%})"
     for key, val in df_yim[Key.crystal_sys].value_counts().items()
 ]
 fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=x_ticks)

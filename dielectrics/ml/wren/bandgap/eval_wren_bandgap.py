@@ -39,7 +39,7 @@ n_false_metals = sum(df_insul.bandgap_target < 0.01)
 print(
     f"Wren ensemble predicts bandgap >0.5 eV for {len(df_insul):,} of {len(df_ens):,} "
     f"materials ({n_insul:,} without uncertainty) of which {n_false_metals:,} "
-    f"({n_false_metals/len(df_insul):.2%}) are really metals."
+    f"({n_false_metals / len(df_insul):.2%}) are really metals."
 )
 # Wren ensemble predicts bandgap >0.5 eV for 10,339 of 63,921 materials (11,458 without
 # uncertainty) of which 43 (0.42%) are really metals.
@@ -55,7 +55,7 @@ n_rob_false_metals = sum(df_rob_insul.bandgap_target < 0.01)
 print(
     f"Wren robust ensemble predicts bandgap >0.5 eV for {len(df_rob_insul):,} of "
     f"{len(df_ens_rob):,} ({n_rob_insul:,} without uncertainty) materials of which "
-    f"{n_rob_false_metals:,} ({n_rob_false_metals/len(df_rob_insul):.2%}) are really "
+    f"{n_rob_false_metals:,} ({n_rob_false_metals / len(df_rob_insul):.2%}) are really "
     "metals."
 )
 
@@ -109,7 +109,7 @@ n_non_metals_w_clf = sum((~df_clf.is_metal) & (df_l2.bandgap_pred_n0 > 0.5))
 
 print(f"Predicted non-metals w/o classifier: {n_non_metals_wo_clf:,}")
 print(f"Predicted non-metals w classifier: {n_non_metals_w_clf:,}")
-print(f"Remaining: {n_non_metals_w_clf/n_non_metals_wo_clf:.2%}")
+print(f"Remaining: {n_non_metals_w_clf / n_non_metals_wo_clf:.2%}")
 # Predicted non-metals w/o classifier: 11,802
 # Predicted non-metals w classifier: 11,221
 # decrease: 95.08%

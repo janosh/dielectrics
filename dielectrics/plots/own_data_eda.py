@@ -76,14 +76,14 @@ fig.layout.legend.update(x=1, y=1, xanchor="right")
 
 df_us = df_us.sort_values(Key.crystal_sys, key=lambda col: col.map(cry_sys_order.index))
 
-n_top, x_ticks = 30, {x: "" for x in cry_sys_order}
+n_top, x_ticks = 30, dict.fromkeys(cry_sys_order, "")
 for cry_sys, df_group in df_us.groupby(Key.crystal_sys):
     ionic_top = df_group[Key.diel_ionic_pbe].nlargest(n_top).mean()
     elec_top = df_group[Key.diel_elec_pbe].nlargest(n_top).mean()
     ionic_clr = rgb_color(ionic_top, 261)
     elec_clr = rgb_color(elec_top, 102)
     x_ticks[cry_sys] = (
-        f"<b>{cry_sys}</b><br>{len(df_group):,} = {len(df_group)/len(df_us):.0%}"
+        f"<b>{cry_sys}</b><br>{len(df_group):,} = {len(df_group) / len(df_us):.0%}"
         f"<br><span style='color:{elec_clr}'><b>{elec_top:.0f}</b></span>      "
         f"<span style='color:{ionic_clr}'><b>{ionic_top:.0f}</b></span>"
     )
@@ -122,14 +122,14 @@ for crystal_sys, df_group in df_us.groupby(Key.crystal_sys):
     )
 
 
-n_top, x_ticks = 30, {x: "" for x in cry_sys_order}
+n_top, x_ticks = 30, dict.fromkeys(cry_sys_order, "")
 for cry_sys, df_group in df_us.groupby(Key.crystal_sys):
     ionic_top = df_group[Key.diel_ionic_pbe].nlargest(n_top).mean()
     elec_top = df_group[Key.diel_elec_pbe].nlargest(n_top).mean()
     ionic_clr = rgb_color(ionic_top, 261)
     elec_clr = rgb_color(elec_top, 102)
     x_ticks[cry_sys] = (
-        f"<b>{cry_sys}</b><br>{len(df_group):,} = {len(df_group)/len(df_us):.0%}"
+        f"<b>{cry_sys}</b><br>{len(df_group):,} = {len(df_group) / len(df_us):.0%}"
         f"<br><span style='color:{elec_clr}'><b>{elec_top:.0f}</b></span>      "
         f"<span style='color:{ionic_clr}'><b>{ionic_top:.0f}</b></span>"
     )
@@ -283,7 +283,7 @@ styler = (
     )
     .format(
         # render some cols without decimal places
-        {key: "{:,.0f}" for key in int_cols.values()},
+        dict.fromkeys(int_cols.values(), "{:,.0f}"),
         precision=2,  # render floats with 2 decimals
         na_rep="",  # render NaNs as empty string
     )

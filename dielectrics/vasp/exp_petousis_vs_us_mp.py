@@ -91,7 +91,7 @@ df_exp["wyckoff"] = [
 # %%
 n_overlap_exp_mp = len(df_exp[~df_exp.index.duplicated()].eps_electronic_mp.dropna())
 print(
-    f"{n_overlap_exp_mp}/{len(df_exp)} = {n_overlap_exp_mp/len(df_exp):.1%} of "
+    f"{n_overlap_exp_mp}/{len(df_exp)} = {n_overlap_exp_mp / len(df_exp):.1%} of "
     "experimental dataset was already in training set. Not a good test for dielectric "
     "model performance!"
 )
@@ -224,7 +224,7 @@ for ax, (src1, src2) in zip(axs.flat, xy_pairs, strict=True):
         col1,
         col2,
         ax=ax,
-        suffix=f"{outliers = :.1%}",
+        suffix=f"{outliers=:.1%}",
         fmt=".3",
         prop={"size": 13},
         loc="upper left",

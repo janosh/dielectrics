@@ -174,11 +174,11 @@ def struct_apply_elem_substitution(
     is_single_replacement = len(elem_diff) == 2
     is_balanced = sum(elem_diff.values()) == 0
 
-    if strict and not is_balanced or not is_single_replacement:
+    if (strict and not is_balanced) or not is_single_replacement:
         raise ValueError(
             f"problematic replacement: {elem_diff} for structure {counter}"
         )
-    if verbose and not is_balanced or not is_single_replacement:
+    if (verbose and not is_balanced) or not is_single_replacement:
         print(f"problematic replacement: {elem_diff}")
         return None
 

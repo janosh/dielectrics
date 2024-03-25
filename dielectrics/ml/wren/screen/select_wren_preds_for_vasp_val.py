@@ -35,7 +35,7 @@ df_wren["fom_wren_rank_size"] = len(df_wren)
 # %%
 df_wren.hist(bins=50, figsize=[12, 8], log=True)
 
-plt.suptitle(f"{len(df_wren) = :,}", y=1.08)
+plt.suptitle(f"{len(df_wren)=:,}", y=1.08)
 
 
 # %%
@@ -43,7 +43,7 @@ n_from_mp, n_from_wbm = (sum(df_wren.index.str.startswith(s)) for s in ("mp-", "
 
 assert n_from_mp + n_from_wbm == len(df_wren)
 
-print(f"{n_from_mp = :,}\t{n_from_wbm = :,}\ttotal = {len(df_wren):,} non-metals")
+print(f"{n_from_mp=:,}\t{n_from_wbm=:,}\ttotal = {len(df_wren):,} non-metals")
 
 df_top_1k = df_wren.nlargest(1000, Key.fom_wren)
 df_top_1k.describe().round(2)

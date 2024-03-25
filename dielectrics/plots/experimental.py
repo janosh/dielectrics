@@ -11,7 +11,10 @@ px.defaults.labels |= {
     Key.freq: "Frequency (Hz)",
     Key.fr_min_e: r"$\sqrt{F(R)-E}$",
 }
-materials = ("Bi2Zr2O7-Fm3m", "CsTaTeO6-Fd3m")
+materials = {
+    "Bi2Zr2O7-Fm3m": "mp-756175",
+    "CsTaTeO6-Fd3m": "mp-1225854:W->Te",
+}
 formulas_plain = [x.split("-")[0] for x in materials]
 formulas = tuple(map(htmlify, formulas_plain))
 

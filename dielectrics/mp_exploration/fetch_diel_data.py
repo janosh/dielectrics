@@ -34,7 +34,7 @@ df_diel_screen = fetch_mp_dielectric_structures(screening_set_filters)
 # Maximum observed refractive index is n = 38.6
 # https://nature.com/articles/nature09776
 print(
-    f"{df_diel_train.n_mp.max() = :.1f}\n{sum(df_diel_train.n_mp > 38.6)} materials in "
+    f"{df_diel_train.n_mp.max()=:.1f}\n{sum(df_diel_train.n_mp > 38.6)} materials in "
     f"training set contains bigger-than-ever-experimentally-observed refractive index"
 )
 

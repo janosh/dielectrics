@@ -37,7 +37,7 @@ df_vasp["n_mp"] = df_mp.n
 # number of identical material IDs in MP and our df
 n_overlap = len(df_vasp.index.intersection(df_mp.index))
 print(
-    f"{today}\n{n_overlap:,} / {len(df_vasp):,} = {n_overlap/len(df_vasp):.1%} of "
+    f"{today}\n{n_overlap:,} / {len(df_vasp):,} = {n_overlap / len(df_vasp):.1%} of "
     "our materials have MP data"
 )
 # 2022-06-02
@@ -53,7 +53,7 @@ ax = df_vasp.dropna(subset=["n_mp"]).plot.scatter(
 ax.set(yscale="log", xscale="log")
 ax.set(xlabel="MP dielectric constant", ylabel="Our dielectric constant")
 n_us_vs_n_mp_title = (
-    f"{n_overlap:,} / {len(df_vasp):,} = {n_overlap/len(df_vasp):.0%} of "
+    f"{n_overlap:,} / {len(df_vasp):,} = {n_overlap / len(df_vasp):.0%} of "
     f"our materials have MP dielectric data,\nMarkers sized by num crystal sites"
 )
 ax.set_title(n_us_vs_n_mp_title, y=1.02)
