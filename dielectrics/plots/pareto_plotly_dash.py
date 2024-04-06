@@ -1,6 +1,3 @@
-# ruff: noqa: PLW0602 Using global but no assignment is done
-
-
 # %%
 from __future__ import annotations
 
@@ -84,7 +81,7 @@ def get_mp_link(data: str, text: str | None = None) -> str:
     return f"<a {href=} {style=}>{text or 'x'}</a>"
 
 
-def create_text_col(df: pd.DataFrame, annotate_min_fom: float = None) -> list[str]:
+def create_text_col(df: pd.DataFrame, annotate_min_fom: float = 300) -> list[str]:
     """Insert a 'text' column into df with the materials's formula which when clicked
     links to its Materials Project details page if an MP ID is available.
 
@@ -102,7 +99,7 @@ def create_text_col(df: pd.DataFrame, annotate_min_fom: float = None) -> list[st
         raise ValueError(f"None of {fom_cols} found in df") from None
     # only show formula as link text if material's FoM is > annotate_min_fom, else
     # scatter point will be clickable but without text
-    text_col = df.formula.where(df[fom_col] > (annotate_min_fom or 300), None)
+    text_col = df.formula.where(df[fom_col] > annotate_min_fom, None)
     srs_mat_id = df[Key.mat_id].where(
         df[Key.mat_id].str.startswith(("mp-", "mvc-")), df[Key.formula]
     )
@@ -138,7 +135,7 @@ def scatter(
     hover_data["text"] = False  # don't show text value in hover tooltip that's why
     # hover_data needs to be dict so we can set text to False, else could be list[str]
 
-    global color_iter
+    global color_iter  # noqa: PLW0602
     kwargs["color_discrete_sequence"] = [next(color_iter)]
     # use formula as default tooltip title
     kwargs["hover_name"] = kwargs.get("hover_name", Key.mat_id)
@@ -152,7 +149,7 @@ def scatter(
         df, x=x_col, y=y_col, hover_data=hover_data, text="text", **kwargs
     )
 
-    global symbol_iter
+    global symbol_iter  # noqa: PLW0602
     scatter_plot.update_traces(
         marker=dict(size=10, symbol=next(symbol_iter)), textposition="top center"
     )
@@ -217,7 +214,7 @@ def scatter_with_quiver(
     quiver.data[0]["visible"] = "legendonly"
     quiver.data[0]["name"] = f"{len(df1):,} quiver"
 
-    global fig
+    global fig  # noqa: PLW0602
     if fig:
         fig.add_traces(traces)
 
@@ -285,7 +282,7 @@ fig.add_traces(data=qz3_points.data)
 
 selected_for_synth_points = scatter(
     df_synth := df_all.query(
-        f"selection_status == '{SelectionStatus.selected_for_synthesis}'"
+        f"{Key.selection_status} == '{SelectionStatus.selected_for_synthesis}'"
     ),
     x_col="diel_total_pbe",
     y_col=Key.bandgap_us,
@@ -300,12 +297,13 @@ fig.add_traces(data=selected_for_synth_points.data)
 
 # reassign df_all to exclude synth selected from all other groups
 df_unselected = df_all.query(
-    f"selection_status != '{SelectionStatus.selected_for_synthesis}'"
+    f"{Key.selection_status} != '{SelectionStatus.selected_for_synthesis}'"
 )
 
 df_our_best = df_unselected.query(
     "e_above_hull_pbe < 0.1 & fom_pbe > 200 & nelements == 3"
 )
+
 
 scatter_with_quiver(
     df_best_elemsub := df_unselected.query('material_id.str.contains("->")')
@@ -313,7 +311,7 @@ scatter_with_quiver(
     .nlargest(top_n := 100, Key.fom_pbe),
     scatter_1=dict(x="diel_total_wren", y=Key.bandgap_us),
     # make VASP scatter points visible by default
-    scatter_2=dict(x="diel_total_pbe", y=Key.bandgap_us, visible=True),
+    scatter_2=dict(x="diel_total_pbe", y=Key.bandgap_us, visible=False),
     legend_labels=(
         f"Top {top_n} elemental substitution structures",
         f"Wren mean FoM = {df_best_elemsub.fom_wren.mean():.0f}",
@@ -546,7 +544,7 @@ def fetch_notes(click_data: dict[str, list[dict[str, Any]]]) -> tuple[str, str, 
     except (InvalidId, TypeError):
         return "", "", ""
 
-    fields = ["notes", "selection_status", "formula_pretty", Key.mat_id]
+    fields = ["notes", Key.selection_status, "formula_pretty", Key.mat_id]
     doc: dict[str, str] = db.tasks.find_one({"_id": mongo_id}, fields) or {}
     notes, status, formula, mat_id = (doc.get(key, "") for key in fields)
     return notes, status, f"{formula} ({mat_id})".replace("->", "→")

@@ -8,6 +8,7 @@ from atomate.vasp.powerups import (
     add_modify_incar,
     add_modify_kpoints,
     add_modify_potcar,
+    add_priority,
     add_trackers,
     use_custodian,
 )
@@ -23,7 +24,6 @@ from dielectrics.db import db
 from dielectrics.mp_exploration import fetch_mp_dielectric_structures
 
 
-# %%
 with open(f"{ROOT}/fireworks-config/my_launchpad.yaml") as file:
     launchpad = LaunchPad.from_dict(yaml.safe_load(file))
 
@@ -48,31 +48,28 @@ df_wren_diel_ens_elemsub = pd.read_json(
 )
 
 
-# %%
-# from fireworks.utilities.dagflow import wf_to_graph
-
+# %% visualize workflow (requires graphviz)
+# from fireworks.utilities.visualize import wf_to_graph
 # wf_to_graph(wf_dielectric_constant(df_wren_diel_ens_elemsub.structure[0]))
 
 
 # %%
-# round floats to save MongoDb storage
 # df = df_wren_diel_ens_elemsub.sort_values("fom_wren_std_adj").round(4)
 # df = df.query("n_elems < 4 & ~material_id.isin(@existing_material_ids)")
 
 # fetch single structure and MP properties like bandgap, e_form, e_above_hull, etc.
-df = fetch_mp_dielectric_structures("mp-22431")
+df_mp = fetch_mp_dielectric_structures("mp-22431")
 
 
 # %%
 res_files = glob(f"{SCRIPTS_DIR}/airss/NaLiTa2O6/good_castep/*.res")
 
-df = pd.DataFrame(
+df_airss = pd.DataFrame(
     [AirssProvider.from_file(filepath).as_dict(verbose=False) for filepath in res_files]
-)
-df = df.sort_values(by="energy")
+).sort_values(by="energy")
 
 
-df_submit = df.head(3).rename(
+df_submit = df_airss.head(3).rename(
     columns={
         "pressure": "airss_pressure",
         "volume": "airss_volume",
@@ -89,19 +86,15 @@ df_submit[Key.mat_id] = [f"airss-{idx}" for idx in range(1, len(df_submit) + 1)]
 df_submit.head()
 
 
-# %% workflow submission loop
-# launch these workflows with: qlaunch rapidfire --nlaunches num_jobs_to_launch
+# %% workflow submission loop, launch jobs with qlaunch rapidfire --nlaunches int
 dry_run = False
 skipped_ids: list[str] = []
 # collect metadata dicts for new workflows to ensure no missing data after a dry run
 new_wf_metadata = []
 
-for idx, row in enumerate(df_submit.itertuples()):
-    mat_id: str = row[Key.mat_id]
-    mp_id: str = row.Index
-
+for cnt, (mat_id, row) in enumerate(df_submit.iterrows()):
     if mat_id in existing_material_ids:
-        print(f"{idx}: {mp_id} ({row[Key.formula]}) already in DB, skipping")
+        print(f"{cnt}: {mat_id} ({row[Key.formula]}) already in DB, skipping")
         skipped_ids.append(mat_id)
         continue
 
@@ -175,7 +168,7 @@ for idx, row in enumerate(df_submit.itertuples()):
     # https://bit.ly/3z8PETR
 
     meta_dict = {"series": "airss-from-chris-pickard", Key.mat_id: mat_id}
-    for key, val in row._asdict().items():
+    for key, val in row.items():
         if val is None:
             continue
 
@@ -194,6 +187,7 @@ for idx, row in enumerate(df_submit.itertuples()):
     # in "ToDb", e.g. VaspToDb, meta_dict is also merged into "additional_fields" key of
     # these tasks and included in the resulting 'tasks' collection documents.
     add_metadata(wf, meta_dict)
+    add_priority(wf, 1)
     # add metadata to DB insertion tasks
     add_additional_fields_to_taskdocs(wf, meta_dict)
 

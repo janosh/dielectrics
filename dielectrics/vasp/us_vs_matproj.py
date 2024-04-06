@@ -2,7 +2,7 @@
 import pandas as pd
 import plotly.express as px
 from pymatgen.ext.matproj import MPRester
-from pymatviz.utils import add_identity_line
+from pymatviz.powerups import add_identity_line
 
 from dielectrics import Key, today
 from dielectrics.db.fetch_data import df_diel_from_task_coll

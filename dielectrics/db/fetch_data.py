@@ -87,8 +87,8 @@ DEFAULT_FIELDS = (
     "output.energy_per_atom",
     "output.spacegroup",
     "state",
-    "selection_status",
-    "task_id",
+    Key.selection_status,
+    Key.task_id,
     "vbm",
     "which_hull",
     Key.wyckoff,
@@ -132,6 +132,8 @@ def df_diel_from_task_coll(
     # only fetch dielectric calcs, ignore relaxations
     query["task_label"] = "static dielectric"
 
+    fields = (*fields, *REQUIRED_FIELDS)  # ensure required fields are fetched
+
     if not (suffix := col_suffix).startswith("_"):
         raise ValueError(f"{col_suffix=} must start with underscore")
 
@@ -147,9 +149,13 @@ def df_diel_from_task_coll(
         df_from_cache = pd.read_json(json_path).set_index("material_id", drop=False)
         if Key.date in df_from_cache:
             df_from_cache[Key.date] = df_from_cache[Key.date].astype(str)
+        if Key.structure in df_from_cache:
+            df_from_cache[Key.structure] = df_from_cache[Key.structure].map(
+                Structure.from_dict
+            )
         return df_from_cache
 
-    data = list(db.tasks.find(query, (*fields, *REQUIRED_FIELDS)))
+    data = list(db.tasks.find(query, fields))
 
     if len(data) == 0:
         raise ValueError(f"{query=} matched 0 docs in '{db.tasks.name}' collection")

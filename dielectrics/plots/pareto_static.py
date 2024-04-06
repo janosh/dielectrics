@@ -149,8 +149,11 @@ for handle, text in zip(
 ):
     text.set_color(handle.get_color())
 
-
 save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}-matplotlib.pdf")
+
+for level in fom_levels:
+    n_hits = sum(df_us[Key.fom_pbe] > level)
+    print(f"our materials with FoM > {level}: {n_hits:,} ({n_hits / len(df_us):.1%})")
 
 
 # %%

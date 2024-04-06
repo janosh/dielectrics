@@ -5,7 +5,7 @@ from jarvis.core.graphs import Graph
 from matbench_discovery.data import df_wbm as df_summary
 from pymatgen.core import Structure
 from pymatgen.io.jarvis import JarvisAtomsAdaptor
-from pymatviz.utils import add_identity_line
+from pymatviz.powerups import add_identity_line
 from sklearn.metrics import r2_score
 from tqdm import tqdm
 

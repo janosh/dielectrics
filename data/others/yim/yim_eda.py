@@ -8,7 +8,7 @@ from plotly.subplots import make_subplots
 from pymatgen.core import Structure
 from pymatgen.ext.matproj import MPRester
 from pymatviz import annotate_bars, spacegroup_sunburst
-from pymatviz.utils import add_identity_line, crystal_sys_from_spg_num
+from pymatviz.powerups import add_identity_line, crystal_sys_from_spg_num
 from tqdm import tqdm
 
 from dielectrics import DATA_DIR, Key

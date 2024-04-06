@@ -89,8 +89,12 @@ class Key(StrEnum):
     fom_wren = "fom_wren"
     fom_wren_std_adj = "fom_wren_std_adj"
     formula = "formula"
+    phonon_freqs = "phonon_frequencies"
+    min_ph_freq = "min_phonon_frequency"
+    max_ph_freq = "max_phonon_frequency"
     selection_status = "selection_status"
     symmetry = "symmetry"
+    task_id = "task_id"
     wyckoff = "wyckoff"
 
 

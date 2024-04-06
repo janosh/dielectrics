@@ -22,7 +22,7 @@ from aviary.wren.utils import get_aflow_label_from_spglib
 from mp_api.client import MPRester
 from pymatviz import annotate_metrics, ptable_heatmap_plotly
 from pymatviz.io import df_to_pdf
-from pymatviz.utils import add_identity_line
+from pymatviz.powerups import add_identity_line
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll

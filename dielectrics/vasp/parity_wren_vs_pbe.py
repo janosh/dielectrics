@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from pymatviz.io import save_fig
-from pymatviz.utils import add_identity_line
+from pymatviz.powerups import add_identity_line
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll

@@ -2,7 +2,7 @@
 import pandas as pd
 from pymatviz import density_hexbin, scatter_with_err_bar
 from pymatviz.io import save_fig
-from pymatviz.utils import annotate_metrics
+from pymatviz.powerups import annotate_metrics
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
