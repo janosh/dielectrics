@@ -21,7 +21,7 @@ df_all = df_diel_from_task_coll(
     # crystal system is cubic and less than 5 sites
     # {"spacegroup.number": {"$in": [195, 221, 229, 230, 231]}},
     # {id_col: {"$regex": "^mp-.+->"}, "nsites": {"$lt": 12}},
-    fields=["formula", "output.structure", Key.selection_status],
+    fields=[Key.formula, "output.structure", Key.selection_status],
 )
 
 df_all[Key.structure] = [
@@ -38,7 +38,7 @@ if Key.selection_status in df_all:
 
 # %%
 struct_comps = []
-for struct in df_synth.structure:
+for struct in df_synth[Key.structure]:
     # composition.charge_balanced is experimental, returns None if can't determine
     # charge balance
     assert struct.composition.charge_balanced in (None, True)

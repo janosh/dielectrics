@@ -56,7 +56,7 @@ def get_fitness(diel_total: float, bandgap: float) -> float:
 
 # required for band gap vs dielectric constant Pareto front plot
 REQUIRED_FIELDS = (
-    "material_id",
+    Key.mat_id,
     "formula_pretty",
     "completed_at",
     "output.bandgap",
@@ -73,11 +73,11 @@ DEFAULT_FIELDS = (
     Key.e_above_hull_mp,
     Key.e_above_hull_pbe,
     Key.e_above_hull_wren,
-    "e_form_wren",
+    Key.e_form_wren,
     "elements",
     "fom_wren_rank",
     "fom_wren_std_adj_rank",
-    "fom_wren_std_adj",
+    Key.fom_wren_std_adj,
     Key.fom_wren,
     Key.formula,
     "nelements",
@@ -101,6 +101,7 @@ def df_diel_from_task_coll(
     col_suffix: str = "_pbe",
     max_diel_total: int = 1000,
     cache: bool = True,
+    drop_dup_ids: bool = True,
 ) -> pd.DataFrame:
     """Fetch dielectric calculation results from a Fireworks MongoDB task collection.
 
@@ -114,6 +115,7 @@ def df_diel_from_task_coll(
             discarded as unreasonable. Defaults to 1000.
         cache (bool, optional): If False, attempt load a previously cached dataframe
             from .db_cache/. Else fetch fresh from DB. Defaults to True.
+        drop_dup_ids (bool, optional): If True (default), drop duplicate material IDs.
 
     Raises:
         AssertionError: If not all dielectric constants are positive.
@@ -123,7 +125,7 @@ def df_diel_from_task_coll(
             total dielectric constants and figure of merit.
     """
     if isinstance(query, list | tuple):  # treat list of strings as material_ids
-        query = {"material_id": {"$in": query}}
+        query = {Key.mat_id: {"$in": query}}
     assert isinstance(query, dict)
     if "task_label" in query:
         raise ValueError(
@@ -131,6 +133,8 @@ def df_diel_from_task_coll(
         )
     # only fetch dielectric calcs, ignore relaxations
     query["task_label"] = "static dielectric"
+    # material IDs must start with mp- or wbm-
+    query.setdefault(Key.mat_id, {"$regex": "^(mp|wbm)-"})
 
     fields = (*fields, *REQUIRED_FIELDS)  # ensure required fields are fetched
 
@@ -146,7 +150,7 @@ def df_diel_from_task_coll(
             f"Using cached data from {json_path}. Pass cache=False to load fresh "
             "data from DB."
         )
-        df_from_cache = pd.read_json(json_path).set_index("material_id", drop=False)
+        df_from_cache = pd.read_json(json_path).set_index(Key.mat_id, drop=False)
         if Key.date in df_from_cache:
             df_from_cache[Key.date] = df_from_cache[Key.date].astype(str)
         if Key.structure in df_from_cache:
@@ -170,7 +174,7 @@ def df_diel_from_task_coll(
     except KeyError:  # no structure key in output dict
         pass
     df_output = pd.json_normalize(output_series).rename(
-        columns={"bandgap": Key.bandgap_us}
+        columns={Key.bandgap: Key.bandgap_us}
     )
     df_diel[list(df_output)] = df_output
 
@@ -214,9 +218,9 @@ def df_diel_from_task_coll(
 
     # use database bandgap where available, fall back on our own VASP bandgap else
     bandgaps = (
-        df_diel[f"bandgap{suffix}"].fillna(df_diel.bandgap_us)
+        df_diel[f"bandgap{suffix}"].fillna(df_diel[Key.bandgap_us])
         if f"bandgap{suffix}" in df_diel
-        else df_diel.bandgap_us
+        else df_diel[Key.bandgap_us]
     )
 
     df_diel[f"fom{suffix}"] = df_diel[f"diel_total{suffix}"] * bandgaps
@@ -232,9 +236,12 @@ def df_diel_from_task_coll(
 
     df_diel[Key.date] = df_diel.completed_at.str.split(" ").str[0]
 
+    if drop_dup_ids:
+        df_diel = df_diel.drop_duplicates(subset=Key.mat_id)
+
     # convert structures to dict before saving to CSV
     df_diel.to_json(json_path, index=False, default_handler=lambda x: x.as_dict())
-    return df_diel.set_index("material_id", drop=False)
+    return df_diel.set_index(Key.mat_id, drop=False)
 
 
 def get_structures_from_task_db(
@@ -259,11 +266,11 @@ def get_structures_from_task_db(
     """
     from dielectrics.db import db
 
-    dic = db.tasks.find_one({"material_id": material_id}, ["output.structure"])
-    if dic is None:
+    task_doc = db.tasks.find_one({Key.mat_id: material_id}, ["output.structure"])
+    if task_doc is None:
         raise ValueError(f"{material_id=} not found in DB")
 
-    struct = Structure.from_dict(dic["output"]["structure"])
+    struct = Structure.from_dict(task_doc["output"]["structure"])
 
     # if save_as is extension, generate filename from date + formula + material ID
     if fmt.lower() not in ("cif", "poscar", "json"):

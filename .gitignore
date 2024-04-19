@@ -13,6 +13,7 @@ fireworks-config/my_launchpad.yaml
 fw_logs
 block*
 launcher*
+calcs
 
 # large datas files
 *.json.gz

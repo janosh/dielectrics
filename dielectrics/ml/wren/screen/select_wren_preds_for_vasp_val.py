@@ -21,13 +21,15 @@ df_ionic = pd.read_csv(
 # %%
 df_wren = df_ionic[[Key.formula, Key.wyckoff, Key.bandgap_pbe]].copy()
 
-df_wren["diel_elec_wren"] = df_elec.filter(like="_pred_n").mean(1)
-df_wren["diel_ionic_wren"] = df_ionic.filter(like="_pred_n").mean(1)
-df_wren[Key.diel_total_wren] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
+df_wren[Key.diel_elec_wren] = df_elec.filter(like="_pred_n").mean(1)
+df_wren[Key.diel_ionic_wren] = df_ionic.filter(like="_pred_n").mean(1)
+df_wren[Key.diel_total_wren] = (
+    df_wren[Key.diel_elec_wren] + df_wren[Key.diel_ionic_wren]
+)
 
-df_wren[Key.fom_wren] = df_wren.diel_total_wren * df_wren.bandgap_pbe
+df_wren[Key.fom_wren] = df_wren[Key.diel_total_wren] * df_wren[Key.bandgap_pbe]
 
-df_wren["fom_wren_rank"] = df_wren.fom_wren.rank(ascending=False).astype(int)
+df_wren["fom_wren_rank"] = df_wren[Key.fom_wren].rank(ascending=False).astype(int)
 
 df_wren["fom_wren_rank_size"] = len(df_wren)
 
@@ -68,9 +70,9 @@ plt.figure(figsize=(12, 8))
 
 plt.title(f"{len(df_mp_diel)} MP materials with computed dielectric properties")
 
-plt.hexbin(df_mp_diel.diel_total_mp, df_mp_diel.bandgap_mp, mincnt=1)
+plt.hexbin(df_mp_diel[Key.diel_total_mp], df_mp_diel[Key.bandgap_mp], mincnt=1)
 
-df_top_1k.plot.scatter(x=Key.diel_total_wren, y="bandgap_pbe", ax=plt.gca())
+df_top_1k.plot.scatter(x=Key.diel_total_wren, y=Key.bandgap_pbe, ax=plt.gca())
 
 plt.xlim((0, 1500))
 
@@ -105,9 +107,9 @@ df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(Key.m
 df_wbm[list(df_summary)] = df_summary
 df_wbm = df_wbm.query("bandgap_pbe > 0")  # discard metals
 
-df_top_1k["structure"] = df_wbm.computed_structure_entry.map(
+df_top_1k[Key.structure] = df_wbm.computed_structure_entry.map(
     lambda cse: cse.structure
-).append(df_mp.structure)
+).append(df_mp[Key.structure])
 cols = ["energy", "e_form", "e_hull"]
 df_top_1k[cols] = df_wbm.append(df_mp)[cols]
 
@@ -142,32 +144,34 @@ df_mp_wbm_screen = pd.read_json(f"{DATA_DIR}/wbm/mp+wbm-for-screen.json.gz").set
 
 
 # %%
-df_wren = df_ionic[["formula", "wyckoff"]].copy()
+df_wren = df_ionic[[Key.formula, Key.wyckoff]].copy()
 
-df_wren["diel_elec_wren"] = df_elec.filter(like="_pred_n").mean(1)
+df_wren[Key.diel_elec_wren] = df_elec.filter(like="_pred_n").mean(1)
 df_wren["diel_elec_wren_std"] = df_elec.filter(like="_pred_n").std(1)
 
-df_wren["diel_ionic_wren"] = df_ionic.filter(like="_pred_n").mean(1)
+df_wren[Key.diel_ionic_wren] = df_ionic.filter(like="_pred_n").mean(1)
 df_wren["diel_ionic_wren_std"] = df_ionic.filter(like="_pred_n").std(1)
 
-df_wren[Key.diel_total_wren] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
+df_wren[Key.diel_total_wren] = (
+    df_wren[Key.diel_elec_wren] + df_wren[Key.diel_ionic_wren]
+)
 df_wren["diel_total_wren_std"] = (
     df_wren.diel_elec_wren_std**2 + df_wren.diel_ionic_wren_std**2
 ) ** 0.5
 
 
 df_wren[list(df_mp_wbm_screen)] = df_mp_wbm_screen
-df_wren = df_wren.rename(columns={"bandgap": "bandgap_pbe"})
+df_wren = df_wren.rename(columns={Key.bandgap: Key.bandgap_pbe})
 
-df_wren[Key.fom_wren] = df_wren.diel_total_wren * df_wren.bandgap_pbe
-df_wren["fom_wren_std_adj"] = (
-    df_wren.diel_total_wren - df_wren.diel_total_wren_std
-) * df_wren.bandgap_pbe
+df_wren[Key.fom_wren] = df_wren[Key.diel_total_wren] * df_wren[Key.bandgap_pbe]
+df_wren[Key.fom_wren_std_adj] = (
+    df_wren[Key.diel_total_wren] - df_wren.diel_total_wren_std
+) * df_wren[Key.bandgap_pbe]
 
-df_wren["fom_wren_rank"] = df_wren.fom_wren.rank(ascending=False).astype(int)
-df_wren["fom_wren_std_adj_rank"] = df_wren.fom_wren_std_adj.rank(
-    ascending=False
-).astype(int)
+df_wren["fom_wren_rank"] = df_wren[Key.fom_wren].rank(ascending=False).astype(int)
+df_wren["fom_wren_std_adj_rank"] = (
+    df_wren[Key.fom_wren_std_adj].rank(ascending=False).astype(int)
+)
 
 df_wren["fom_wren_rank_size"] = len(df_wren)
 
@@ -185,7 +189,7 @@ ptable_heatmap(df_wren.sample(1000).formula, heat_label="percent")
 
 
 # %%
-df_wren.structure.update(
+df_wren[Key.structure].update(
     df_wren.pop("computed_structure_entry").dropna().map(lambda x: x.structure)
 )
 
@@ -193,7 +197,7 @@ df_wren.isna().sum()
 
 
 # %%
-df_top_1k = df_wren.nlargest(1000, "fom_wren_std_adj")
+df_top_1k = df_wren.nlargest(1000, Key.fom_wren_std_adj)
 df_top_1k.describe().round(2)
 
 

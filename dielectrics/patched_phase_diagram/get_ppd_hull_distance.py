@@ -33,7 +33,7 @@ csv_path = (
     f"{DATA_DIR}/wren/screen/wren-e_form-ens-rhys-screen-mp-top1k-fom-elemsub.csv"
     # f"{DATA_DIR}/wren/screen/wren-elemsub-mp+wbm.csv"
 )
-df = pd.read_csv(csv_path, na_filter=False).set_index("material_id", drop=False)
+df = pd.read_csv(csv_path, na_filter=False).set_index(Key.mat_id, drop=False)
 
 compositions = df.formula.map(Composition)
 df["e_hull"] = [ppd_mp_wbm.try_get_e_hull(c) for c in tqdm(compositions)]
@@ -41,7 +41,7 @@ df["e_ref"] = [ppd_mp_wbm.try_get_e_ref(c) for c in tqdm(compositions)]
 
 
 # %%
-df["e_form_wren"] = df.filter(like="pred_n").mean(axis=1)
+df[Key.e_form_wren] = df.filter(like="pred_n").mean(axis=1)
 df["e_form_wren_std"] = (
     df.filter(like="pred_n").var(axis=1)
     # average aleatoric uncertainties in quadrature
@@ -51,7 +51,7 @@ df["e_form_wren_std"] = (
 # the hull energy is relative to the reference energies for single element systems
 # e.g. for Fe2O3 the e_hull is relative to e_ref = 2 * e_Fe + 3 * e_O?
 # so we subtract e_ref from e_hull so that the hull energy is comparable to e_form
-df["e_above_hull_wren"] = df.e_form_wren - (df.e_hull - df.e_ref)
+df[Key.e_above_hull_wren] = df.e_form_wren - (df.e_hull - df.e_ref)
 
 
 # for 1st round of single Wren elem-substitution picking only the more likely stable
@@ -103,9 +103,9 @@ plt.xlim(-1, 2)
 
 # %% below cells add hull distances to MongoDB task collection
 filters = {
-    # "material_id": {"$regex": "^m(p|vc)-", "$not": {"$regex": "->"}},
-    # "material_id": {"$regex": "^wbm-"},
-    "e_above_hull_pbe": {"$exists": False},
+    # Key.mat_id: {"$regex": "^m(p|vc)-", "$not": {"$regex": "->"}},
+    # Key.mat_id: {"$regex": "^wbm-"},
+    Key.e_above_hull_pbe: {"$exists": False},
     # "task_label": "static dielectric",
 }
 
@@ -115,12 +115,12 @@ db.tasks.count_documents(filters)
 # %%
 task_fields = {
     "calcs_reversed.run_type": 1,
-    "material_id": 1,
+    Key.mat_id: 1,
     "composition_unit_cell": 1,
-    "e_above_hull_wren": 1,
-    "e_above_hull_pbe": 1,
+    Key.e_above_hull_wren: 1,
+    Key.e_above_hull_pbe: 1,
     "which_hull": 1,
-    "e_form_wren": 1,
+    Key.e_form_wren: 1,
     "output.energy": 1,
     "input.is_hubbard": 1,
     "input.hubbards": 1,
@@ -130,8 +130,8 @@ task_fields = {
 
 task_docs = db.tasks.aggregate([{"$match": filters}, {"$project": task_fields}])
 
-df = pd.DataFrame(task_docs).set_index("material_id", drop=False)
-df = df.rename(columns={"e_above_hull_pbe": "e_above_hull_pbe_old"})
+df = pd.DataFrame(task_docs).set_index(Key.mat_id, drop=False)
+df = df.rename(columns={Key.e_above_hull_pbe: "e_above_hull_pbe_old"})
 df.isna().sum()
 
 
@@ -140,13 +140,13 @@ mp_ids = list(df.material_id.filter(regex="m(p|vc)-\\d+$").unique())
 
 if mp_ids:
     data = MPRester().query(
-        {"material_id": {"$in": mp_ids}},
-        ["e_above_hull", "material_id"],
+        {Key.mat_id: {"$in": mp_ids}},
+        ["e_above_hull", Key.mat_id],
     )
 
     df_mp = pd.DataFrame(data).set_index(Key.mat_id)
 
-    df["e_above_hull_mp"] = df.material_id.map(df_mp.e_above_hull)
+    df[Key.e_above_hull_mp] = df.material_id.map(df_mp.e_above_hull)
 
     df.e_above_hull_mp.describe()
 
@@ -243,12 +243,12 @@ for row in tqdm(list(df.set_index("_id").itertuples())):
         continue
 
     set_fields = {
-        "e_above_hull_pbe": row.e_above_hull_pbe_mp_wbm_ppd,
+        Key.e_above_hull_pbe: row.e_above_hull_pbe_mp_wbm_ppd,
         # time of fetching e_above_hull values from Materials Project
         "which_hull": "MP+WBM PPD 2022-01-25",
     }
-    if "e_above_hull_mp" in row and not pd.isna(row.e_above_hull_mp):
-        set_fields["e_above_hull_mp"] = row.e_above_hull_mp
+    if Key.e_above_hull_mp in row and not pd.isna(row.e_above_hull_mp):
+        set_fields[Key.e_above_hull_mp] = row.e_above_hull_mp
         set_fields["mp_hull_version"] = mp_version
 
     db.tasks.update_one({"_id": row.Index}, {"$set": set_fields})

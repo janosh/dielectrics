@@ -36,11 +36,11 @@ assert n_wbm + n_mp == len(df_mp_wbm)
 material_ids = [x for x in df_mp_wbm.index if x.startswith("mp-")]
 
 mp_data = MPRester().query(
-    {"material_id": {"$in": material_ids}}, ["material_id", "bandgap"]
+    {Key.mat_id: {"$in": material_ids}}, [Key.mat_id, Key.bandgap]
 )
 
-df_mp_wbm["bandgap"] = df_wbm.bandgap.append(
-    pd.DataFrame(mp_data).set_index(Key.mat_id).bandgap
+df_mp_wbm[Key.bandgap] = df_wbm[Key.bandgap].append(
+    pd.DataFrame(mp_data).set_index(Key.mat_id)[Key.bandgap]
 )
 
 # 3,314 MP materials with mvc-... IDs have no band gap, we drop them
@@ -57,7 +57,7 @@ ax3.set_xlabel("band gap [eV]")
 
 
 # %%
-n_metals = sum(df_mp_wbm.bandgap == 0)
+n_metals = sum(df_mp_wbm[Key.bandgap] == 0)
 
 print(
     f"{n_metals:,} / {len(df_mp_wbm):,} = {n_metals / len(df_mp_wbm):.1%} of materials "
@@ -88,14 +88,14 @@ print(
     f"leaves {len(df_wbm_screen):,} out of {len(df_wbm):,} "
     f"({len(df_wbm_screen) / len(df_wbm):.1%})"
 )
-print(f"excluded by {sum(df_wbm.bandgap < 0.5)=:,}")
-print(f"excluded by {sum(df_wbm.n_sites > 40)=:,}")
+print(f"excluded by {sum(df_wbm[Key.bandgap] < 0.5)=:,}")
+print(f"excluded by {sum(df_wbm[Key.n_sites] > 40)=:,}")
 print(f"excluded by {sum(df_wbm.e_above_hull > 0.1)=:,}")
 print(f"excluded by {sum(df_wbm.n_elems > 5)=:,}")
 
 # leaves 22,026 out of 257,489 (8.6%)
-# excluded by sum(df_all_steps.bandgap < 0.5) = 229,989
-# excluded by sum(df_all_steps.n_sites > 40) = 158
+# excluded by sum(df_all_steps[Key.bandgap] < 0.5) = 229,989
+# excluded by sum(df_all_steps[Key.n_sites] > 40) = 158
 # excluded by sum(df_all_steps.e_above_hull > 0.1) = 109,622
 # excluded by sum(df_all_steps.n_elems > 5) = 0
 
@@ -115,7 +115,7 @@ print(f"{len(df_mp_screening_set)=:,} + {len(df_wbm_screen)=:,} ")
 # len(df_mp_screen) = 25,296 + len(df_wbm_screen) = 22,026
 
 df_mp_wbm_screen = df_mp_screening_set.rename(
-    columns={"formula": "composition"}
+    columns={Key.formula: "composition"}
 ).append(df_wbm_screen)
 
 df_mp_wbm_screen.to_json(

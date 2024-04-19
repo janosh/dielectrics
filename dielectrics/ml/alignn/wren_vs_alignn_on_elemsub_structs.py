@@ -33,10 +33,10 @@ df_wren_bandgaps = pd.read_csv(
     f"{DATA_DIR}/wren/bandgap/wren-bandgap-mp+wbm-ensemble.csv"
 ).set_index(Key.mat_id)
 
-df_wren_bandgaps["bandgap_pred"] = df_wren_bandgaps.filter(like="pred_n").mean(1)
+df_wren_bandgaps[Key.bandgap_wren] = df_wren_bandgaps.filter(like="pred_n").mean(1)
 df_wren_bandgaps["bandgap_std"] = df_wren_bandgaps.filter(like="pred_n").std(1)
 
-df_wbm_step1["bandgap_wren"] = df_wren_bandgaps.bandgap_pred
+df_wbm_step1[Key.bandgap_wren] = df_wren_bandgaps[Key.bandgap_wren]
 
 
 # %%
@@ -46,16 +46,16 @@ df_elemsub_wren = pd.read_json(
 
 
 # %%
-filters = {"task_label": "structure optimization", "bandgap_wren": {"$exists": True}}
+filters = {"task_label": "structure optimization", Key.bandgap_wren: {"$exists": True}}
 fields = [
     Key.mat_id,
     "formula_pretty",
     "output.bandgap",
-    "bandgap_wren",
+    Key.bandgap_wren,
     "input.structure",
     "output.structure",
-    "e_above_hull_pbe",
-    "e_above_hull_wren",
+    Key.e_above_hull_pbe,
+    Key.e_above_hull_wren,
     "e_above_hull_vasp",
     "e_above_hull_pbe_rhys_2021-04-27_old_MP_compat_corrections",
 ]
@@ -66,8 +66,8 @@ for dct in db_data:
         continue
     dct["input_structure"] = Structure.from_dict(dct.pop("input")["structure"])
     output = dct.pop("output")
-    dct["bandgap_pbe"] = output["bandgap"]
-    dct["final_structure"] = Structure.from_dict(output["structure"])
+    dct[Key.bandgap_pbe] = output[Key.bandgap]
+    dct["final_structure"] = Structure.from_dict(output[Key.structure])
 
 df_db = pd.DataFrame(db_data)
 
@@ -88,7 +88,7 @@ assert df_db.material_id.str.contains("->").all(), (
 
 # %% setup which alignn model to use and what df column serves as input
 alignn_models = {
-    "bandgap": "jv_mbj_bandgap_alignn",
+    Key.bandgap: "jv_mbj_bandgap_alignn",
     "bandgap_vdw": "jv_optb88vdw_bandgap_alignn",
     "e_above_hull": "jv_ehull_alignn",
 }
@@ -145,7 +145,7 @@ title = (
 
 y_cols = df_db.filter(regex="e_above_hull_(wren|vasp|alignn).*").columns
 
-target = "e_above_hull_pbe"
+target = Key.e_above_hull_pbe
 col_labels = {}
 for y_col in y_cols:
     xs, ys = df_db[target], df_db[y_col]
@@ -161,7 +161,7 @@ fig = px.scatter(
     y=list(col_labels.values()),
     hover_data=[Key.mat_id, Key.formula],
     labels={
-        "e_above_hull_pbe": "PBE hull distance (eV)",
+        Key.e_above_hull_pbe: "PBE hull distance (eV)",
         "value": "ML hull distance (eV)",
         "variable": "",
     },
@@ -180,7 +180,7 @@ fig.show()
 # %%
 title = "Histogram of ML band gap errors"
 for y_col in y_cols:
-    df_db[f"{y_col}_err"] = df_db[y_col] - df_db.bandgap_pbe
+    df_db[f"{y_col}_err"] = df_db[y_col] - df_db[Key.bandgap_pbe]
 
 fig = px.histogram(
     df_db.round(2),

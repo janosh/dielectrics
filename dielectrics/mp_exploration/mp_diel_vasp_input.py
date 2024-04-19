@@ -15,14 +15,14 @@ from dielectrics.plots import plt
 # %%
 mp_diel_inputs = MPRester().query(
     criteria={"has": "diel"},
-    properties=["material_id", "input", "created_at", "pretty_formula"],
+    properties=[Key.mat_id, "input", "created_at", "pretty_formula"],
 )
 
 
 # %%
 df_input = pd.json_normalize(mp_diel_inputs).set_index(Key.mat_id)
 
-df_input["date"] = pd.to_datetime(df_input.pop("created_at")).dt.date
+df_input[Key.date] = pd.to_datetime(df_input.pop("created_at")).dt.date
 
 df_input.columns = df_input.columns.str.replace("input.", "")
 
@@ -58,13 +58,13 @@ df_input[kpoint_cols] = pd.json_normalize(df_input.kpoints.map(lambda x: x.as_di
 
 df_input = pd.read_csv("data/mp-diel-vasp-input.csv").set_index(Key.mat_id)
 
-df_input["date"] = pd.to_datetime(df_input.date)
+df_input[Key.date] = pd.to_datetime(df_input[Key.date])
 
 
 # %%
 df_structs = pd.read_json("data/mp-diel-train.json.bz2")
 
-df_input["structure"] = df_structs.structure
+df_input[Key.structure] = df_structs[Key.structure]
 
 
 # %%
@@ -78,8 +78,8 @@ fig.suptitle(
     "Materials Project EDIFF and ENCUT settings for dielectric calcs over time"
 )
 
-df_input.sample(1000).plot.scatter(x="date", y="incar.EDIFF", ax=axs[0])
-df_input.sample(1000).plot.scatter(x="date", y="incar.ENCUT", ax=axs[1])
+df_input.sample(1000).plot.scatter(x=Key.date, y="incar.EDIFF", ax=axs[0])
+df_input.sample(1000).plot.scatter(x=Key.date, y="incar.ENCUT", ax=axs[1])
 
 
 plt.savefig("plots/mp-diel-ediff+encut-over-time.pdf")
@@ -87,7 +87,7 @@ plt.savefig("plots/mp-diel-ediff+encut-over-time.pdf")
 
 # %% important to convert to Composition for 'in' check as Osmium would also give true
 # for '"O" in string' check
-df_input["is_oxide"] = df_input.formula.map(lambda x: "O" in Composition(x))
+df_input["is_oxide"] = df_input[Key.formula].map(lambda x: "O" in Composition(x))
 
 
 # %%
@@ -96,15 +96,15 @@ fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 fig.suptitle("Sample 1000 EDIFF and ENCUT without oxygen")
 
 df_input[~df_input.is_oxide].sample(1000).plot.scatter(
-    x="date", y="incar.EDIFF", ax=axs[0]
+    x=Key.date, y="incar.EDIFF", ax=axs[0]
 )
 df_input[~df_input.is_oxide].sample(1000).plot.scatter(
-    x="date", y="incar.ENCUT", ax=axs[1]
+    x=Key.date, y="incar.ENCUT", ax=axs[1]
 )
 
 
 # %%
-df_input["auto_kpts"] = df_input.structure.map(
+df_input["auto_kpts"] = df_input[Key.structure].map(
     lambda struct: Kpoints.automatic_density(struct, 3000).kpts
 )
 

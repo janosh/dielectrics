@@ -5,6 +5,8 @@ from pymatgen.electronic_structure.plotter import DosPlotter
 from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
+from dielectrics import Key
+
 
 # %%
 rare_earths = [
@@ -24,7 +26,7 @@ mp_data = MPRester().query(
         "e_above_hull": {"$lte": 0.1},
         "elements": {"$nin": rare_earths},
     },
-    ["material_id"],
+    [Key.mat_id],
 )
 
 print(f"materials matching filters: {len(mp_data):,}")
@@ -35,7 +37,7 @@ print(f"materials matching filters: {len(mp_data):,}")
 
 # df_dos.round(4).to_csv("data/mp-doses.csv")
 
-df_dos = pd.read_csv("data/mp-doses.csv").set_index("material_id", drop=False)
+df_dos = pd.read_csv("data/mp-doses.csv").set_index(Key.mat_id, drop=False)
 
 
 # %%

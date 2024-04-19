@@ -18,7 +18,7 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from plotly.validators.scatter.marker import SymbolValidator
 
-from dielectrics import DATA_DIR, Key, PlotlyHoverData, SelectionStatus, today
+from dielectrics import DATA_DIR, Key, SelectionStatus, today
 from dielectrics.db import db
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
@@ -28,6 +28,33 @@ if TYPE_CHECKING:
 
 
 module_dir = os.path.dirname(__file__)
+hover_data_keys = dict(
+    bandgap=Key.bandgap,
+    bandgap_hse=Key.bandgap_hse,
+    bandgap_mp=Key.bandgap_mp,
+    bandgap_pbe=Key.bandgap_pbe,
+    bandgap_us=Key.bandgap_us,
+    bandgap_wren=Key.bandgap_wren,
+    date=Key.date,
+    diel_total=Key.diel_total,
+    diel_total_mp=Key.diel_total_mp,
+    diel_total_pbe=Key.diel_total_pbe,
+    diel_total_wren=Key.diel_total_wren,
+    e_above_hull_mp=Key.e_above_hull_mp,
+    e_above_hull_pbe=Key.e_above_hull_pbe,
+    e_above_hull_wren=Key.e_above_hull_wren,
+    fom_pbe=Key.fom_pbe,
+    fom_wren=Key.fom_wren,
+    fom_wren_std_adj=Key.fom_wren_std_adj,
+    formula=Key.formula,
+    max_ph_freq=Key.max_ph_freq,
+    min_ph_freq=Key.min_ph_freq,
+    phonon_freqs=Key.phonon_freqs,
+    selection_status=Key.selection_status,
+    symmetry=Key.symmetry,
+    task_id=Key.task_id,
+    wyckoff=Key.wyckoff,
+)
 
 
 # %% see db/readme.md for details on how candidates in each df were selected
@@ -43,9 +70,9 @@ df_qz3 = pd.read_csv(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2").round(3)
 
 df_yim = pd.read_json(f"{DATA_DIR}/others/yim/dielectrics.json.bz2")
 df_yim = df_yim.query(f"0 < {Key.diel_total_pbe} < 1000").rename(
-    columns={"possible_mp_id": Key.mat_id, "bandgap_gga": "bandgap_pbe"}
+    columns={"possible_mp_id": Key.mat_id}
 )
-df_yim = df_yim.dropna(subset=[Key.mat_id, "formula"])
+df_yim = df_yim.dropna(subset=[Key.mat_id, Key.formula])
 for accu in ["pbe", "hse"]:
     df_yim = df_yim.eval(f"fom_{accu} = bandgap_{accu} * {Key.diel_total_pbe};")
 
@@ -94,7 +121,7 @@ def create_text_col(df: pd.DataFrame, annotate_min_fom: float = 300) -> list[str
 
     # prioritize VASP over Wren over MP FoM, throw error if none found
     try:
-        fom_col = next(filter(lambda c: c in df, fom_cols := [Key.fom_pbe, "fom_mp"]))
+        fom_col = next(filter(lambda c: c in df, fom_cols := [Key.fom_pbe, Key.fom_mp]))
     except StopIteration:
         raise ValueError(f"None of {fom_cols} found in df") from None
     # only show formula as link text if material's FoM is > annotate_min_fom, else
@@ -128,12 +155,12 @@ def scatter(
     df = df.dropna(thresh=0.1 * len(df), axis=1)
     df = df.fillna("n/a")  # fill remaining NaNs to avoid %{customdata[idx]}
 
-    hover_keys = {x.value for x in PlotlyHoverData} & set(df)
+    hover_keys = {*hover_data_keys.values()} & set(df)
     # hover_keys = sorted(hover_keys, key=list(pretty_col_names.values()).index)
     hover_keys = sorted(hover_keys)
     hover_data = dict.fromkeys(hover_keys, True)
-    hover_data["text"] = False  # don't show text value in hover tooltip that's why
-    # hover_data needs to be dict so we can set text to False, else could be list[str]
+    # don't show text value in hover tooltip
+    hover_data["text"] = False  # type: ignore[index]
 
     global color_iter  # noqa: PLW0602
     kwargs["color_discrete_sequence"] = [next(color_iter)]
@@ -227,8 +254,8 @@ color_iter = iter(px.colors.qualitative.Dark24)
 
 fig = go.Figure()
 fig.add_histogram2dcontour(
-    x=df_diel_mp.diel_total_mp,
-    y=df_diel_mp.bandgap_mp,
+    x=df_diel_mp[Key.diel_total_mp],
+    y=df_diel_mp[Key.bandgap_mp],
     name=f"KDE of {len(df_diel_mp):,} Materials Project<br>dielectric training points",
     showlegend=True,
     colorscale=[[0, "rgba(0, 0, 0, 0)"], [1, "red"]],
@@ -249,23 +276,23 @@ known_diels = [
 # mp-557118 seems like a DFPT calc gone wrong (https://matsci.org/t/40913)
 df_petousis = (
     df_diel_mp.query("formula in @known_diels & material_id != 'mp-557118'")
-    .sort_values("fom_mp")  # only plot highest FoM polymorph for each formula
-    .drop_duplicates("formula", keep="last")
+    .sort_values(Key.fom_mp)  # only plot highest FoM polymorph for each formula
+    .drop_duplicates(Key.formula, keep="last")
 )
 petousis_mp = scatter(
     df_petousis,
-    x_col="diel_total_mp",
+    x_col=Key.diel_total_mp,
     y_col=Key.bandgap_mp,
     legend_name=f"{len(df_petousis):,} Best Petousis 2017 Candidates (MP data)",
 )
 petousis_mp.update_traces(marker=dict(size=15, symbol="star", color="teal"))
-petousis_mp.data[0]["visible"] = True
+# petousis_mp.data[0]["visible"] = True
 fig.add_traces(data=petousis_mp.data)
 
 n_top_fom = 200
 best_fom_mp = scatter(
-    df_diel_mp.query("index not in @df_petousis.index").nlargest(200, "fom_mp"),
-    x_col="diel_total_mp",
+    df_diel_mp.query("index not in @df_petousis.index").nlargest(200, Key.fom_mp),
+    x_col=Key.diel_total_mp,
     y_col=Key.bandgap_mp,
     legend_name=f"Top {n_top_fom:,} MP Training Points",
 )
@@ -274,17 +301,29 @@ fig.add_traces(data=best_fom_mp.data)
 
 qz3_points = scatter(
     df_qz3,
-    x_col="diel_total_pbe",
-    y_col="bandgap_pbe",
+    x_col=Key.diel_total_pbe,
+    y_col=Key.bandgap_pbe,
     legend_name=f"{len(df_qz3):,} Qu et al. 2020 Ternary Oxides",
 )
 fig.add_traces(data=qz3_points.data)
+
+for id_prefix, color in (("exp-parent=", "red"), ("rerun-", "blue")):
+    exp_structs_points = scatter(
+        df_tmp := df_all.query(f"{Key.mat_id}.str.startswith({id_prefix!r})"),
+        x_col=Key.diel_total_pbe,
+        y_col=Key.bandgap_us,
+        legend_name=f"{len(df_tmp):,} {id_prefix}",
+        annotate_min_fom=0,
+    )
+    exp_structs_points.update_traces(marker=dict(size=15, symbol="cross", color=color))
+    exp_structs_points.data[0]["visible"] = True
+    fig.add_traces(data=exp_structs_points.data)
 
 selected_for_synth_points = scatter(
     df_synth := df_all.query(
         f"{Key.selection_status} == '{SelectionStatus.selected_for_synthesis}'"
     ),
-    x_col="diel_total_pbe",
+    x_col=Key.diel_total_pbe,
     y_col=Key.bandgap_us,
     legend_name=f"{len(df_synth):,} Selected for synthesis",
     annotate_min_fom=0,
@@ -309,13 +348,13 @@ scatter_with_quiver(
     df_best_elemsub := df_unselected.query('material_id.str.contains("->")')
     .query("e_above_hull_pbe < 0.1")
     .nlargest(top_n := 100, Key.fom_pbe),
-    scatter_1=dict(x="diel_total_wren", y=Key.bandgap_us),
+    scatter_1=dict(x=Key.diel_total_wren, y=Key.bandgap_us),
     # make VASP scatter points visible by default
-    scatter_2=dict(x="diel_total_pbe", y=Key.bandgap_us, visible=False),
+    scatter_2=dict(x=Key.diel_total_pbe, y=Key.bandgap_us, visible=False),
     legend_labels=(
         f"Top {top_n} elemental substitution structures",
-        f"Wren mean FoM = {df_best_elemsub.fom_wren.mean():.0f}",
-        f"VASP mean FoM = {df_best_elemsub.fom_pbe.mean():.0f}",
+        f"Wren mean FoM = {df_best_elemsub[Key.fom_wren].mean():.0f}",
+        f"VASP mean FoM = {df_best_elemsub[Key.fom_pbe].mean():.0f}",
     ),
 )
 # get the VASP mean FoM trace
@@ -324,21 +363,21 @@ trace["marker"]["color"] = "rgba(0, 100, 255, 0.8)"
 
 airss_points = scatter(
     df_airss := df_unselected.query('material_id.str.startswith("airss")'),
-    x_col="diel_total_pbe",
+    x_col=Key.diel_total_pbe,
     y_col=Key.bandgap_us,
     legend_name=f"{len(df_airss):,} AIRSS structures mean FoM = "
-    f"{df_airss.fom_pbe.mean():.0f}",
+    f"{df_airss[Key.fom_pbe].mean():.0f}",
 )
 fig.add_traces(data=airss_points.data)
 
 scatter_with_quiver(
     df_our_best,
-    scatter_1=dict(x="diel_total_wren", y=Key.bandgap_us),
-    scatter_2=dict(x="diel_total_pbe", y=Key.bandgap_us),
+    scatter_1=dict(x=Key.diel_total_wren, y=Key.bandgap_us),
+    scatter_2=dict(x=Key.diel_total_pbe, y=Key.bandgap_us),
     legend_labels=(
         "Best from all Series",
-        f"Wren mean FoM = {df_our_best.fom_wren.mean():.0f}",
-        f"VASP mean FoM = {df_our_best.fom_pbe.mean():.0f}",
+        f"Wren mean FoM = {df_our_best[Key.fom_wren].mean():.0f}",
+        f"VASP mean FoM = {df_our_best[Key.fom_pbe].mean():.0f}",
     ),
     lax_nan=True,
 )
@@ -348,23 +387,23 @@ scatter_with_quiver(
     df_2022 := df_unselected.query(
         "completed_at > '2022-01-01' & e_above_hull_pbe < 0.1"
     ),
-    scatter_1=dict(x="diel_total_wren", y=Key.bandgap_us),
-    scatter_2=dict(x="diel_total_pbe", y=Key.bandgap_us),
+    scatter_1=dict(x=Key.diel_total_wren, y=Key.bandgap_us),
+    scatter_2=dict(x=Key.diel_total_pbe, y=Key.bandgap_us),
     legend_labels=(
         "2022 calcs < 0.1 eV above hull",
-        f"Wren mean FoM = {df_2022.fom_wren.mean():.0f}",
-        f"VASP mean FoM = {df_2022.fom_pbe.mean():.0f}",
+        f"Wren mean FoM = {df_2022[Key.fom_wren].mean():.0f}",
+        f"VASP mean FoM = {df_2022[Key.fom_pbe].mean():.0f}",
     ),
     lax_nan=True,
 )
 
 scatter_with_quiver(
     df_yim,
-    scatter_1=dict(x=Key.diel_total_pbe, y="bandgap_pbe"),
-    scatter_2=dict(x=Key.diel_total_pbe, y="bandgap_hse"),
+    scatter_1=dict(x=Key.diel_total_pbe, y=Key.bandgap_pbe),
+    scatter_2=dict(x=Key.diel_total_pbe, y=Key.bandgap_hse),
     legend_labels=(
         "Yim et al. 2015",
-        f"GGA mean FoM = {df_yim.fom_pbe.mean():.0f}",
+        f"GGA mean FoM = {df_yim[Key.fom_pbe].mean():.0f}",
         f"HSE mean FoM = {df_yim.fom_hse.mean():.0f}",
     ),
 )
@@ -500,7 +539,7 @@ control_div = html.Div(
     [status_dd, save_btn, span],
     style=dict(**flex_css, placeItems="center"),
 )
-structure_component = ctc.StructureMoleculeComponent(id="structure")
+structure_component = ctc.StructureMoleculeComponent(id="structure-component")
 
 
 side_components_style = dict(
@@ -605,7 +644,7 @@ def update_structure(
             structure = MPRester().get_structure_by_material_id(_id)
         else:
             dct = db.tasks.find_one({"_id": ObjectId(_id)}, ["output.structure"]) or {}
-            structure = dct["output"]["structure"]
+            structure = dct["output"][Key.structure]
     except Exception as err:
         # if we can't fetch a structure in try block, print error and return None to
         # empty scene

@@ -9,13 +9,13 @@ from dielectrics.plots import plt
 expt = "enrich-big"
 
 df_diel_train = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-{expt}-train.json.bz2")
-df_diel_train.index.name = "material_id"
-df_diel_train = df_diel_train.rename(columns={"band_gap": "bandgap"})
+df_diel_train.index.name = Key.mat_id
+df_diel_train = df_diel_train.rename(columns={"band_gap": Key.bandgap})
 
 
 df_diel_test = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-{expt}-test.json.bz2")
 
-df_diel_test = df_diel_test.rename(columns={"band_gap": "bandgap"})
+df_diel_test = df_diel_test.rename(columns={"band_gap": Key.bandgap})
 
 
 # %%
@@ -31,15 +31,15 @@ df_enrich_2 = pd.read_csv(
 
 for df in [df_enrich_1, df_enrich_2]:
     df.columns = df.columns.str.replace("_n0", "")
-    df["bandgap"] = df_diel_test.bandgap
-    df["fom"] = df.bandgap * df.n_pred**2
+    df[Key.bandgap] = df_diel_test[Key.bandgap]
+    df[Key.fom] = df[Key.bandgap] * df.n_pred**2
 
 
 # %%
 axs = df_enrich_1.hist(
-    ["n_pred", "fom"], figsize=[10, 5], bins=50, alpha=0.7, label=model_1
+    ["n_pred", Key.fom], figsize=[10, 5], bins=50, alpha=0.7, label=model_1
 )
-df_enrich_2.hist(["n_pred", "fom"], bins=50, alpha=0.7, ax=axs, label=model_2)
+df_enrich_2.hist(["n_pred", Key.fom], bins=50, alpha=0.7, ax=axs, label=model_2)
 plt.legend()
 plt.suptitle(f"{model_1.title()} vs {model_2.title()} histogram")
 # plt.savefig(f"plots/{model_1}-vs-{model_2}-hist-n+fom.pdf")
@@ -88,24 +88,24 @@ df_top_100_diel_n.plot.bar(
 
 # %% --------------------
 # same plots but sorted by figure of merit instead of refractive index
-df_enrich_1["bandgap"] = df_diel_train.bandgap
-df_enrich_1["fom"] = df_enrich_1.bandgap * df_enrich_1.n_target**2
-df_enrich_1["fom_pred"] = df_enrich_1.bandgap * df_enrich_1.n_pred**2
+df_enrich_1[Key.bandgap] = df_diel_train[Key.bandgap]
+df_enrich_1[Key.fom] = df_enrich_1[Key.bandgap] * df_enrich_1.n_target**2
+df_enrich_1["fom_pred"] = df_enrich_1[Key.bandgap] * df_enrich_1.n_pred**2
 
 
 # %%
-df_enrich_1.plot.scatter(x="fom", y="fom_pred")
+df_enrich_1.plot.scatter(x=Key.fom, y="fom_pred")
 plt.axis("square")
 
 
 # %%
-top_100_fom_1 = df_enrich_1.nlargest(100, "fom")
+top_100_fom_1 = df_enrich_1.nlargest(100, Key.fom)
 sum(top_100_fom_1.index.isin(df_enrich_1.nlargest(100, "fom_pred").index))
 
 
 # %%
-top_100_fom_1["fom_pred_cgcnn"] = df_enrich_1.fom_pred
-top_100_fom_1.plot.bar(y=["fom", "fom_pred_cgcnn"], figsize=[14, 8], width=1)
+top_100_fom_1["fom_cgcnn"] = df_enrich_1.fom_pred
+top_100_fom_1.plot.bar(y=[Key.fom, "fom_cgcnn"], figsize=[14, 8], width=1)
 plt.yscale("log")
 # plt.savefig("plots/enrich-fom-true-vs-pred-bar.pdf")
 
@@ -114,7 +114,7 @@ plt.yscale("log")
 select_mask = top_100_fom_1.index.isin(df_enrich_1.nlargest(100, "fom_pred").index)
 
 top_100_fom_1.plot.bar(
-    y="fom",
+    y=Key.fom,
     color=["red" if x else "blue" for x in select_mask],
     figsize=[12, 8],
 )

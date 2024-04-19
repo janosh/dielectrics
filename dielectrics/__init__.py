@@ -19,80 +19,60 @@ plt.rcParams["figure.constrained_layout.use"] = True
 
 
 @unique
-class PlotlyHoverData(StrEnum):
-    """Frequently used dataframe column names."""
+class Key(StrEnum):
+    """Dataframe column names."""
 
+    bandgap = "bandgap"
+    bandgap_exp = "bandgap_exp"
     bandgap_hse = "bandgap_hse"
     bandgap_mp = "bandgap_mp"
     bandgap_pbe = "bandgap_pbe"
     bandgap_us = "bandgap_us"
     bandgap_wren = "bandgap_wren"
-    date = "date"
-    diel_total = "diel_total"
-    diel_total_mp = "diel_total_mp"  # total dielectric constant from MP
-    diel_total_pbe = "diel_total_pbe"  # total dielectric constant from PBE DFPT calcs
-    diel_total_wren = "diel_total_wren"
-    e_above_hull_mp = "e_above_hull_mp"
-    e_above_hull_pbe = "e_above_hull_pbe"
-    e_above_hull_wren = "e_above_hull_wren"
-    fom_pbe = "fom_pbe"
-    fom_wren = "fom_wren"
-    fom_wren_std_adj = "fom_wren_std_adj"
-    formula = "formula"
-    selection_status = "selection_status"
-    symmetry = "symmetry"
-
-
-@unique
-class Key(StrEnum):
-    """Dataframe column names."""
-
     crystal_sys = "crystal_system"
+    date = "date"
     diel_elec_mp = "diel_elec_mp"
     diel_elec_pbe = "diel_elec_pbe"
     diel_elec_wren = "diel_elec_wren"
     diel_ionic_mp = "diel_ionic_mp"
     diel_ionic_pbe = "diel_ionic_pbe"
     diel_ionic_wren = "diel_ionic_wren"
-    diel_total_exp = "diel_total_exp"  # total dielectric constant from experiment
-    diel_total_us = "diel_total_us"  # total dielectric constant from our own DFPT calcs
-    e_per_atom = "energy_per_atom"
-    energy = "energy (eV)"
-    fom = "fom"
-    fom_exp = "fom_exp"
-    fr_min_e = "(F(R)-E)^1/2"
-    freq = "Frequency (Hz)"
-    icsd_id = "icsd_id"
-    imped = "Impedance (Ohms)"
-    mat_id = "material_id"
-    n_sites = "n_sites"
-    spg = "spacegroup"  # space group number
-    structure = "structure"
-
-    # add all PlotlyHoverData (duplication seems unavoidable since Enum can't be
-    # subclassed https://stackoverflow.com/q/33679930)
-    bandgap = "bandgap"
-    bandgap_hse = "bandgap_hse"
-    bandgap_mp = "bandgap_mp"
-    bandgap_pbe = "bandgap_pbe"
-    bandgap_us = "bandgap_us"
-    bandgap_wren = "bandgap_wren"
-    date = "date"
     diel_total = "diel_total"
+    diel_total_exp = "diel_total_exp"  # total dielectric constant from experiment
     diel_total_mp = "diel_total_mp"  # total dielectric constant from MP
     diel_total_pbe = "diel_total_pbe"  # total dielectric constant from PBE DFPT calcs
+    diel_total_us = "diel_total_us"  # total dielectric constant from our own DFPT calcs
     diel_total_wren = "diel_total_wren"
+    dyn_mat_eigen_vals = "dynamical_matrix_eigen_vals"  # atomate: normalmode_eigenvals
+    dyn_mat_eigen_vecs = "dynamical_matrix_eigen_vecs"  # atomate: normalmode_eigenvecs
     e_above_hull_mp = "e_above_hull_mp"
     e_above_hull_pbe = "e_above_hull_pbe"
     e_above_hull_wren = "e_above_hull_wren"
+    e_form_wren = "e_form_wren"
+    e_per_atom = "energy_per_atom"
+    energy = "energy (eV)"
+    fom = "fom"  # figure of merit Phi_M = band gap x eps_total
+    fom_exp = "fom_exp"
+    fom_mp = "fom_mp"
     fom_pbe = "fom_pbe"
     fom_wren = "fom_wren"
     fom_wren_std_adj = "fom_wren_std_adj"
+    force_constants = "force_constants"
     formula = "formula"
-    phonon_freqs = "phonon_frequencies"
-    min_ph_freq = "min_phonon_frequency"
+    fr_min_e = "(F(R)-E)^1/2"
+    freq = "Frequency (Hz)"  # of electric field in exp. impedance/reflectance plots
+    icsd_id = "icsd_id"
+    imped = "Impedance (Ohms)"
+    mat_id = "material_id"
     max_ph_freq = "max_phonon_frequency"
-    selection_status = "selection_status"
+    min_ph_freq = "min_phonon_frequency"
+    n_sites = "n_sites"  # number of sites in the unit cell
+    phonon_freqs = "phonon_frequencies"
+    selection_status = (
+        "selection_status"  # synthesis selection status of candidate materials
+    )
+    spg = "spacegroup"  # international space group number
+    structure = "structure"
     symmetry = "symmetry"
     task_id = "task_id"
     wyckoff = "wyckoff"
@@ -128,9 +108,8 @@ px.defaults.labels = {
     Key.fom_wren: "Φ<sub>Wren</sub>",
     Key.fom_wren_std_adj: "Φ<sub>Wren - std</sub>",
     Key.formula: "Formula",
-    Key.freq: "Frequency (Hz)",  # electric field in impedance/Keys.reflectance plots
+    Key.freq: "Frequency (Hz)",  # of electric field in exp. impedance/reflectance plots
     Key.mat_id: "Material ID",
-    Key.imped: "Impedance (Ohms)",
     Key.spg: "Space group",
     Key.structure: "Structure",
     Key.symmetry: "Symmetry",

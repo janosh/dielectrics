@@ -24,7 +24,7 @@ dfs = {
 
 
 df_exp = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv")
-df_exp = df_exp.drop_duplicates("material_id").set_index(Key.mat_id)
+df_exp = df_exp.drop_duplicates(Key.mat_id).set_index(Key.mat_id)
 
 
 # %% drop meaningless target columns (only needed once)
@@ -35,7 +35,7 @@ df_exp = df_exp.drop_duplicates("material_id").set_index(Key.mat_id)
 
 # %%
 for key, df in dfs.items():
-    df = df.drop(df.filter(like="_target"), axis=1).drop_duplicates("material_id")
+    df = df.drop(df.filter(like="_target"), axis=1).drop_duplicates(Key.mat_id)
 
     df = df.set_index(Key.mat_id)
 
@@ -54,7 +54,7 @@ for key, df in dfs.items():
 
 
 # %%
-df_exp[Key.diel_total_wren] = df_exp.diel_elec_wren + df_exp.diel_ionic_wren
+df_exp[Key.diel_total_wren] = df_exp[Key.diel_elec_wren] + df_exp[Key.diel_ionic_wren]
 df_exp["diel_total_robust_wren"] = (
     df_exp.diel_elec_robust_wren + df_exp.diel_ionic_robust_wren
 )
@@ -100,19 +100,19 @@ fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
 for ax, wren in zip(axs, ("wren", "robust_wren"), strict=True):
     df_exp.plot.scatter(
-        x="diel_total_exp",
+        x=Key.diel_total_exp,
         y=Key.diel_total_wren,
         yerr="diel_total_wren_std",
         ax=ax,
         loglog=True,
     )
-    n_samples = len(df_exp[[f"diel_total_{wren}", "diel_total_exp"]].dropna())
+    n_samples = len(df_exp[[f"diel_total_{wren}", Key.diel_total_exp]].dropna())
 
     ax.set(xlabel=r"$\epsilon_\mathrm{tot}^\mathrm{exp}$")
     ax.set(ylabel=rf"$\epsilon_\mathrm{{tot}}^\mathrm{{{wren}}}$")
     ax.set(title=f"{wren} vs exp total dielectric ({n_samples=})")
 
-    annotate_metrics(df_exp[f"diel_total_{wren}"], df_exp.diel_total_exp, ax=ax)
+    annotate_metrics(df_exp[f"diel_total_{wren}"], df_exp[Key.diel_total_exp], ax=ax)
     ax.axline(
         [10, 10], [11, 11], color="black", linestyle="dashed", alpha=0.5, zorder=0
     )

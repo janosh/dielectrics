@@ -59,7 +59,7 @@ assert len(df_exp) == len(mp_data), f"{len(df_exp)=} != {len(mp_data)=}"
 # %%
 df_mp = pd.DataFrame(mp_data).set_index(Key.mat_id, drop=False)
 
-df_mp = df_mp.rename(columns={"band_gap": "bandgap"})
+df_mp = df_mp.rename(columns={"band_gap": Key.bandgap})
 cols = "material_id structure bandgap e_total e_ionic e_electronic n".split()
 df_exp[
     df_mp[cols].add_suffix("_mp").columns.str.replace("^e_", "diel_", regex=True)
@@ -78,12 +78,12 @@ df_exp[Key.diel_total_us] = df_us[Key.diel_total_us]
 
 # %%
 df_exp[Key.n_sites] = df_exp[struct_col].map(len)
-df_exp["formula"] = df_exp[struct_col].map(lambda x: x.composition.reduced_formula)
+df_exp[Key.formula] = df_exp[struct_col].map(lambda x: x.composition.reduced_formula)
 df_exp["n_elems"] = df_exp[struct_col].map(lambda x: len(x.composition))
 df_exp[Key.n_sites] = df_exp[struct_col].map(len)
 df_exp[Key.spg] = df_exp[struct_col].map(lambda x: x.get_space_group_info())
 
-df_exp["wyckoff"] = [
+df_exp[Key.wyckoff] = [
     get_aflow_label_from_spglib(struct) for struct in df_exp[struct_col]
 ]
 
@@ -154,7 +154,7 @@ fig = px.scatter(
     df_exp,
     x=Key.diel_total_exp,
     y="diel_total_petousis",
-    hover_data=[Key.mat_id, "formula", "n_petousis", "n_exp", "polycrystalline"],
+    hover_data=[Key.mat_id, Key.formula, "n_petousis", "n_exp", "polycrystalline"],
     color="n_exp",
     height=700,
     width=1000,
@@ -234,7 +234,7 @@ for ax, (src1, src2) in zip(axs.flat, xy_pairs, strict=True):
     annos = []
     for tupl in df_exp[far_outliers].itertuples():
         row = tupl._asdict()
-        formula, x_pos, y_pos = row["formula"], row[col_name1], row[col_name2]
+        formula, x_pos, y_pos = row[Key.formula], row[col_name1], row[col_name2]
         anno = ax.annotate(
             formula,
             xy=(x_pos, y_pos),
@@ -265,13 +265,13 @@ color_cols = {
     Key.diel_total_exp: "ε<sub>exp</sub>",
     Key.diel_total_us: "ε<sub>us</sub>",
     "diel_total_petousis": "ε<sub>Petousis</sub>",
-    "diel_total_mp": "ε<sub>MP</sub>",
+    Key.diel_total_mp: "ε<sub>MP</sub>",
     Key.n_sites: "n<sub>sites</sub>",
     "n_elems": "n<sub>elems</sub>",
 }
 info_cols = {
-    "material_id": "Material ID",
-    "formula": "Formula",
+    Key.mat_id: "Material ID",
+    Key.formula: Key.formula,
     # "polycrystalline": "Polycrystalline",
     Key.spg: "Spacegroup",
 }
@@ -309,20 +309,20 @@ for idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1
 us_exp = {
     "CsTaTeO6": {
         Key.diel_total_exp: 9.5,
-        "bandgap_exp": 1.05,
-        "bandgap_pbe": 2.09,
+        Key.bandgap_exp: 1.05,
+        Key.bandgap_pbe: 2.09,
     },
     "Bi2Zr2O7": {
         Key.diel_total_exp: 20.5,
-        "bandgap_exp": 2.27,
-        "bandgap_pbe": 3.05,
+        Key.bandgap_exp: 2.27,
+        Key.bandgap_pbe: 3.05,
     },
 }
 
 df_us_exp = pd.DataFrame(us_exp).T
-df_us_exp[Key.fom_exp] = df_us_exp[Key.diel_total_exp] * df_us_exp.bandgap_exp
-df_us_exp[Key.fom_pbe] = df_us_exp[Key.diel_total_exp] * df_us_exp.bandgap_pbe
-df_exp[Key.fom_exp] = df_exp[Key.diel_total_exp] * df_exp.bandgap_mp
+df_us_exp[Key.fom_exp] = df_us_exp[Key.diel_total_exp] * df_us_exp[Key.bandgap_exp]
+df_us_exp[Key.fom_pbe] = df_us_exp[Key.diel_total_exp] * df_us_exp[Key.bandgap_pbe]
+df_exp[Key.fom_exp] = df_exp[Key.diel_total_exp] * df_exp[Key.bandgap_mp]
 
 for formula in df_us_exp.index:
     fom_exp, fom_pbe = df_us_exp.loc[formula, [Key.fom_exp, Key.fom_pbe]]

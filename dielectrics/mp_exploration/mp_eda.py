@@ -38,14 +38,14 @@ x_max, y_max = 400, 8
 fom_vals = np.outer(np.arange(y_max + 1), np.arange(x_max + 1))
 
 for ax, x_col in zip(
-    axs.flat, ("diel_total_mp", "diel_ionic_mp", "diel_elec_mp"), strict=True
+    axs.flat, (Key.diel_total_mp, Key.diel_elec_wren, Key.diel_elec_mp), strict=True
 ):
     df = df_diel_mp.query(f"0 < {x_col} < {x_max}")
     *_, mappable = ax.hist2d(
         df[x_col], df[Key.bandgap_mp], bins=(150, 150), cmin=1, cmap="Blues_r"
     )
 
-    diel_part = x_col.split("_")[1]  # "diel_total_mp" -> "total"
+    diel_part = x_col.split("_")[1]  # Key.diel_total_mp -> "total"
     exponent = {"elec": r"\infty", "ionic": "0"}.get(diel_part, diel_part)
     diel_part = {"elec": "electronic"}.get(diel_part, diel_part)  # elec -> electronic
     x_label = rf"{diel_part} permittivity $\epsilon^\mathrm{{{exponent}}}$"
@@ -75,7 +75,7 @@ for ax, x_col in zip(
         if "total" in x_col and fom_row > 600:
             continue  # don't overwrite the 'Flash storage'/'CPU'/'RAM' bubbles
         if fom_row > (50 if "elec" in x_col else 500):
-            anno = latexify(row["formula"])  # make numbers in formula subscript
+            anno = latexify(row[Key.formula])  # make numbers in formula subscript
             ax.annotate(anno, (row[x_col], row[Key.bandgap_mp]), ha="right", va="top")
 
 
@@ -171,7 +171,7 @@ plt.figure(figsize=(10, 8))
 
 plt.title(f"{len(df_diel_mp):,} MP materials with computed dielectric properties")
 
-plt.hexbin(np.log(df_diel_mp.diel_ionic_mp), df_diel_mp[Key.bandgap_mp], mincnt=1)
+plt.hexbin(np.log(df_diel_mp[Key.diel_ionic_mp]), df_diel_mp[Key.bandgap_mp], mincnt=1)
 
 
 # epsilon = np.linspace(0.1, 16, 50)
@@ -189,7 +189,7 @@ plt.ylim((-0.1, 9.5))
 
 
 # %%
-ptable_heatmap(df_diel_mp.formula, log=True)
+ptable_heatmap(df_diel_mp[Key.formula], log=True)
 plt.title("Elemental Prevalence among MP Dielectric Training Materials")
 # plt.savefig("plots/mp-diel-train-elements-log.pdf")
 
@@ -205,7 +205,7 @@ df_diel_screen = pd.read_csv("data/mp-diel-screen.csv.bz2")
 
 
 # %%
-ptable_heatmap(df_diel_screen.formula, log=True)
+ptable_heatmap(df_diel_screen[Key.formula], log=True)
 plt.title("Elemental Prevalence among MP Dielectric Screening Materials")
 # plt.savefig("plots/mp-diel-screen-elements-log.pdf")
 
@@ -217,7 +217,9 @@ plt.title("Spacegroup distribution among MP Dielectric Screening Materials")
 
 
 # %%
-df_diel_mp[["diel_elec_mp", "diel_ionic_mp"]].hist(bins=100, log=True, figsize=[18, 4])
+df_diel_mp[[Key.diel_elec_mp, Key.diel_elec_wren]].hist(
+    bins=100, log=True, figsize=[18, 4]
+)
 
 
 # %% recreate figure 3 from Atomate Dielectric paper https://rdcu.be/clY2X with MP
@@ -225,15 +227,15 @@ df_diel_mp[["diel_elec_mp", "diel_ionic_mp"]].hist(bins=100, log=True, figsize=[
 df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 1000")
 
 df_melted = df_diel_mp.melt(
-    id_vars=[Key.crystal_sys, "material_id", "formula"],
-    value_vars=["diel_elec_mp", "diel_ionic_mp"],
+    id_vars=[Key.crystal_sys, Key.mat_id, Key.formula],
+    value_vars=[Key.diel_elec_mp, Key.diel_elec_wren],
     var_name="component",
     value_name="dielectric constant",
     ignore_index=False,
 )
 
 df_melted["component"] = df_melted.component.map(
-    {"diel_elec_mp": "electronic", "diel_ionic_mp": "ionic"}
+    {Key.diel_elec_mp: "electronic", Key.diel_elec_wren: "ionic"}
 )
 cry_sys_order = (
     "cubic hexagonal trigonal tetragonal orthorhombic monoclinic triclinic".split()
@@ -245,7 +247,7 @@ fig = px.strip(
     y="dielectric constant",
     color="component",
     color_discrete_map={"electronic": "blue", "ionic": "green"},
-    hover_data={"material_id": True, "formula": True, Key.crystal_sys: False},
+    hover_data={Key.mat_id: True, Key.formula: True, Key.crystal_sys: False},
     # sort strips from high to low spacegroup number
     category_orders={Key.crystal_sys: cry_sys_order},
     height=500,
@@ -262,8 +264,8 @@ def rgb_color(val: float, max: float) -> str:  # noqa: A002
 
 n_top, x_ticks = 30, dict.fromkeys(cry_sys_order, "")
 for cry_sys, df_group in df_diel_mp.groupby(Key.crystal_sys):
-    ionic_top = df_group.diel_ionic_mp.nlargest(n_top).mean()
-    elec_top = df_group.diel_elec_mp.nlargest(n_top).mean()
+    ionic_top = df_group[Key.diel_ionic_mp].nlargest(n_top).mean()
+    elec_top = df_group[Key.diel_elec_mp].nlargest(n_top).mean()
     ionic_clr = rgb_color(ionic_top, 212)
     elec_clr = rgb_color(elec_top, 124)
     x_ticks[cry_sys] = (

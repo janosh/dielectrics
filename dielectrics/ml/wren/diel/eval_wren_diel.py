@@ -10,7 +10,7 @@ from dielectrics.plots import plt
 
 
 # %%
-idx_cols = ["material_id", "formula"]
+idx_cols = [Key.mat_id, Key.formula]
 
 df_ionic_rob_ens = pd.read_csv(
     f"{DATA_DIR}/wren/diel/wren-mp-diel-ionic-ensemble-robust.csv"
@@ -131,11 +131,13 @@ df_wren["diel_total_wren_std"] = (
     df_wren.diel_elec_wren_std**2 + df_wren.diel_ionic_wren_std**2
 ) ** 0.5
 
-df_wren[Key.diel_total_wren] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
+df_wren[Key.diel_total_wren] = (
+    df_wren[Key.diel_elec_wren] + df_wren[Key.diel_ionic_wren]
+)
 
-df_wren[Key.fom_wren] = df_wren[Key.diel_total_wren] * df_wren.bandgap_pbe
+df_wren[Key.fom_wren] = df_wren[Key.diel_total_wren] * df_wren[Key.bandgap_pbe]
 
-df_wren["fom_wren_rank"] = df_wren.fom_wren.rank(ascending=False).astype(int)
+df_wren["fom_wren_rank"] = df_wren[Key.fom_wren].rank(ascending=False).astype(int)
 
 df_wren["fom_wren_rank_size"] = len(df_wren)
 
@@ -144,7 +146,7 @@ df_wren["fom_wren_rank_size"] = len(df_wren)
 df_vasp_ens = df_diel_from_task_coll({"series": "MP+WBM top 1k Wren-diel-ens-pred FoM"})
 df_vasp_single = df_diel_from_task_coll({"series": "MP+WBM top 1k Wren-pred FoM"})
 
-wren_cols = ["diel_total_wren_std", "diel_total_wren"]
+wren_cols = ["diel_total_wren_std", Key.diel_total_wren]
 
 df_vasp_ens[wren_cols] = df_wren[wren_cols]
 df_vasp_single[Key.diel_total_wren] = df_wren_seed[Key.diel_total_wren]
@@ -163,7 +165,7 @@ scatter_with_err_bar(
 
 # %%
 ax = df_vasp_single.plot.scatter(
-    x="diel_total_pbe", y=Key.diel_total_wren, figsize=(12, 8)
+    x=Key.diel_total_pbe, y=Key.diel_total_wren, figsize=(12, 8)
 )
 
 annotate_metrics(

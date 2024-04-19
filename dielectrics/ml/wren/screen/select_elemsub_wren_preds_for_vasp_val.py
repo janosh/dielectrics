@@ -35,10 +35,10 @@ for df in [df_ene, df_elec, df_ionic, df_bandgap]:
 
 # %%
 dfs = (df_elec, df_ionic, df_bandgap)
-cols = ("diel_elec_wren", "diel_ionic_wren", "bandgap_wren")
+cols = (Key.diel_elec_wren, Key.diel_ionic_wren, Key.bandgap_wren)
 
-id_cols = ["formula", "wyckoff", "e_form_wren", "e_form_wren_std"]
-ene_cols = ["e_above_hull_wren", "e_above_hull_wren_std_adj"]
+id_cols = [Key.formula, Key.wyckoff, Key.e_form_wren, "e_form_wren_std"]
+ene_cols = [Key.e_above_hull_wren, "e_above_hull_wren_std_adj"]
 df_wren = df_ene[id_cols + ene_cols].copy()
 
 for col, df in zip(cols, dfs, strict=True):
@@ -51,11 +51,15 @@ for col, df in zip(cols, dfs, strict=True):
 
 
 # %%
-df_wren[Key.diel_total_wren] = df_wren.diel_elec_wren + df_wren.diel_ionic_wren
+df_wren[Key.diel_total_wren] = (
+    df_wren[Key.diel_elec_wren] + df_wren[Key.diel_ionic_wren]
+)
 
-df_wren[Key.fom_wren] = (df_wren.diel_total_wren * df_wren.bandgap_wren).clip(0)
+df_wren[Key.fom_wren] = (df_wren[Key.diel_total_wren] * df_wren[Key.bandgap_wren]).clip(
+    0
+)
 
-df_wren["fom_wren_rank"] = df_wren.fom_wren.rank(ascending=False).astype(int)
+df_wren["fom_wren_rank"] = df_wren[Key.fom_wren].rank(ascending=False).astype(int)
 
 
 # df_wren.round(4).to_csv(
@@ -67,7 +71,7 @@ df_wren["fom_wren_rank_size"] = len(df_wren)
 
 
 # %% calculate and analyze fom_wren_std
-df_wren["n_elems"] = df_wren.formula.map(Composition).map(len)
+df_wren["n_elems"] = df_wren[Key.formula].map(Composition).map(len)
 df_wren.n_elems.value_counts()
 
 
@@ -78,8 +82,8 @@ df_wren.diel_total_wren_std = (
 # to get FoM uncertainty, sum relative uncertainties in band gap and diel total in
 # quadrature, then multiply by abs(FoM)
 df_wren["fom_wren_std"] = (
-    (df_wren.diel_total_wren * df_wren.bandgap_wren_std) ** 2
-    + (df_wren.bandgap_wren * df_wren.diel_total_wren_std) ** 2
+    (df_wren[Key.diel_total_wren] * df_wren.bandgap_wren_std) ** 2
+    + (df_wren[Key.bandgap_wren] * df_wren.diel_total_wren_std) ** 2
 ) ** 0.5
 
 fom_std_spearmen = df_wren[["fom_wren_std", Key.fom_wren]].corr(method="spearman")
@@ -90,21 +94,21 @@ df_wren.query("fom_wren > 100 and diel_total_wren < 2000").sample(5000).plot.sca
 )
 
 df_wren.query("fom_wren > 100 and diel_total_wren < 2000").sample(5000).plot.scatter(
-    x="bandgap_wren", y=Key.fom_wren, yerr="fom_wren_std"
+    x=Key.bandgap_wren, y=Key.fom_wren, yerr="fom_wren_std"
 )
 
-ax1 = (df_wren.fom_wren - 0.5 * df_wren.fom_wren_std).hist(bins=100, log=True)
+ax1 = (df_wren[Key.fom_wren] - 0.5 * df_wren.fom_wren_std).hist(bins=100, log=True)
 ax1.set(title="fom_wren - fom_wren_std")
 plt.show()
-ax2 = df_wren.fom_wren.hist(bins=100, log=True)
+ax2 = df_wren[Key.fom_wren].hist(bins=100, log=True)
 ax2.set(title=Key.fom_wren)
 
 # pick as uncertainty adjusted figure of merit FoM_std_adj = FoM - c * FoM_std
-df_wren["fom_wren_std_adj"] = df_wren.fom_wren - 0.5 * df_wren.fom_wren_std
+df_wren[Key.fom_wren_std_adj] = df_wren[Key.fom_wren] - 0.5 * df_wren.fom_wren_std
 
-df_wren["fom_wren_std_adj_rank"] = df_wren.fom_wren_std_adj.rank(
-    ascending=False
-).astype(int)
+df_wren["fom_wren_std_adj_rank"] = (
+    df_wren[Key.fom_wren_std_adj].rank(ascending=False).astype(int)
+)
 
 
 # %%
@@ -116,7 +120,7 @@ df_all_mp_formulas = pd.read_csv(
 # %% makes little difference whether comparing formula strings or Composition objects
 df_clean = df_wren.copy()
 
-is_mp_formula = df_clean.formula.isin(df_all_mp_formulas.formula)
+is_mp_formula = df_clean[Key.formula].isin(df_all_mp_formulas[Key.formula])
 
 print(
     "removing compositions with existing MP dielectric properties: "
@@ -132,7 +136,7 @@ print(f"removing n_elems = 1 or > 4: {len(df_clean):,} -> {sum(n_elem_2to4):,}")
 # to make
 df_clean = df_clean[n_elem_2to4]
 
-small_bandgap = df_clean.bandgap_wren < 0.5
+small_bandgap = df_clean[Key.bandgap_wren] < 0.5
 print(f"removing small bandgap: {len(df_clean):,} -> {sum(~small_bandgap):,}")
 # drop unary and higher-than quaternary compounds, former won't be novel, latter hard
 # to make
@@ -140,9 +144,9 @@ df_clean = df_clean[~small_bandgap]
 
 
 # %%
-axs1 = df_clean[["e_form_wren", "bandgap_wren"]].hist(bins=100, figsize=[18, 4])
+axs1 = df_clean[[Key.e_form_wren, Key.bandgap_wren]].hist(bins=100, figsize=[18, 4])
 axs2 = df_clean[
-    [Key.fom_wren, "diel_ionic_wren", Key.diel_total_wren, "diel_elec_wren"]
+    [Key.fom_wren, Key.diel_ionic_wren, Key.diel_total_wren, Key.diel_elec_wren]
 ].hist(bins=100, figsize=[18, 8], log=True)
 
 
@@ -158,8 +162,8 @@ for ax in (*axs1.flat, *axs2.flat):
 
 
 # %%
-ptable_heatmap(df_clean.formula)
-ptable_heatmap(df_clean.nlargest(1000, "fom_wren_std_adj").formula)
+ptable_heatmap(df_clean[Key.formula])
+ptable_heatmap(df_clean.nlargest(1000, Key.fom_wren_std_adj).formula)
 # no change in elemental prevalence from selecting the top 1k Wren-predicted FoMs
 
 
@@ -169,13 +173,13 @@ df_mp_diel = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 # %%
 keep_top = 4000
-top_fom: pd.DataFrame = df_clean.nlargest(4000, "fom_wren_std_adj")
+top_fom: pd.DataFrame = df_clean.nlargest(4000, Key.fom_wren_std_adj)
 
 
 top_fom = top_fom.reset_index()
 top_fom.index = top_fom.material_id.str.split(":").str[0]
-top_fom["structure"] = df_mp_diel.structure
-top_fom = top_fom.rename(columns={"structure": "orig_structure"})
+top_fom[Key.structure] = df_mp_diel[Key.structure]
+top_fom = top_fom.rename(columns={Key.structure: "orig_structure"})
 df_struct_apply_elem_substitution(top_fom, strict=False, verbose=True)
 
 print(f"{len(top_fom)} of {keep_top} completed element substitution")
@@ -193,11 +197,11 @@ top_fom.to_json(
 hist_args = dict(bins=100, log=True, density=True, alpha=0.8, layout=(1, 3))
 
 axs = df_wren.query("0 < diel_total_wren < 800")[
-    ["diel_elec_wren", "diel_ionic_wren", Key.diel_total_wren]
+    [Key.diel_elec_wren, Key.diel_ionic_wren, Key.diel_total_wren]
 ].hist(figsize=[15, 3], **hist_args)
 
 df_mp_diel.query("0 < diel_total_mp < 800")[
-    ["diel_elec_mp", "diel_ionic_mp", "diel_total_mp"]
+    [Key.diel_elec_mp, Key.diel_ionic_mp, Key.diel_total_mp]
 ].hist(ax=axs, **hist_args)
 
 plt.legend(["Wren", "MP"])

@@ -23,7 +23,8 @@ def rgb_color(val: float, max: float) -> str:  # noqa: A002
 
 
 # %%
-df_us = df_diel_from_task_coll({})
+df_us = df_diel_from_task_coll({}, cache=False)
+assert len(df_us) == 2532
 df_us = df_us.rename(columns={"spacegroup.crystal_system": Key.crystal_sys})
 
 
@@ -31,7 +32,6 @@ df_us = df_us.rename(columns={"spacegroup.crystal_system": Key.crystal_sys})
 # in particular wbm-4-26188 with eps_elec = 515 and mp-865145 with eps_elec = 809
 # (see table-fom-pbe-gt-350.pdf)
 df_us = df_us.query(f"{Key.diel_elec_pbe} < 100")
-df_us = df_us[~df_us.index.duplicated()]
 
 # load MP data
 df_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
@@ -40,7 +40,7 @@ df_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 # %% recreate figure 3 from Atomate Dielectric paper https://rdcu.be/clY2X with MP
 # dielectric data
 df_melted = df_us.query("0 < diel_total_pbe < 1000").melt(
-    id_vars=[Key.crystal_sys, Key.mat_id, "formula"],
+    id_vars=[Key.crystal_sys, Key.mat_id, Key.formula],
     value_vars=[Key.diel_elec_pbe, Key.diel_ionic_pbe],
     var_name="component",
     value_name="dielectric constant",
@@ -181,8 +181,8 @@ for df in (df_us, df_mp):
 
 
 # %%
-us_elem_counts = count_elements(df_us.formula)
-mp_elem_counts = count_elements(df_mp.formula)
+us_elem_counts = count_elements(df_us[Key.formula])
+mp_elem_counts = count_elements(df_mp[Key.formula])
 # normalize by number of materials
 us_elem_counts /= len(df_us)
 mp_elem_counts /= len(df_mp)
@@ -201,7 +201,7 @@ save_fig(ax, f"{PAPER_FIGS}/ptable-elem-ratio-us-vs-mp.pdf")
 
 # %% project FoM onto periodic table
 frac_comp_col = "fractional composition"
-df_us[frac_comp_col] = [Composition(comp).as_dict() for comp in df_us.formula]
+df_us[frac_comp_col] = [Composition(comp).as_dict() for comp in df_us[Key.formula]]
 
 df_frac_comp = pd.DataFrame(df_us[frac_comp_col].tolist())
 # ignore compositions amounts, count only element occurrence
@@ -231,13 +231,13 @@ for col, title in (
 # %% export LaTeX table of all data points with FoM > fom_tresh for SI
 col_name_map = {
     Key.mat_id: "Material ID",
-    "formula": "Formula",
+    Key.formula: "Formula",
     "spacegroup.number": "Spacegroup",
 }
 fom_tresh = 350
 tex_col_names = {
-    "diel_elec_pbe": r"$\epsilon_\text{elec}$",
-    "diel_ionic_pbe": r"$\epsilon_\text{ionic}$",
+    Key.diel_elec_pbe: r"$\epsilon_\text{elec}$",
+    Key.diel_ionic_pbe: r"$\epsilon_\text{ionic}$",
     Key.diel_total_pbe: r"$\epsilon_\text{total}$",
     Key.bandgap_pbe: "Band Gap (eV)",
     Key.fom_pbe: r"$\fom$ (eV)",
@@ -246,7 +246,7 @@ tex_col_names = {
 }
 keep_cols = [*col_name_map, *tex_col_names]
 df_high_fom = df_us[df_us[Key.fom_pbe] > fom_tresh][keep_cols]
-df_high_fom[Key.bandgap_pbe] = df_us.bandgap_pbe.fillna(df_us.bandgap_us)
+df_high_fom[Key.bandgap_pbe] = df_us[Key.bandgap_pbe].fillna(df_us[Key.bandgap_us])
 
 df_high_fom = df_high_fom.sort_values(Key.fom_pbe, ascending=False).reset_index(
     drop=True
@@ -266,11 +266,11 @@ latex_table = df_high_fom.rename(columns=tex_col_names | col_name_map).to_latex(
 # %% export same table as pandas Styler with background gradient highlighting
 # high values of FoM, bandgap and dielectric constant
 float_cols = {
-    "diel_elec_pbe": "ε<sub>elec</sub>",
+    Key.diel_elec_pbe: "ε<sub>elec</sub>",
     Key.bandgap_pbe: "E<sub>gap</sub> (eV)",
 }
 int_cols = {
-    "diel_ionic_pbe": "ε<sub>ionic</sub>",
+    Key.diel_ionic_pbe: "ε<sub>ionic</sub>",
     Key.diel_total_pbe: "ε<sub>total</sub>",
     Key.fom_pbe: "𝚽<sub>M</sub> (eV)",
     "nsites": "n<sub>sites</sub>",
@@ -299,4 +299,4 @@ styler.data.query("~Formula.str.contains('O')")
 
 
 # %%
-ptable_heatmap_plotly(df_high_fom.formula, exclude_elements="O")
+ptable_heatmap_plotly(df_high_fom[Key.formula], exclude_elements="O")

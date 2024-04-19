@@ -17,17 +17,17 @@ db = MongoClient(MONGO_SRV).dielectrics
 md_field_map = {"fireworks": "spec.", "workflows": "metadata.", "tasks": ""}
 
 float_fields = [
-    "bandgap_mp",
-    "bandgap_pbe",
+    Key.bandgap_mp,
+    Key.bandgap_pbe,
     "bandgap_wren_std",
-    "bandgap_wren",
+    Key.bandgap_wren,
     "diel_elec_wren_std",
     Key.diel_elec_wren,
     "diel_ionic_wren_std",
-    "diel_ionic_wren",
+    Key.diel_ionic_wren,
     "diel_total_wren_std",
-    "diel_total_wren",
-    "e_above_hull_wren",
+    Key.diel_total_wren,
+    Key.e_above_hull_wren,
     "e_above_hull_wren_std_adj",
     "e_form_pbe",
     "e_form_wren_std",
@@ -35,11 +35,9 @@ float_fields = [
     "e_ref",
     "e_hull",
     "fom_cgcnn",
-    "fom_wren_std_adj",
+    Key.fom_wren_std_adj,
     "fom_wren_std",
-    "fom_wren",
-    "n_cgcnn",
-    "n_wren",
+    Key.fom_wren,
 ]
 
 

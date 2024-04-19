@@ -34,7 +34,7 @@ df_cgcnn = df_cgcnn[
 
 # %% --- Select CGCNN Screening Candidates ---
 df_cgcnn = pd.concat([df_diel_screen, df_diel_train])
-df_cgcnn["fom"] = df_cgcnn.bandgap * df_cgcnn.n_pred_n0**2
+df_cgcnn["fom_cgcnn"] = df_cgcnn[Key.bandgap] * df_cgcnn.n_pred_n0**2
 df_cgcnn.describe()
 
 
@@ -43,13 +43,13 @@ df_cgcnn.hist(figsize=[12, 8], bins=40, log=True)
 
 
 # %%
-df_cgcnn.fom.hist(figsize=[12, 8], bins=50, log=True)
-cgcnn_fom_cutoff = df_cgcnn.fom.nlargest(100).min()
+df_cgcnn[Key.fom].hist(figsize=[12, 8], bins=50, log=True)
+cgcnn_fom_cutoff = df_cgcnn[Key.fom].nlargest(100).min()
 plt.axvline(cgcnn_fom_cutoff, color="red", label="top FoM cutoff")
 
 
 # %%
-cgcnn_for_vasp_val = df_cgcnn.nlargest(100, "fom")
+cgcnn_for_vasp_val = df_cgcnn.nlargest(100, "fom_cgcnn")
 cgcnn_for_vasp_val.describe()
 
 cgcnn_for_vasp_val.to_json(
@@ -60,6 +60,6 @@ cgcnn_for_vasp_val.to_json(
 
 # %%
 cgcnn_for_vasp_val.plot.scatter(
-    x="bandgap", y="n_pred_n0", c="fom", cmap="viridis", s="nsites"
+    x=Key.bandgap, y="n_pred_n0", c="fom_cgcnn", cmap="viridis", s="nsites"
 )
 # plt.savefig("plots/cgcnn-for-vasp-val-bandgap-vs-n_pred.pdf")

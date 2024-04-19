@@ -50,8 +50,8 @@ df_ml[Key.bandgap_mp] = df_diel_screen[Key.bandgap_mp]
 
 
 # %%
-df_ml[Key.fom_wren] = df_ml.diel_total_wren * df_ml.bandgap_mp
-df_ml["fom_cgcnn"] = df_ml.n_cgcnn**2 * df_ml.bandgap_mp
+df_ml[Key.fom_wren] = df_ml[Key.diel_total_wren] * df_ml[Key.bandgap_mp]
+df_ml["fom_cgcnn"] = df_ml.n_cgcnn**2 * df_ml[Key.bandgap_mp]
 
 wren_top_fom = df_ml.nlargest(n_top, Key.fom_wren)
 cgcnn_top_fom = df_ml.nlargest(n_top, "fom_cgcnn")
@@ -186,9 +186,9 @@ df_vasp["n_cgcnn"] = df_cgcnn.n_pred_n0
 
 
 # %%
-df_vasp[Key.fom_pbe] = df_vasp.n_pbe**2 * df_vasp.bandgap
-df_vasp[Key.fom_wren] = df_vasp[Key.diel_total_wren] * df_vasp.bandgap
-df_vasp["fom_cgcnn"] = df_vasp.n_cgcnn**2 * df_vasp.bandgap
+df_vasp[Key.fom_pbe] = df_vasp.n_pbe**2 * df_vasp[Key.bandgap]
+df_vasp[Key.fom_wren] = df_vasp[Key.diel_total_wren] * df_vasp[Key.bandgap]
+df_vasp["fom_cgcnn"] = df_vasp.n_cgcnn**2 * df_vasp[Key.bandgap]
 
 
 # %%
@@ -226,11 +226,11 @@ plt.savefig("plots/wren+cgcnn-vs-vasp-top-n-scatter.pdf")
 
 
 # %%
-fom_mae_wren = (df_vasp.fom_pbe - df_vasp.fom_wren).abs().mean()
-fom_mae_cgcnn = (df_vasp.fom_pbe - df_vasp.fom_cgcnn).abs().mean()
+fom_mae_wren = (df_vasp[Key.fom_pbe] - df_vasp[Key.fom_wren]).abs().mean()
+fom_mae_cgcnn = (df_vasp[Key.fom_pbe] - df_vasp.fom_cgcnn).abs().mean()
 
-fom_r2_wren = r2_score(df_vasp.fom_pbe, df_vasp.fom_wren)
-fom_r2_cgcnn = r2_score(df_vasp.fom_pbe, df_vasp.fom_cgcnn)
+fom_r2_wren = r2_score(df_vasp[Key.fom_pbe], df_vasp[Key.fom_wren])
+fom_r2_cgcnn = r2_score(df_vasp[Key.fom_pbe], df_vasp.fom_cgcnn)
 
 fom_wren_perf = f"Wren:  R$^2$ = {fom_r2_wren:.2f},  MAE = {fom_mae_wren:.2f}"
 fom_cgcnn_perf = f"CGCNN:  R$^2$ = {fom_r2_cgcnn:.2f},  MAE = {fom_mae_cgcnn:.2f}"
@@ -264,8 +264,8 @@ plt.title(
     "VASP vs CGCNN vs WREN figure of merit (FoM) predictions"
     " on top 100 CGCNN-predicted FoM materials"
 )
-mae_wren = (df_vasp.fom_pbe - df_vasp.fom_wren).abs().mean()
-mae_cgcnn = (df_vasp.fom_pbe - df_vasp.fom_cgcnn).abs().mean()
+mae_wren = (df_vasp[Key.fom_pbe] - df_vasp[Key.fom_wren]).abs().mean()
+mae_cgcnn = (df_vasp[Key.fom_pbe] - df_vasp.fom_cgcnn).abs().mean()
 plt.legend(title=f"Wren MAE = {mae_wren:.2f}\nCGCNN MAE = {mae_cgcnn:.2f}")
 # plt.savefig("plots/vasp-vs-wren-vs-cgcnn-top-100-fom-bar.pdf")
 
@@ -343,19 +343,19 @@ plt.figure(figsize=(8, 8))
 
 n_max = 6
 
-df_vasp_wren["diel_elec_pbe"] = df_vasp_wren.n_pbe**2
-df_vasp_wren["diel_elec_wren"] = df_vasp_wren[Key.diel_total_wren]
+df_vasp_wren[Key.diel_elec_pbe] = df_vasp_wren.n_pbe**2
+df_vasp_wren[Key.diel_elec_wren] = df_vasp_wren[Key.diel_total_wren]
 ax = df_vasp_wren.plot.scatter(
-    x="diel_elec_pbe", y="bandgap", color="orange", label="VASP", figsize=(8, 8)
+    x=Key.diel_elec_pbe, y=Key.bandgap, color="orange", label="VASP", figsize=(8, 8)
 )
 df_vasp_wren.plot.scatter(
-    x="diel_elec_wren", y="bandgap", color="magenta", label="CGCNN", ax=ax
+    x=Key.diel_elec_wren, y=Key.bandgap, color="magenta", label="CGCNN", ax=ax
 )
 
 dx = df_vasp_wren.n_pbe**2 - df_vasp_wren[Key.diel_total_wren]
 plt.quiver(
     df_vasp_wren[Key.diel_total_wren],
-    df_vasp_wren.bandgap,
+    df_vasp_wren[Key.bandgap],
     dx,
     len(df_vasp_wren) * [0],
     color=dx.map(lambda x: "blue" if x > 0 else "gray"),
@@ -382,19 +382,19 @@ plt.savefig("plots/quiver-wren.pdf")
 
 
 # %% Quiver Plot CGCNN
-df_vasp_cgcnn_100["diel_elec_pbe"] = df_vasp_cgcnn_100.n_pbe**2
+df_vasp_cgcnn_100[Key.diel_elec_pbe] = df_vasp_cgcnn_100.n_pbe**2
 df_vasp_cgcnn_100["diel_elec_cgcnn"] = df_vasp_cgcnn_100.n_cgcnn**2
 ax = df_vasp_cgcnn_100.plot.scatter(
-    x="diel_elec_pbe", y="bandgap", color="orange", label="VASP", figsize=(8, 8)
+    x=Key.diel_elec_pbe, y=Key.bandgap, color="orange", label="VASP", figsize=(8, 8)
 )
 df_vasp_cgcnn_100.plot.scatter(
-    x="diel_elec_cgcnn", y="bandgap", color="magenta", label="CGCNN", ax=ax
+    x="diel_elec_cgcnn", y=Key.bandgap, color="magenta", label="CGCNN", ax=ax
 )
 
 dx = df_vasp_cgcnn_100.n_pbe**2 - df_vasp_cgcnn_100.n_cgcnn**2
 plt.quiver(
     df_vasp_cgcnn_100.n_cgcnn**2,
-    df_vasp_cgcnn_100.bandgap,
+    df_vasp_cgcnn_100[Key.bandgap],
     dx,
     len(df_vasp_cgcnn_100) * [0],
     color=dx.map(lambda x: "blue" if x > 0 else "gray"),

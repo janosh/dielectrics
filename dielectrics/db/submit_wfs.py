@@ -50,11 +50,11 @@ df_wren_diel_ens_elemsub = pd.read_json(
 
 # %% visualize workflow (requires graphviz)
 # from fireworks.utilities.visualize import wf_to_graph
-# wf_to_graph(wf_dielectric_constant(df_wren_diel_ens_elemsub.structure[0]))
+# wf_to_graph(wf_dielectric_constant(df_wren_diel_ens_elemsub[Key.structure][0]))
 
 
 # %%
-# df = df_wren_diel_ens_elemsub.sort_values("fom_wren_std_adj").round(4)
+# df = df_wren_diel_ens_elemsub.sort_values(Key.fom_wren_std_adj).round(4)
 # df = df.query("n_elems < 4 & ~material_id.isin(@existing_material_ids)")
 
 # fetch single structure and MP properties like bandgap, e_form, e_above_hull, etc.
@@ -81,7 +81,7 @@ df_submit = df_airss.head(3).rename(
 df_submit[Key.structure] = df_submit.filepath.map(
     lambda fp: Structure.from_file(fp.replace(".res", ".cif"))
 )
-df_submit[Key.formula] = df_submit.structure.map(lambda struct: struct.formula)
+df_submit[Key.formula] = df_submit[Key.structure].map(lambda struct: struct.formula)
 df_submit[Key.mat_id] = [f"airss-{idx}" for idx in range(1, len(df_submit) + 1)]
 df_submit.head()
 

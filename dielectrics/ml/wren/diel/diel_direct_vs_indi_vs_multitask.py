@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.metrics import r2_score
 
-from dielectrics import DATA_DIR
+from dielectrics import DATA_DIR, Key
 
 
 # %%
@@ -15,12 +15,12 @@ df_diel_test = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-{expt}-test.json
 
 
 # %%
-df_wren = pd.read_csv(f"enrich/wren-diel-{expt}-total.csv", index_col="material_id")
+df_wren = pd.read_csv(f"enrich/wren-diel-{expt}-total.csv", index_col=Key.mat_id)
 
 for target in ["elec", "ionic"]:
     cols = [f"diel_{target}_target", f"diel_{target}_pred_n0"]
     df_wren[cols] = pd.read_csv(
-        f"enrich/wren-diel-{expt}-{target}.csv", index_col="material_id"
+        f"enrich/wren-diel-{expt}-{target}.csv", index_col=Key.mat_id
     )[cols]
 
 n_top = 100
@@ -41,9 +41,7 @@ found_df.head()
 # %%
 models = ["total", "ionic", "elec"]
 dfs_models = [
-    pd.read_csv(
-        f"enrich/wren-diel-test-{mod}.csv", index_col=["material_id", "formula"]
-    )
+    pd.read_csv(f"enrich/wren-diel-test-{mod}.csv", index_col=[Key.mat_id, Key.formula])
     for mod in models
 ]
 df_wren = pd.concat(dfs_models, axis=1)
@@ -71,7 +69,7 @@ for mod in ["total", "ionic", "elec"]:
 # %%
 df_multitask = pd.read_csv(
     f"{DATA_DIR}/wren/enrich/wren-diel-test-elec+ionic-multitask.csv",
-    index_col=["material_id", "formula"],
+    index_col=[Key.mat_id, Key.formula],
 )
 df_multitask["diel_total_pred_mt"] = (
     df_multitask.diel_ionic_pred_n0 + df_multitask.diel_elec_pred_n0

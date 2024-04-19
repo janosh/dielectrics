@@ -18,7 +18,7 @@ ax_title = f"MP dielectric constants ({len(df_diel_mp):,})"
 
 
 # %% no correlation between electronic and ionic dielectric constants
-x_col, y_col = "diel_ionic_mp", "diel_elec_mp"
+x_col, y_col = Key.diel_ionic_mp, Key.diel_elec_mp
 color_map = "viridis"
 ax = (
     df_diel_mp.sort_values(by=Key.bandgap_mp).plot.scatter(

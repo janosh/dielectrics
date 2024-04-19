@@ -56,7 +56,7 @@ df_yim[Key.diel_elec_pbe] = [np.linalg.eigvalsh(x).mean() for x in df_yim.eps_el
 df_yim[Key.diel_ionic_pbe] = [np.linalg.eigvalsh(x).mean() for x in df_yim.eps_ionic]
 
 assert (
-    max(df_yim.diel_elec + df_yim.diel_ionic - df_yim.diel_total) < 0.002
+    max(df_yim.diel_elec + df_yim.diel_ionic - df_yim[Key.diel_total]) < 0.002
 ), "Discrepancy between total diel. constant and sum of electronic and ionic tensors"
 
 assert all(df_yim.isna().sum() == 0)
@@ -79,7 +79,7 @@ for icsd_id in tqdm(df_yim.index):
 df_yim[Key.structure] = pd.Series(structs)
 df_yim[Key.formula] = [
     struct.formula if struct else None
-    for struct in df_yim.structure.fillna(value=False)
+    for struct in df_yim[Key.structure].fillna(value=False)
 ]
 
 print(f"{df_yim.isna().sum()=}")
@@ -93,7 +93,7 @@ mp_data = MPRester().query(
 
 
 df_mp = pd.DataFrame(mp_data)
-diel_cols = ["eps_elec_mp", "eps_total_mp", "n_mp", "diel_elec_mp", "diel_total_mp"]
+diel_cols = ["eps_elec_mp", "eps_total_mp", "n_mp", Key.diel_elec_mp, Key.diel_total_mp]
 df_mp[diel_cols] = pd.json_normalize(df_mp.pop("diel"))
 
 
@@ -109,7 +109,7 @@ df_yim[diel_cols] = df_map[diel_cols]
 
 
 # %%
-df_yim[["bandgap_gga", "bandgap_hse"]] = pd.read_csv("bandgaps.csv").set_index(
+df_yim[[Key.bandgap_pbe, Key.bandgap_hse]] = pd.read_csv("bandgaps.csv").set_index(
     Key.icsd_id
 )
 

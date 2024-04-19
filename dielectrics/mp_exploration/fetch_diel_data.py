@@ -4,7 +4,7 @@ from aviary.wren.utils import get_aflow_label_from_spglib
 from pymatgen.core import Composition
 from tqdm.notebook import tqdm
 
-from dielectrics import DATA_DIR
+from dielectrics import DATA_DIR, Key
 from dielectrics.mp_exploration import fetch_mp_dielectric_structures
 
 
@@ -40,11 +40,11 @@ print(
 
 
 # %% add Wren's input column as Aflow-like Wyckoff encoding
-df_diel_train["wyckoff"] = [
-    get_aflow_label_from_spglib(s) for s in tqdm(df_diel_train.structure)
+df_diel_train[Key.wyckoff] = [
+    get_aflow_label_from_spglib(s) for s in tqdm(df_diel_train[Key.structure])
 ]
-df_diel_screen["wyckoff"] = [
-    get_aflow_label_from_spglib(s) for s in tqdm(df_diel_screen.structure)
+df_diel_screen[Key.wyckoff] = [
+    get_aflow_label_from_spglib(s) for s in tqdm(df_diel_screen[Key.structure])
 ]
 
 
@@ -70,8 +70,8 @@ df_diel_screen = pd.read_csv("data/mp-diel-screen.csv.bz2")
 # if we manage to select based on ML predictions a higher than 10% proportion
 # of the top 100, that's positive enrichment
 
-df_diel_top_100 = df_diel_train.nlargest(100, "fom")
-df_diel_remain = df_diel_train.nlargest(100, "fom")
+df_diel_top_100 = df_diel_train.nlargest(100, Key.fom_mp)
+df_diel_remain = df_diel_train.nlargest(100, Key.fom_mp)
 
 df_diel_enrich_small_test = df_diel_top_100.append(
     df_diel_remain.sample(900, random_state=0)
@@ -109,11 +109,11 @@ df_diel_enrich_big_test.to_json(
 # the Petousis experimental database.
 df_exp = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv")
 
-df_exp["composition"] = df_exp.formula.map(Composition)
+df_exp["composition"] = df_exp[Key.formula].map(Composition)
 df_exp["chem_sys"] = df_exp.composition.map(lambda comp: comp.chemical_system)
 chem_sys_exp = df_exp.chem_sys.unique()
 
-df_diel_train["chem_sys"] = df_diel_train.formula.map(
+df_diel_train["chem_sys"] = df_diel_train[Key.formula].map(
     lambda comp: Composition(comp).chemical_system
 )
 

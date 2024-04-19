@@ -94,8 +94,8 @@ n_del = 0
 for row in tqdm(id_counts.query("count > 1").itertuples()):
     material_id, series, task_label = row.Index
     docs = db.tasks.find(
-        {"material_id": material_id, "series": series, "task_label": task_label},
-        ["_id", "task_id"],
+        {Key.mat_id: material_id, "series": series, "task_label": task_label},
+        ["_id", Key.task_id],
     )
     df = pd.DataFrame(docs).set_index("_id")
     # remove the earliest duplicate task, presumably later ones are usually better
@@ -108,7 +108,7 @@ print(f"{n_del=}")
 
 # %% display the list of WBM materials for a given 'series' field
 pd.DataFrame(
-    db.tasks.find({"series": "MP+WBM top 1k Wren-pred FoM elemsub"}, ["material_id"])
+    db.tasks.find({"series": "MP+WBM top 1k Wren-pred FoM elemsub"}, [Key.mat_id])
 ).set_index(Key.mat_id).filter(like="wbm", axis=0)
 
 
@@ -118,7 +118,7 @@ elem_diffs = [
         Composition(x, allow_negative=True).reduced_composition
         - Composition(y).reduced_composition
     )
-    for x, y in zip(df_fws.orig_formula, df_fws.formula, strict=True)
+    for x, y in zip(df_fws.orig_formula, df_fws[Key.formula], strict=True)
 ]
 
 assert all(
@@ -134,9 +134,7 @@ df_fws.material_id = [
 
 for _id, mat_id in zip(df_fws["_id"], df_fws.material_id, strict=True):
     print(f"{_id=}, {mat_id=}")
-    res = db.tasks.update_one(
-        {"_id": _id}, {"$set": {"material_id": mat_id}}
-    ).raw_result
+    res = db.tasks.update_one({"_id": _id}, {"$set": {Key.mat_id: mat_id}}).raw_result
     print(f"{res=}")
 
 

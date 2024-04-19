@@ -160,7 +160,7 @@ for level in fom_levels:
 fom_tresh = max(fom_levels)
 fom_count_us = sum(df_us[Key.fom_pbe] > fom_tresh)
 print(f"on {today}:\nhit rate of materials with FoM > {fom_tresh}:")
-
+non_metal_tresh = 0.1
 
 for name, df in [
     ("Petousis et al.", df_petousis),
@@ -169,7 +169,10 @@ for name, df in [
     # 0.1 eV is the same threshold applied in Petousis 2016
     # (https://nature.com/articles/sdata2016134, fig. 2) and QZ3 2020
     # https://rdcu.be/cCMga for materials to be included in their results
-    ("us for band gap > 0.1 eV", df_us.query("bandgap_us > 0.1")),
+    (
+        f"us for band gap > {non_metal_tresh} eV",
+        df_us.query(f"bandgap_us > {non_metal_tresh}"),
+    ),
 ]:
     high_fom_count = sum(df[Key.fom_pbe] > fom_tresh)
     hit_rate = high_fom_count / len(df)
@@ -179,8 +182,8 @@ for name, df in [
 # hit rate of materials with FoM > 240:
 # - Petousis et al.: 7 / 139 = 5.0%
 # - Qu et al.: 15 / 441 = 3.4%
-# - us: 155 / 2,680 = 5.8%
-# - us for  band gap > 0.1 eV: 154 / 2,063 = 7.5%
+# - us: 146 / 2,532 = 5.8%
+# - us for  band gap > 0.1 eV: 146 / 1,911 = 7.5%
 
 
 # %% reproduce the above plot with plotly express

@@ -7,7 +7,7 @@ from dielectrics import Key
 
 
 target_properties = [
-    "material_id",
+    Key.mat_id,
     "task_ids",
     "icsd_ids",
     "pretty_formula",
@@ -27,16 +27,16 @@ column_rename_map = {
     "pretty_formula": Key.formula,
     "nsites": Key.n_sites,
     "nelements": "n_elements",
-    "band_gap": "bandgap_mp",
-    "poly_total": "diel_total_mp",
-    "poly_electronic": "diel_elec_mp",
+    "band_gap": Key.bandgap_mp,
+    "poly_total": Key.diel_total_mp,
+    "poly_electronic": Key.diel_elec_mp,
     "formation_energy_per_atom": "e_form_mp",
-    "e_above_hull": "e_above_hull_mp",
+    "e_above_hull": Key.e_above_hull_mp,
     "e_electronic": "eps_elec_mp",
     "e_total": "eps_total_mp",
     "n": "n_mp",
     "spacegroup.number": "spacegroup_mp",
-    "spacegroup.crystal_system": "crystal_system",
+    "spacegroup.crystal_system": Key.crystal_sys,
 }
 
 
@@ -58,8 +58,8 @@ def fetch_mp_dielectric_structures(query: str | dict[str, Any]) -> pd.DataFrame:
 
     df = df.rename(columns=column_rename_map)
 
-    if "diel_total_mp" in df:
-        df["diel_ionic_mp"] = df.diel_total_mp - df.diel_elec_mp
-        df["fom_mp"] = df.diel_total_mp * df.bandgap_mp
+    if Key.diel_total_mp in df:
+        df[Key.diel_elec_wren] = df.diel_total_mp - df.diel_elec_mp
+        df[Key.fom_mp] = df.diel_total_mp * df.bandgap_mp
 
     return df

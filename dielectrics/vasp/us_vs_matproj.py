@@ -12,21 +12,20 @@ from dielectrics.plots import plt
 # %%
 df_vasp = df_diel_from_task_coll({})  # get all static dielectric calcs
 
-df_vasp["n_pbe"] = df_vasp.diel_elec_pbe**0.5
+df_vasp["n_pbe"] = df_vasp[Key.diel_elec_pbe] ** 0.5
 
 
 # %%
-material_ids = df_vasp.index.tolist()
+material_ids = [
+    mat_id for mat_id in df_vasp.index.tolist() if mat_id.startswith(("mp-", "mvc-"))
+]
 
-with MPRester() as mpr:
-    mp_data = mpr.query(
-        {"has": "diel", "material_id": {"$in": material_ids}},
-        ["material_id", "pretty_formula", "diel"],
+with MPRester(use_document_model=False) as mpr:
+    mp_docs = mpr.materials.dielectric.search(
+        material_ids=material_ids,
     )
 
-df_mp = pd.DataFrame(mp_data).rename(columns={"pretty_formula": "formula"})
-
-df_mp = pd.concat([df_mp, pd.json_normalize(df_mp.pop("diel"))], axis=1)
+df_mp = pd.DataFrame(mp_docs).rename(columns={"formula_pretty": Key.formula})
 
 df_mp = df_mp.set_index(Key.mat_id)
 
@@ -37,11 +36,11 @@ df_vasp["n_mp"] = df_mp.n
 # number of identical material IDs in MP and our df
 n_overlap = len(df_vasp.index.intersection(df_mp.index))
 print(
-    f"{today}\n{n_overlap:,} / {len(df_vasp):,} = {n_overlap / len(df_vasp):.1%} of "
+    f"{today}: {n_overlap:,} / {len(df_vasp):,} = {n_overlap / len(df_vasp):.1%} of "
     "our materials have MP data"
 )
-# 2022-06-02
-# 236 / 2,680 = 8.8% of our materials have MP data
+# 2022-06-02: 236 / 2,532 = 9.3% of our materials have MP data
+# 2024-04-19: 241 / 2,532 = 9.5% of our materials have MP data
 
 
 # %%
@@ -91,19 +90,19 @@ df_vasp_mp_wbm = df_diel_from_task_coll(
 
 
 # %%
-mp_data = MPRester().query(
-    {"material_id": {"$in": list(df_vasp_mp_wbm.index)}, "has": "diel"},
-    ["material_id", "pretty_formula", "diel"],
+mp_docs = MPRester().query(
+    {Key.mat_id: {"$in": list(df_vasp_mp_wbm.index)}, "has": "diel"},
+    [Key.mat_id, "pretty_formula", "diel"],
 )
 
-df_mp = pd.DataFrame(mp_data)
+df_mp = pd.DataFrame(mp_docs)
 
 df_diel = pd.json_normalize(df_mp.diel)
 df_mp[df_diel.add_suffix("_mp").columns.str.replace("poly_", "diel_")] = df_diel
 
-df_mp = df_mp.set_index("material_id", drop=False)
+df_mp = df_mp.set_index(Key.mat_id, drop=False)
 
-df_mp["diel_ionic_mp"] = df_mp.diel_total_mp - df_mp.diel_electronic_mp
+df_mp[Key.diel_elec_wren] = df_mp[Key.diel_total_mp] - df_mp.diel_electronic_mp
 
 
 # %%
@@ -118,10 +117,10 @@ fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12, 5))
 
 fig.suptitle("Us vs Materials Project electronic and total dielectric constant")
 
-df_mp.plot.scatter(x="diel_electronic_mp", y="diel_elec_pbe", ax=ax1)
+df_mp.plot.scatter(x="diel_electronic_mp", y=Key.diel_elec_pbe, ax=ax1)
 ax1.set(xlabel=r"MP $\epsilon_\infty$", ylabel=r"our $\epsilon_\infty$")
 
-df_mp.plot.scatter(x="diel_total_mp", y="diel_total_pbe", ax=ax2)
+df_mp.plot.scatter(x=Key.diel_total_mp, y=Key.diel_total_pbe, ax=ax2)
 ax2.set(xlabel=r"MP $\epsilon_\mathrm{tot}$", ylabel=r"our $\epsilon_\mathrm{tot}$")
 
 for ax in (ax1, ax2):

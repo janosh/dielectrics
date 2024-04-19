@@ -56,7 +56,7 @@ else:
         df_mp[col] = [cse[col] for cse in df_mp.computed_structure_entry]
 
     df_mp = df_mp.set_index("entry_id")
-    df_mp.index.name = "material_id"
+    df_mp.index.name = Key.mat_id
     df_mp["composition"] = df_mp.composition.map(Composition)
 
     # got 126,335 CSEs
@@ -88,7 +88,7 @@ with gzip.open(f"{MODULE_DIR}/{today}-ppd-mp.pkl.gz", "wb") as zip_file:
 # %%
 # remove single-element calculations from WBM so that we only use MP entries as
 # terminal references for formation energy
-df_wbm["n_elements"] = df_wbm.formula.map(Composition).map(len)
+df_wbm["n_elements"] = df_wbm[Key.formula].map(Composition).map(len)
 
 warnings.filterwarnings(action="ignore", category=UserWarning, module="pymatgen")
 wbm_computed_struct_entries: list[ComputedStructureEntry] = df_wbm.query(
@@ -152,7 +152,7 @@ print(df_corrections.correction_per_atom.describe())
 # %%
 df_corrections["e_form_wbm"] = df_wbm.e_form
 df_corrections["energy_wbm"] = df_wbm.energy
-df_corrections["energy_per_atom_wbm"] = df_wbm.energy / df_wbm.formula.map(
+df_corrections["energy_per_atom_wbm"] = df_wbm.energy / df_wbm[Key.formula].map(
     lambda x: Composition(x).num_atoms
 )
 

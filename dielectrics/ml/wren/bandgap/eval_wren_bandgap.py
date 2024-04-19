@@ -3,25 +3,25 @@ import numpy as np
 import pandas as pd
 from pymatviz import density_hexbin, roc_curve
 
-from dielectrics import DATA_DIR
+from dielectrics import DATA_DIR, Key
 from dielectrics.plots import plt
 
 
 # %%
 df_ens = pd.read_csv(
     f"{DATA_DIR}/wren/bandgap/wren-bandgap-mp+wbm-ensemble.csv"
-).set_index(["material_id", "formula"])
+).set_index([Key.mat_id, Key.formula])
 
-df_ens["bandgap_pred"] = df_ens.filter(like="pred_n").mean(1)
+df_ens[Key.bandgap_wren] = df_ens.filter(like="pred_n").mean(1)
 df_ens["bandgap_std"] = df_ens.filter(like="pred_n").std(1)
 
 
 # %%
 df_ens_rob = pd.read_csv(
     f"{DATA_DIR}/wren/bandgap/wren-bandgap-mp+wbm-ensemble-robust.csv"
-).set_index(["material_id", "formula"])
+).set_index([Key.mat_id, Key.formula])
 
-df_ens_rob["bandgap_pred"] = df_ens_rob.filter(like="pred_n").mean(1)
+df_ens_rob[Key.bandgap_wren] = df_ens_rob.filter(like="pred_n").mean(1)
 df_ens_rob["bandgap_std"] = (
     df_ens_rob.filter(like="pred_n").var(1)
     # average aleatoric uncertainties in quadrature
@@ -31,10 +31,10 @@ df_ens_rob["bandgap_std"] = (
 
 # %%
 # with uncertainty criterion
-df_insul = df_ens[df_ens.bandgap_pred - df_ens.bandgap_std > 0.5]
+df_insul = df_ens[df_ens[Key.bandgap_wren] - df_ens.bandgap_std > 0.5]
 # without uncertainty criterion
-n_insul = sum(df_ens.bandgap_pred > 0.5)
-n_false_metals = sum(df_insul.bandgap_target < 0.01)
+n_insul = sum(df_ens[Key.bandgap_wren] > 0.5)
+n_false_metals = sum(df_insul[Key.bandgap_wren] < 0.01)
 
 print(
     f"Wren ensemble predicts bandgap >0.5 eV for {len(df_insul):,} of {len(df_ens):,} "
@@ -47,10 +47,10 @@ print(
 
 # %%
 # with uncertainty criterion
-df_rob_insul = df_ens_rob[df_ens_rob.bandgap_pred - df_ens_rob.bandgap_std > 0.5]
+df_rob_insul = df_ens_rob[df_ens_rob[Key.bandgap_wren] - df_ens_rob.bandgap_std > 0.5]
 # without uncertainty criterion
-n_rob_insul = sum(df_ens_rob.bandgap_pred > 0.5)
-n_rob_false_metals = sum(df_rob_insul.bandgap_target < 0.01)
+n_rob_insul = sum(df_ens_rob[Key.bandgap_wren] > 0.5)
+n_rob_false_metals = sum(df_rob_insul[Key.bandgap_wren] < 0.01)
 
 print(
     f"Wren robust ensemble predicts bandgap >0.5 eV for {len(df_rob_insul):,} of "
@@ -62,23 +62,23 @@ print(
 
 # %%
 df_gt0 = pd.read_csv(f"{DATA_DIR}/wren/bandgap/wren-bandgap>0-mp+wbm.csv").set_index(
-    ["material_id", "formula"]
+    [Key.mat_id, Key.formula]
 )
 df_gt0_rob = pd.read_csv(
     f"{DATA_DIR}/wren/bandgap/wren-bandgap>0-mp+wbm-robust.csv"
-).set_index(["material_id", "formula"])
+).set_index([Key.mat_id, Key.formula])
 df_l2 = pd.read_csv(f"{DATA_DIR}/wren/bandgap/wren-bandgap-mp+wbm-L2.csv").set_index(
-    ["material_id", "formula"]
+    [Key.mat_id, Key.formula]
 )
 
-df_ens_nonmet = df_ens[df_ens.bandgap_target > 0]
-df_ens_rob_nonmet = df_ens_rob[df_ens_rob.bandgap_target > 0]
+df_ens_nonmet = df_ens[df_ens[Key.bandgap_wren] > 0]
+df_ens_rob_nonmet = df_ens_rob[df_ens_rob[Key.bandgap_wren] > 0]
 
 
 # %%
 df_clf = pd.read_csv(
     f"{DATA_DIR}/wren/bandgap/wren-metal-clf-ens=5-mp+wbm.csv"
-).set_index(["material_id", "formula"])
+).set_index([Key.mat_id, Key.formula])
 
 
 # %%
@@ -127,32 +127,32 @@ ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10 = axs.flat
 
 fig.suptitle("Wren Bandgap Models trained on MP+WBM (showing only non-metals)\n\n")
 
-x, y = df_ens_rob_nonmet[["bandgap_target", "bandgap_pred_n0"]].to_numpy().T
+x, y = df_ens_rob_nonmet[[Key.bandgap_wren, "bandgap_pred_n0"]].to_numpy().T
 density_hexbin(x, y, ax=ax1)
 ax1.set_title("Single robust Wren trained on all data")
 
-x, y = df_ens_rob_nonmet[["bandgap_target", "bandgap_pred"]].to_numpy().T
+x, y = df_ens_rob_nonmet[[Key.bandgap_wren, Key.bandgap_wren]].to_numpy().T
 density_hexbin(x, y, ax=ax2)
 ax2.set_title("Ensemble robust Wren trained on all data")
 
-x, y = df_ens_nonmet[["bandgap_target", "bandgap_pred_n0"]].to_numpy().T
+x, y = df_ens_nonmet[[Key.bandgap_wren, "bandgap_pred_n0"]].to_numpy().T
 density_hexbin(x, y, ax=ax3)
 ax3.set_title("Single non-robust Wren trained on all data")
 
-x, y = df_ens_nonmet[["bandgap_target", "bandgap_pred"]].to_numpy().T
+x, y = df_ens_nonmet[[Key.bandgap_wren, Key.bandgap_wren]].to_numpy().T
 density_hexbin(x, y, ax=ax4)
 ax4.set_title("Ensemble non-robust Wren trained on all data")
 
-x, y = df_gt0[["bandgap_target", "bandgap_pred_n0"]].to_numpy().T
+x, y = df_gt0[[Key.bandgap_wren, "bandgap_pred_n0"]].to_numpy().T
 density_hexbin(x, y, ax=ax5)
 ax5.set_title("Single non-robust Wren trained on non-metals only")
 
-x, y = df_gt0_rob[["bandgap_target", "bandgap_pred_n0"]].to_numpy().T
+x, y = df_gt0_rob[[Key.bandgap_wren, "bandgap_pred_n0"]].to_numpy().T
 density_hexbin(x, y, ax=ax6)
 ax6.set_title("Single robust Wren trained on non-metals only")
 
 x, y = (
-    df_l2[df_l2.bandgap_pred_n0 > 0.5][["bandgap_target", "bandgap_pred_n0"]]
+    df_l2[df_l2.bandgap_pred_n0 > 0.5][[Key.bandgap_wren, "bandgap_pred_n0"]]
     .to_numpy()
     .T
 )
@@ -161,7 +161,7 @@ ax7.set_title("Single non-robust Wren trained on all data with L2 loss")
 
 x, y = (
     df_l2[(~df_clf.is_metal) & (df_l2.bandgap_pred_n0 > 0.5)][
-        ["bandgap_target", "bandgap_pred_n0"]
+        [Key.bandgap_wren, "bandgap_pred_n0"]
     ]
     .to_numpy()
     .T
@@ -172,7 +172,7 @@ ax8.set_title(
     "after dropping materials classified as metals"
 )
 
-x, y = df_l2[df_clf.is_metal][["bandgap_target", "bandgap_pred_n0"]].to_numpy().T
+x, y = df_l2[df_clf.is_metal][[Key.bandgap_wren, "bandgap_pred_n0"]].to_numpy().T
 density_hexbin(x, y, ax=ax9)
 ax9.set_title(
     "Single non-robust Wren trained on all data with L2 loss\n"
@@ -181,7 +181,7 @@ ax9.set_title(
 
 x, y = (
     df_l2[(df_clf.is_metal) & (df_l2.bandgap_pred_n0 > 0.5)][
-        ["bandgap_target", "bandgap_pred_n0"]
+        [Key.bandgap_wren, "bandgap_pred_n0"]
     ]
     .to_numpy()
     .T

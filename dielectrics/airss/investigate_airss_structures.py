@@ -30,7 +30,7 @@ castep_files = glob(f"{DATA_DIR}/airss/{formula}/good_castep/*.castep")
 # %% 2022-06-30
 def get_pairwise_struct_distances(
     df: pd.DataFrame,
-    structure_col: str = "structure",
+    structure_col: str = Key.structure,
     fingerprint_col: str = "site_stats_fingerprint",
     # show only half of symmetric matrix by default, set to False to show all
     triangular: Literal["lower", "upper", False] = "lower",
@@ -82,7 +82,7 @@ df_res = pd.DataFrame(
     [AirssProvider.from_file(file).as_dict(verbose=False) for file in res_files]
 ).set_index("seed")
 
-df_res[Key.structure] = df_res.structure.map(Structure.from_dict)
+df_res[Key.structure] = df_res[Key.structure].map(Structure.from_dict)
 df_res[Key.n_sites] = df_res[Key.structure].map(len)
 
 df_res[Key.e_per_atom] = df_res.energy / df_res[Key.n_sites]
@@ -111,21 +111,23 @@ df_diel_from_task_coll(airss_candidates_for_chris, ["output.structure"])
 airss_mongo_ids = ("airss-1", "airss-2", "mp-755367:Cu->Na")
 
 df_mongo = df_diel_from_task_coll(
-    {"material_id": {"$in": airss_mongo_ids}},
+    {Key.mat_id: {"$in": airss_mongo_ids}},
     ["output.structure", "airss_id"],
     cache=False,
 )
 
 df_mongo.index = ("vasp_" + df_mongo.airss_id).fillna(df_mongo.material_id)
 
-df_mongo.structure.map(lambda struct: struct.add_oxidation_state_by_guess())
+df_mongo[Key.structure].map(lambda struct: struct.add_oxidation_state_by_guess())
 
 
 # %% add robocrys structure descriptions (wasn't that useful for understanding large
 # differences in permittivity for similar structures)
-df_mongo["robocrys_description"] = df_mongo.structure.map(
-    StructureCondenser().condense_structure
-).map(StructureDescriber().describe)
+df_mongo["robocrys_description"] = (
+    df_mongo[Key.structure]
+    .map(StructureCondenser().condense_structure)
+    .map(StructureDescriber().describe)
+)
 
 
 # %%
@@ -134,7 +136,7 @@ n_rows = int(np.ceil(len(df_mongo) / n_cols))
 fig, axs = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 5 * n_rows))
 
 for ax, (material_id, struct) in zip(
-    axs.flat, df_mongo.structure.items(), strict=False
+    axs.flat, df_mongo[Key.structure].items(), strict=False
 ):
     spg_num, sgp_symbol = struct.get_space_group_info()
     plot_structure_2d(struct, ax=ax)
@@ -166,11 +168,11 @@ df_mp = pd.DataFrame(
         ("mvc-12728", "spinel_CaCo2S4"),
         ("mp-560842", "spinel_sicd2O4"),
     ],
-    columns=["material_id", "name"],
+    columns=[Key.mat_id, "name"],
 ).set_index(Key.mat_id)
 
 with MPRester() as mpr:
-    df_mp["structure"] = df_mp.material_id.map(mpr.get_structure_by_material_id)
+    df_mp[Key.structure] = df_mp[Key.mat_id].map(mpr.get_structure_by_material_id)
 
 
 df_mp_struct_dists = get_pairwise_struct_distances(df_mp)
@@ -180,7 +182,7 @@ df_mp_struct_dists.head()
 
 
 # %%
-df_res_and_mongo = df_res.append(df_mongo.drop(columns=["material_id"]))
+df_res_and_mongo = df_res.append(df_mongo.drop(columns=[Key.mat_id]))
 
 df_res_and_mongo = df_res_and_mongo.filter(regex="(4142|6811)", axis=0).sort_index()
 
@@ -193,7 +195,7 @@ n_rows = int(np.ceil(len(df_res_and_mongo) / n_cols))
 fig, axs = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 5 * n_rows))
 
 for ax, (material_id, struct) in zip(
-    axs.flat, df_res_and_mongo.structure.items(), strict=False
+    axs.flat, df_res_and_mongo[Key.structure].items(), strict=False
 ):
     spg_num, sgp_symbol = struct.get_space_group_info()
     plot_structure_2d(struct, ax=ax)

@@ -15,7 +15,7 @@ from numpy.typing import NDArray
 from pymatgen.core import Composition, Structure
 from pymatviz.utils import atomic_numbers, element_symbols
 
-from dielectrics import DATA_DIR
+from dielectrics import DATA_DIR, Key
 
 
 # atomic numbers of the 88 elements present in materials project (1 - 83 plus 89 - 94)
@@ -194,8 +194,8 @@ def struct_apply_elem_substitution(
 def df_struct_apply_elem_substitution(
     df: pd.DataFrame,
     orig_struct_col: str = "orig_structure",
-    new_formula_col: str = "formula",
-    new_struct_col: str = "structure",
+    new_formula_col: str = Key.formula,
+    new_struct_col: str = Key.structure,
     **kwargs: Any,
 ) -> pd.DataFrame:
     """Apply struct_apply_elem_substitution to a DataFrame.

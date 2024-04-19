@@ -33,13 +33,13 @@ df_mp_diel = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 # discard unstable and negative and unrealistically large dielectric constants
 df_mp_diel = df_mp_diel.query("0 < diel_total_mp < 2000 and e_above_hull < 0.1")
 
-df_elem_sub_seeds = df_mp_diel.nlargest(1000, "fom_mp")
+df_elem_sub_seeds = df_mp_diel.nlargest(1000, Key.fom_mp)
 
 
 # %%
 trans_mat = load_icsd_trans_mat()
 
-df_elem_sub_seeds["elem_list"] = df_elem_sub_seeds.wyckoff.map(
+df_elem_sub_seeds["elem_list"] = df_elem_sub_seeds[Key.wyckoff].map(
     lambda x: tuple(x.split(":")[1].split("-"))
 )
 
@@ -47,7 +47,7 @@ df_elem_sub_seeds["elem_list"] = df_elem_sub_seeds.wyckoff.map(
 # %%
 dfs, n_iters = [], 1000
 for _ in tqdm(range(n_iters)):  #
-    df_tmp = df_elem_sub_seeds[["material_id", "formula", "elem_list", "wyckoff"]]
+    df_tmp = df_elem_sub_seeds[[Key.mat_id, Key.formula, "elem_list", Key.wyckoff]]
 
     # elem_swap is a tuple of two element symbols: (elem_orig, elem_new)
     df_tmp["elem_swap"] = df_tmp.elem_list.map(
@@ -69,20 +69,20 @@ print(
     "old compositions. This takes a while."
 )
 
-df_elemsub = df_elemsub.rename(columns={"formula": "orig_formula"})
-df_elemsub["formula"] = df_elemsub["composition"] = ""
+df_elemsub = df_elemsub.rename(columns={Key.formula: "orig_formula"})
+df_elemsub[Key.formula] = df_elemsub["composition"] = ""
 
 for idx, row in tqdm(enumerate(df_elemsub.itertuples()), total=n_unique):
     mat_id = row.Index
 
-    df_elemsub.loc[idx, "material_id"] = f"{mat_id}:{'->'.join(row.elem_swap)}"
+    df_elemsub.loc[idx, Key.mat_id] = f"{mat_id}:{'->'.join(row.elem_swap)}"
 
     swap_dict = dict([row.elem_swap])
     comp = Composition(row.orig_formula).replace(swap_dict)
     df_elemsub.loc[idx, "composition"] = comp
-    df_elemsub.loc[idx, "formula"] = comp.reduced_formula
+    df_elemsub.loc[idx, Key.formula] = comp.reduced_formula
 
-    df_elemsub.loc[idx, "wyckoff"] = replace_elems_in_aflow_wyckoff(
+    df_elemsub.loc[idx, Key.wyckoff] = replace_elems_in_aflow_wyckoff(
         row.wyckoff, dict([row.elem_swap])
     )
 
@@ -90,7 +90,7 @@ for idx, row in tqdm(enumerate(df_elemsub.itertuples()), total=n_unique):
 # %% https://ml-physics.slack.com/archives/DD8GBBRLN/p1624547833027400
 df_clean = df_elemsub.copy()
 
-pre_existing = df_clean.wyckoff.isin(df_elem_sub_seeds.wyckoff)
+pre_existing = df_clean[Key.wyckoff].isin(df_elem_sub_seeds[Key.wyckoff])
 print(
     "removing Wyckoff strings already present in elemental substitution seeds: "
     f"{len(df_clean):,} -> {sum(~pre_existing):,}"
@@ -113,11 +113,11 @@ try:
 except FileNotFoundError:
     # %% if CSV doesn't exist, re-download all MP formulas
     with MPRester() as mpr:
-        data = mpr.query({}, ["material_id", "pretty_formula"], chunk_size=5000)
+        data = mpr.query({}, [Key.mat_id, "pretty_formula"], chunk_size=5000)
 
     df_all_mp_formulas = pd.DataFrame(data).set_index(Key.mat_id)
     df_all_mp_formulas = df_all_mp_formulas.rename(
-        columns={"pretty_formula": "formula"}
+        columns={"pretty_formula": Key.formula}
     )
     df_all_mp_formulas.round(4).to_csv(all_mp_formulas_csv)
 
@@ -138,7 +138,7 @@ print(f"removing existing MP compositions: {prev_len:,} -> {len(df_clean):,}")
 
 
 # %%
-elem_counts = count_elements(df_clean.formula)
+elem_counts = count_elements(df_clean[Key.formula])
 orig_elem_counts = count_elements(df_clean.orig_formula)
 
 ptable_heatmap(elem_counts, log=True)
@@ -149,6 +149,6 @@ ptable_heatmap_ratio(
 
 
 # %%
-# df_clean[["material_id", "orig_formula", "wyckoff", "formula"]].round(4).to_csv(
+# df_clean[[Key.mat_id, "orig_formula", Key.wyckoff, Key.formula]].round(4).to_csv(
 #     f"{DATA_DIR}/wren/screen/mp-top-fom-elemsub-for-wren-screening.csv"
 # )

@@ -7,8 +7,9 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from pymatgen.core import Structure
 from pymatgen.ext.matproj import MPRester
-from pymatviz import annotate_bars, spacegroup_sunburst
-from pymatviz.powerups import add_identity_line, crystal_sys_from_spg_num
+from pymatviz import spacegroup_sunburst
+from pymatviz.powerups import add_identity_line, annotate_bars
+from pymatviz.utils import crystal_sys_from_spg_num
 from tqdm import tqdm
 
 from dielectrics import DATA_DIR, Key
@@ -20,7 +21,8 @@ df_yim = pd.read_json(f"{DATA_DIR}/others/yim/dielectrics.json.bz2")
 df_yim.index.name = Key.icsd_id
 
 df_yim[Key.structure] = [
-    Structure.from_str(x, fmt="json") if x else None for x in df_yim.structure
+    Structure.from_str(struct, fmt="json") if struct else None
+    for struct in df_yim[Key.structure]
 ]
 
 
@@ -55,7 +57,7 @@ add_identity_line(fig)
 
 
 # %%
-labels = {"bandgap_hse": "HSE", "bandgap_gga": "GGA", "bandgap_mp": "MP"}
+labels = {Key.bandgap_hse: "HSE", Key.bandgap_pbe: "GGA", Key.bandgap_mp: "MP"}
 
 corr_mat = df_yim[list(labels)].corr() ** 2
 keep = np.triu(np.ones(corr_mat.shape, dtype=bool), 1).reshape(corr_mat.size)
