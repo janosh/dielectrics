@@ -31,7 +31,7 @@ for coll, md_key in md_field_map.items():
             result = db[coll].update_one({"_id": doc["_id"]}, {"$set": new_vals})
             for key in new_vals:
                 n_changed[key] += 1
-        except Exception as err:
+        except (ValueError, TypeError, KeyError) as err:
             print(f"\n{coll=}\n{doc=}\n{err=}\n")
             break
 

@@ -22,9 +22,9 @@ __date__ = "2023-11-19"
 
 # %% download JSON file from https://doi.org/10.6084/m9.figshare.10482707.v2
 # needs manual renaming of column names to match our own naming scheme
-df = pd.read_json("dielectrics.json")
-df_tmp = pd.json_normalize(df.pop("meta"))
-df[list(df_tmp)] = df_tmp
+df_qz3 = pd.read_json("dielectrics.json")
+df_tmp = pd.json_normalize(df_qz3.pop("meta"))
+df_qz3[list(df_tmp)] = df_tmp
 
 
 def extract_len1_lists(lst: list[Any]) -> Any:
@@ -33,22 +33,24 @@ def extract_len1_lists(lst: list[Any]) -> Any:
 
 
 # %%
-for col in df:
-    df[col] = df[col].map(extract_len1_lists)
-    df[col] = df[col].map(extract_len1_lists)
-    df[col] = df[col].map(extract_len1_lists)
+for col in df_qz3:
+    df_qz3[col] = df_qz3[col].map(extract_len1_lists)
+    df_qz3[col] = df_qz3[col].map(extract_len1_lists)
+    df_qz3[col] = df_qz3[col].map(extract_len1_lists)
 
-df[[Key.formula, "formula_factor"]] = pd.DataFrame(df.formula.to_list())
-df = df.round(4)
+df_qz3[[Key.formula, "formula_factor"]] = pd.DataFrame(df_qz3[Key.formula].to_list())
+df_qz3 = df_qz3.round(4)
 
-df[Key.fom_pbe] = df.bandgap_pbe * df.diel_total_pbe
+df_qz3[Key.fom_pbe] = df_qz3.bandgap_pbe * df_qz3.diel_total_pbe
 
 # rename columns containing dielectric tensors
-df = df.rename(columns={"e_total": "eps_total", "e_electronic": "eps_electronic"})
+df_qz3 = df_qz3.rename(
+    columns={"e_total": "eps_total", "e_electronic": "eps_electronic"}
+)
 
 
 # %%
-df.hist(bins=100, figsize=(14, 10))
+df_qz3.hist(bins=100, figsize=(14, 10))
 
 
 # %%
@@ -58,30 +60,30 @@ with gzip.open(ppd_path, "rb") as file:
     ppd_mp_wbm: PatchedPhaseDiagram = pickle.load(file)  # noqa: S301
 
 
-compositions = df.formula.map(Composition)
-df["e_hull"] = [ppd_mp_wbm.try_get_e_hull(c) for c in tqdm(compositions)]
-df["e_ref"] = [ppd_mp_wbm.try_get_e_ref(c) for c in tqdm(compositions)]
+compositions = df_qz3[Key.formula].map(Composition)
+df_qz3["e_hull"] = [ppd_mp_wbm.try_get_e_hull(c) for c in tqdm(compositions)]
+df_qz3["e_ref"] = [ppd_mp_wbm.try_get_e_ref(c) for c in tqdm(compositions)]
 
 # the hull energy is relative to the reference energies for single element systems
 # e.g. for Fe2O3 the e_hull is relative to e_ref = 2 * e_Fe + 3 * e_O?
 # so we subtract e_ref from e_hull so that the hull energy is comparable to e_form
-df["e_above_hull_pbe_us"] = df.e_form_pbe - (df.e_hull - df.e_ref)
+df_qz3["e_above_hull_pbe_us"] = df_qz3.e_form_pbe - (df_qz3.e_hull - df_qz3.e_ref)
 
-df.isna().sum()
+df_qz3.isna().sum()
 
 
 # %%
-ax = df.e_above_hull_pbe.hist(
+ax = df_qz3.e_above_hull_pbe.hist(
     figsize=(10, 6), bins=50, label="Qu et al. hull distances"
 )
-df.e_above_hull_pbe_us.hist(
+df_qz3.e_above_hull_pbe_us.hist(
     alpha=0.8, bins=100, ax=ax, label="Our MP+WBM hull distances"
 )
 ax.set(title=f"Qu et al. vs our MP+WBM convex hull ({today})")
 ax.legend()
 ax.figure.savefig(f"{today}-our-vs-quz3-hull.pdf")
 
-df.filter(like="hull_pbe").describe(percentiles=[]).round(3)
+df_qz3.filter(like="hull_pbe").describe(percentiles=[]).round(3)
 
 # e_above_hull_pbe  e_above_hull_pbe_us
 # count   441       441
@@ -93,6 +95,6 @@ df.filter(like="hull_pbe").describe(percentiles=[]).round(3)
 
 
 # %%
-df.to_csv("qz3-diel.csv.bz2", index=False)
+df_qz3.to_csv("qz3-diel.csv.bz2", index=False)
 
-df = pd.read_csv("qz3-diel.csv.bz2")
+df_qz3 = pd.read_csv("qz3-diel.csv.bz2")

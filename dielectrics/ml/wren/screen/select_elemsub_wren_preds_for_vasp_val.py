@@ -30,7 +30,7 @@ df_bandgap = pd.read_csv(
 for df in [df_ene, df_elec, df_ionic, df_bandgap]:
     # Replace NaN values in formula/composition columns stemming from incorrectly
     # parsed chemical formula for sodium nitride with string 'NaN'.
-    df.formula.fillna("NaN", inplace=True)  # noqa: PD002
+    df[Key.formula].fillna("NaN", inplace=True)  # noqa: PD002
 
 
 # %%
@@ -163,7 +163,7 @@ for ax in (*axs1.flat, *axs2.flat):
 
 # %%
 ptable_heatmap(df_clean[Key.formula])
-ptable_heatmap(df_clean.nlargest(1000, Key.fom_wren_std_adj).formula)
+ptable_heatmap(df_clean.nlargest(1000, Key.fom_wren_std_adj)[Key.formula])
 # no change in elemental prevalence from selecting the top 1k Wren-predicted FoMs
 
 
@@ -177,7 +177,7 @@ top_fom: pd.DataFrame = df_clean.nlargest(4000, Key.fom_wren_std_adj)
 
 
 top_fom = top_fom.reset_index()
-top_fom.index = top_fom.material_id.str.split(":").str[0]
+top_fom.index = top_fom[Key.mat_id].str.split(":").str[0]
 top_fom[Key.structure] = df_mp_diel[Key.structure]
 top_fom = top_fom.rename(columns={Key.structure: "orig_structure"})
 df_struct_apply_elem_substitution(top_fom, strict=False, verbose=True)

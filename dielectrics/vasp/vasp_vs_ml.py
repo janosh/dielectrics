@@ -166,11 +166,11 @@ plt.ylim((0, 9))
 
 # %%
 ax = ptable_heatmap(
-    wren_top_fom.reset_index().formula, count_mode="occurrence", fmt=".0f"
+    wren_top_fom.reset_index()[Key.formula], count_mode="occurrence", fmt=".0f"
 )
 ax.set_title(f"Elemental prevalence among Wren-predicted top {n_top} FoM materials")
 ax = ptable_heatmap(
-    cgcnn_top_fom.reset_index().formula, count_mode="occurrence", fmt=".0f"
+    cgcnn_top_fom.reset_index()[Key.formula], count_mode="occurrence", fmt=".0f"
 )
 ax.set_title(f"Elemental prevalence among CGCNN-predicted top {n_top} FoM materials")
 

@@ -34,23 +34,26 @@ df_exp = df_exp.drop_duplicates(Key.mat_id).set_index(Key.mat_id)
 
 
 # %%
-for key, df in dfs.items():
-    df = df.drop(df.filter(like="_target"), axis=1).drop_duplicates(Key.mat_id)
+for key, df_diel_model in dfs.items():
+    df_diel_model = df_diel_model.drop(
+        df_diel_model.filter(like="_target"), axis=1
+    ).drop_duplicates(Key.mat_id)
 
-    df = df.set_index(Key.mat_id)
+    df_diel_model = df_diel_model.set_index(Key.mat_id)
 
-    df[f"diel_{key}_pred"] = df.filter(like="_pred_n").mean(1)
+    df_diel_model[f"diel_{key}_pred"] = df_diel_model.filter(like="_pred_n").mean(1)
 
-    df_exp[f"diel_{key}_wren"] = df[f"diel_{key}_pred"]
+    df_exp[f"diel_{key}_wren"] = df_diel_model[f"diel_{key}_pred"]
 
     if "robust" in key:
         df_exp[f"diel_{key}_wren_std"] = (
-            (df.filter(like="_ale_n") ** 2).mean(1) + df.filter(like="_pred_n").var(1)
+            (df_diel_model.filter(like="_ale_n") ** 2).mean(1)
+            + df_diel_model.filter(like="_pred_n").var(1)
         ) ** 0.5
     else:
-        df_exp[f"diel_{key}_wren_std"] = df.filter(like="_pred_n").std(1)
+        df_exp[f"diel_{key}_wren_std"] = df_diel_model.filter(like="_pred_n").std(1)
 
-    dfs[key] = df
+    dfs[key] = df_diel_model
 
 
 # %%

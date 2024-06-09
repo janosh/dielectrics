@@ -6,7 +6,7 @@ import os
 import subprocess
 import time
 from collections.abc import Sequence
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from glob import glob
 from os.path import isfile
 from shutil import rmtree
@@ -34,12 +34,12 @@ def round_floats_in_csvs(glob_pat: str = "**/*.csv") -> dict[str, Exception]:
 
     for csv in tqdm(csvs):
         try:
-            df = pd.read_csv(csv)
-            id_cols = df.filter(like="id").columns
+            df_csv = pd.read_csv(csv)
+            id_cols = df_csv.filter(like="id").columns
             if len(id_cols) > 0:
-                df = df.set_index(id_cols[0])
-            df.round(4).to_csv(csv)
-        except Exception as err:
+                df_csv = df_csv.set_index(id_cols[0])
+            df_csv.round(4).to_csv(csv)
+        except (ValueError, KeyError, Exception) as err:
             errors[csv] = err
 
     return errors
@@ -71,8 +71,11 @@ def ldir_is_recent(ldir: str, n_days: int) -> bool:
     """
     date_str = ldir[: ldir.rindex("-")].replace("launcher_", "")
 
-    ldir_date = datetime.strptime(date_str, r"%Y-%m-%d-%H-%M-%S")
-    return datetime.now() - timedelta(days=n_days) > ldir_date  # older than n days
+    ldir_date = datetime.strptime(date_str, r"%Y-%m-%d-%H-%M-%S").replace(
+        tzinfo=timezone.utc
+    )
+    # return True if the date is less than n_days in the past
+    return datetime.now(tz=timezone.utc) - timedelta(days=n_days) > ldir_date
 
 
 def rm_never_started_launch_dirs(block_dir: str) -> None:
@@ -125,7 +128,7 @@ TOP_LEVEL_CALC_DIR = "dfpt-calcs/"
 
 
 def rm_launchdirs(
-    launch_dirs: Sequence[str], write_log: bool = True, dry_run: bool = True
+    launch_dirs: Sequence[str], *, write_log: bool = True, dry_run: bool = True
 ) -> None:
     """Delete launch directories and optionally write a log file with the deleted
     directories.
@@ -166,12 +169,13 @@ def rm_launchdirs(
     dic = {"msg": msg, "dirs_removed": dirs_removed, "dirs_not_found": dirs_not_found}
 
     if write_log:
-        with open(f"deleted_dirs_{datetime.now():%Y-%m-%d@%H:%M}.yaml", "w") as file:
+        utc_time = datetime.now(tz=timezone.utc)
+        with open(f"deleted_dirs_{utc_time:%Y-%m-%d@%H:%M}.yaml", "w") as file:
             file.write(yaml.dump(dic, sort_keys=False))
 
 
 def rm_launchdirs_by_fw_query(
-    query: dict[str, Any], archived_only: bool = True, sleep: int = 2
+    query: dict[str, Any], *, archived_only: bool = True, sleep: int = 2
 ) -> None:
     """Delete a set of launch dirs in which fireworks matching the provided query were
     run.
@@ -225,6 +229,7 @@ def rm_launchdirs_by_fw_query(
 
 def rm_launchdirs_by_launches_query(
     query: dict[str, Any],
+    *,
     delete_launches_in_db: bool = False,
     sleep: int = 2,
     dry_run: bool = True,

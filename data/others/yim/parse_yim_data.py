@@ -104,7 +104,7 @@ df_mp = pd.read_json("mp_data.json.bz2")
 # df.groupby(level=0).first() removes rows with duplicate index (i.e. icsd_id)
 df_map = df_mp.explode("icsd_ids").set_index("icsd_ids").groupby(level=0).first()
 df_yim[Key.bandgap_mp] = df_map.band_gap
-df_yim["possible_mp_id"] = df_map.material_id
+df_yim["possible_mp_id"] = df_map[Key.mat_id]
 df_yim[diel_cols] = df_map[diel_cols]
 
 

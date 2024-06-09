@@ -80,7 +80,7 @@ df_db = df_db.groupby(level=[0, 1]).last()  # drop duplicate indices
 if len(df_db) != len(db_data):
     print(f"Removing duplicates: {len(db_data):,} -> {len(df_db):,}")
 
-assert df_db.material_id.str.contains("->").all(), (
+assert df_db[Key.mat_id].str.contains("->").all(), (
     "df_db contains relaxed MP/WBM structures, expecting elemental substitution "
     "structures only"
 )

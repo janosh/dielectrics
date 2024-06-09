@@ -58,26 +58,20 @@ target-version = "py310"
 select = ["ALL"]
 ignore = [
   "ANN401",
-  "BLE001",
   "C408",    # unnecessary-collection-call
   "C901",
   "COM812",  # missing trailing comma
   "D100",    # Missing docstring in public module
   "D104",    # Missing docstring in public package
   "D205",    # 1 blank line required between summary line and description
-  "DTZ",
   "E731",    # Do not assign a lambda expression, use a def
   "EM101",
   "EM102",
   "ERA001",  # found commented out code
-  "FBT001",  # boolean positional argument
-  "FBT002",  # boolean positional argument
   "FIX002",
   "INP001",  # implicit namespace package
   "ISC001",
-  "PD901",   # pandas-df-variable-name
   "PERF203", # try-except-in-loop
-  "PLC0414", # useless-import-alias
   "PLR",     # pylint refactor
   "PLW2901", # Outer for loop variable overwritten by inner assignment target
   "PTH",

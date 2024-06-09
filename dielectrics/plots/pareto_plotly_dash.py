@@ -17,6 +17,7 @@ from crystal_toolkit.settings import SETTINGS as CTK_SETTINGS
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from plotly.validators.scatter.marker import SymbolValidator
+from pymatviz import pmv_white_template
 
 from dielectrics import DATA_DIR, Key, SelectionStatus, today
 from dielectrics.db import db
@@ -126,7 +127,7 @@ def create_text_col(df: pd.DataFrame, annotate_min_fom: float = 300) -> list[str
         raise ValueError(f"None of {fom_cols} found in df") from None
     # only show formula as link text if material's FoM is > annotate_min_fom, else
     # scatter point will be clickable but without text
-    text_col = df.formula.where(df[fom_col] > annotate_min_fom, None)
+    text_col = df[Key.formula].where(df[fom_col] > annotate_min_fom, None)
     srs_mat_id = df[Key.mat_id].where(
         df[Key.mat_id].str.startswith(("mp-", "mvc-")), df[Key.formula]
     )
@@ -137,7 +138,7 @@ def create_text_col(df: pd.DataFrame, annotate_min_fom: float = 300) -> list[str
 
 
 def scatter(
-    df: pd.DataFrame,
+    df_in: pd.DataFrame,
     x_col: str,
     y_col: str,
     legend_name: str | None = None,
@@ -149,13 +150,13 @@ def scatter(
     MP detail pages where MP IDs are available.
     Can be used on its own but mostly called by scatter_with_quiver().
     """
-    df["text"] = create_text_col(df, kwargs.pop("annotate_min_fom", None))
+    df_in["text"] = create_text_col(df_in, kwargs.pop("annotate_min_fom", None))
 
     # drop cols with > 90% missing data
-    df = df.dropna(thresh=0.1 * len(df), axis=1)
-    df = df.fillna("n/a")  # fill remaining NaNs to avoid %{customdata[idx]}
+    df_in = df_in.dropna(thresh=0.1 * len(df_in), axis=1)
+    df_in = df_in.fillna("n/a")  # fill remaining NaNs to avoid %{customdata[idx]}
 
-    hover_keys = {*hover_data_keys.values()} & set(df)
+    hover_keys = {*hover_data_keys.values()} & set(df_in)
     # hover_keys = sorted(hover_keys, key=list(pretty_col_names.values()).index)
     hover_keys = sorted(hover_keys)
     hover_data = dict.fromkeys(hover_keys, True)
@@ -166,14 +167,14 @@ def scatter(
     kwargs["color_discrete_sequence"] = [next(color_iter)]
     # use formula as default tooltip title
     kwargs["hover_name"] = kwargs.get("hover_name", Key.mat_id)
-    if "_id" in df:
+    if "_id" in df_in:
         # pass MongoDB object ID to dash callbacks, not user-visible but included in
         # events emitted by the figure
         kwargs["custom_data"] = ["_id"]
 
     visible = kwargs.pop("visible", "legendonly")  # default trace to hidden
     scatter_plot = px.scatter(
-        df, x=x_col, y=y_col, hover_data=hover_data, text="text", **kwargs
+        df_in, x=x_col, y=y_col, hover_data=hover_data, text="text", **kwargs
     )
 
     global symbol_iter  # noqa: PLW0602
@@ -190,6 +191,7 @@ def scatter(
 
 def scatter_with_quiver(
     dfs: list[pd.DataFrame] | pd.DataFrame,
+    *,
     scatter_1: dict[str, Any],
     scatter_2: dict[str, Any],
     legend_labels: tuple[str, str, str],
@@ -434,6 +436,8 @@ fig.update_xaxes(range=[0, 500], mirror=True, showline=True)
 fig.update_yaxes(range=[0, 7], mirror=True, showline=True)
 
 
+fig.layout.template = pmv_white_template
+
 fig.layout.margin = dict(l=80, r=30, t=80, b=60)
 fig.layout.legend = dict(
     x=1, y=1, xanchor="right", yanchor="top", groupclick="toggleitem"
@@ -620,7 +624,7 @@ def update_notes(
         if status_value:
             payload[Key.selection_status] = status_value
         db.tasks.update_one({"_id": mongo_id}, {"$set": payload})
-    except Exception as err:
+    except ValueError as err:
         print(f"{err=}")
         return f"{err}"
 
@@ -645,7 +649,7 @@ def update_structure(
         else:
             dct = db.tasks.find_one({"_id": ObjectId(_id)}, ["output.structure"]) or {}
             structure = dct["output"][Key.structure]
-    except Exception as err:
+    except (InvalidId, ValueError) as err:
         # if we can't fetch a structure in try block, print error and return None to
         # empty scene
         print(f"{err=}")

@@ -141,6 +141,7 @@ counter = 0
 def struct_apply_elem_substitution(
     orig_struct: Structure,
     new_formula: str | Composition,
+    *,
     verbose: bool = True,
     strict: bool = True,
 ) -> tuple[Structure, str] | None:

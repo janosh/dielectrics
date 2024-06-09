@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from pymatgen.core import Composition
 from pymatviz import (
     count_elements,
+    pmv_white_template,
     ptable_heatmap,
     ptable_heatmap_plotly,
     ptable_heatmap_ratio,
@@ -64,7 +65,7 @@ fig = px.violin(
     color_discrete_map={"electronic": "blue", "ionic": "green"},
     labels={Key.crystal_sys: "crystal system"},
     hover_data=dict(material_id=True, formula=True),
-    template="plotly_white",
+    template=pmv_white_template,
     # sort strips from high to low spacegroup number
     category_orders={Key.crystal_sys: cry_sys_order},
     height=500,
@@ -166,7 +167,7 @@ df_mp.attrs.update(name="mp", label="MP Data")
 
 for df in (df_us, df_mp):
     ax = ptable_heatmap(
-        df.formula,
+        df[Key.formula],
         exclude_elements=("O", "F"),
         colorscale="viridis",
         zero_color="white",

@@ -183,9 +183,9 @@ plt.suptitle(f"{len(df_wren):,} samples", y=1.02)
 
 
 # %%
-ptable_heatmap(df_wren.nlargest(1000, Key.fom_wren).formula, heat_label="percent")
+ptable_heatmap(df_wren.nlargest(1000, Key.fom_wren)[Key.formula], heat_label="percent")
 
-ptable_heatmap(df_wren.sample(1000).formula, heat_label="percent")
+ptable_heatmap(df_wren.sample(1000)[Key.formula], heat_label="percent")
 
 
 # %%

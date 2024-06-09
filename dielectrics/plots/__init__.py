@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.io as pio
+from pymatviz import pmv_dark_template
 
 
-px.defaults.labels = dict(
+px.defaults.labels |= dict(
     n_atoms="Atom Count",
     n_elems="Element Count",
     crystal_sys="Crystal system",
@@ -21,14 +22,20 @@ px.defaults.labels = dict(
     bandgap_wren="E<sub>Wren</sub> (eV)",
 )
 
-pio.templates.default = "plotly_white"
-
 # https://github.com/plotly/Kaleido/issues/122#issuecomment-994906924
-pio.kaleido.scope.mathjax = None
+try:
+    pio.kaleido.scope.mathjax = None
+except AttributeError:
+    # if kaleido is not installed, the linked GH issue doesn't apply
+    pass
 
 crystal_sys_order = (
     "cubic hexagonal trigonal tetragonal orthorhombic monoclinic triclinic".split()
 )
+
+
+pio.templates.default = pmv_dark_template
+px.defaults.template = pmv_dark_template
 
 
 plt.rc("font", size=16)

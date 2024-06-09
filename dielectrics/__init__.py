@@ -1,10 +1,9 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import StrEnum, unique
 
 import plotly.express as px
 from matplotlib import pyplot as plt
-from plotly import io as pio
 from pymatviz.utils import styled_html_tag
 
 
@@ -13,7 +12,7 @@ ROOT = os.path.dirname(PKG_DIR)
 PAPER_FIGS = f"{ROOT}/paper/figs"
 DATA_DIR = f"{ROOT}/data"
 SCRIPTS_DIR = f"{ROOT}/scripts"
-today = f"{datetime.now():%Y-%m-%d}"
+today = f"{datetime.now(tz=timezone.utc):%Y-%m-%d}"
 
 plt.rcParams["figure.constrained_layout.use"] = True
 
@@ -82,7 +81,7 @@ small_font = "font-size: 0.9em; font-weight: lighter;"
 ev_per_atom = styled_html_tag("(eV/atom)", tag="span", style=small_font)
 eV = styled_html_tag("(eV)", tag="span", style=small_font)  # noqa: N816
 
-px.defaults.labels = {
+px.defaults.labels |= {
     Key.bandgap_hse: f"E<sub>gap HSE</sub> {eV}",
     Key.bandgap_mp: f"E<sub>gap MP</sub> {eV}",
     Key.bandgap_pbe: f"E<sub>gap PBE</sub> {eV}",
@@ -115,21 +114,6 @@ px.defaults.labels = {
     Key.symmetry: "Symmetry",
     Key.selection_status: "Selection status",
 }
-
-px.defaults.template = "plotly_white"
-pio.templates.default = "plotly_white"
-axis_template = dict(
-    mirror=True,
-    showline=True,
-    ticks="outside",
-    zeroline=True,
-    linewidth=1,
-    linecolor="black",
-    gridcolor="lightgray",
-)
-pio.templates["plotly_white"].update(
-    layout=dict(xaxis=axis_template, yaxis=axis_template)
-)
 
 
 class SelectionStatus(StrEnum):

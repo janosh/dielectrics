@@ -29,7 +29,7 @@ with open(f"{ROOT}/fireworks-config/my_launchpad.yaml") as file:
 
 
 # %% use 'workflows' rather than 'tasks' collection here to include calcs yet to run
-existing_material_ids = db.workflows.distinct("metadata.material_id")
+existing_material_ids = db.workflows.distinct(f"metadata.{Key.mat_id}")
 
 print(f"'workflows' collection has {len(existing_material_ids):,} material IDs")
 

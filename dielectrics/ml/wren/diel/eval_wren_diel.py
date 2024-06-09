@@ -153,13 +153,15 @@ df_vasp_single[Key.diel_total_wren] = df_wren_seed[Key.diel_total_wren]
 
 
 # %% Compare Wren 2 months older single predictions with recent ensemble preds
-df = df_vasp_ens.query("fom_wren_rank < 1000 and diel_total_wren_std < 1000")
+df_vasp_cleaned = df_vasp_ens.query(
+    "fom_wren_rank < 1000 and diel_total_wren_std < 1000"
+)
 
 plt.figure(figsize=(12, 8))
 scatter_with_err_bar(
-    df[Key.diel_total_pbe],
-    df[Key.diel_total_wren],
-    yerr=df.diel_total_wren_std,
+    df_vasp_cleaned[Key.diel_total_pbe],
+    df_vasp_cleaned[Key.diel_total_wren],
+    yerr=df_vasp_cleaned.diel_total_wren_std,
 )
 
 

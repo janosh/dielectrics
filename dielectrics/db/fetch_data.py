@@ -1,6 +1,6 @@
 import os
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Literal
 
 import numpy as np
@@ -97,6 +97,7 @@ DEFAULT_FIELDS = (
 
 def df_diel_from_task_coll(
     query: dict[str, Any] | Sequence[str],
+    *,
     fields: Sequence[str] = DEFAULT_FIELDS,
     col_suffix: str = "_pbe",
     max_diel_total: int = 1000,
@@ -246,6 +247,7 @@ def df_diel_from_task_coll(
 
 def get_structures_from_task_db(
     material_id: str,
+    *,
     save_dir: str = f"{ROOT}/tmp/structs",
     fmt: Literal["cif", "poscar", "json"] = "cif",
     verbose: bool = False,
@@ -281,7 +283,8 @@ def get_structures_from_task_db(
 
         formula = struct.composition.reduced_formula
         filename = (
-            f"{datetime.now():%Y-%m-%d}-{formula}={material_id.replace(':', '-')}"
+            f"{datetime.now(tz=timezone.utc):%Y-%m-%d}-{formula}="
+            f"{material_id.replace(':', '-')}"
         )
         filepath = f"{save_dir}/{filename}.{fmt.lower()}"
         if os.path.isfile(filepath) and verbose:

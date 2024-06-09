@@ -97,9 +97,9 @@ for row in tqdm(id_counts.query("count > 1").itertuples()):
         {Key.mat_id: material_id, "series": series, "task_label": task_label},
         ["_id", Key.task_id],
     )
-    df = pd.DataFrame(docs).set_index("_id")
+    df_tasks = pd.DataFrame(docs).set_index("_id")
     # remove the earliest duplicate task, presumably later ones are usually better
-    min_task_id = df.idxmin().to_numpy()[0]
+    min_task_id = df_tasks.idxmin().to_numpy()[0]
     n_del += 1
     # db.tasks.delete_one({"_id": min_task_id})
 
@@ -127,12 +127,12 @@ assert all(
 
 elem_replacements = ["->".join(str(el) for el in diff) for diff in elem_diffs]
 
-df_fws.material_id = [
+df_fws[Key.mat_id] = [
     mat_id + f":{el_repl}"
-    for mat_id, el_repl in zip(df_fws.material_id, elem_replacements, strict=True)
+    for mat_id, el_repl in zip(df_fws[Key.mat_id], elem_replacements, strict=True)
 ]
 
-for _id, mat_id in zip(df_fws["_id"], df_fws.material_id, strict=True):
+for _id, mat_id in zip(df_fws["_id"], df_fws[Key.mat_id], strict=True):
     print(f"{_id=}, {mat_id=}")
     res = db.tasks.update_one({"_id": _id}, {"$set": {Key.mat_id: mat_id}}).raw_result
     print(f"{res=}")

@@ -33,7 +33,7 @@ for idx, (field, (coll, md_key)) in enumerate(
                 )
                 assert result.modified_count == 1
                 n_changed += 1
-        except Exception as err:
+        except ValueError as err:
             print(f"\n{field=}\n{coll=}\n{doc=}\n{err=}\n")
             break
 

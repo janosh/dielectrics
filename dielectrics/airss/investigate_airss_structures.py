@@ -102,7 +102,7 @@ airss_candidates_for_chris = [
     "mp-755367:Cu->Ag",
     "mp-1225854:W->Te",
 ]
-df_diel_from_task_coll(airss_candidates_for_chris, ["output.structure"])
+df_diel_from_task_coll(airss_candidates_for_chris, fields=["output.structure"])
 
 # ended up sending Chris mp-755367:Cu->Na
 
@@ -112,11 +112,11 @@ airss_mongo_ids = ("airss-1", "airss-2", "mp-755367:Cu->Na")
 
 df_mongo = df_diel_from_task_coll(
     {Key.mat_id: {"$in": airss_mongo_ids}},
-    ["output.structure", "airss_id"],
+    fields=["output.structure", "airss_id"],
     cache=False,
 )
 
-df_mongo.index = ("vasp_" + df_mongo.airss_id).fillna(df_mongo.material_id)
+df_mongo.index = ("vasp_" + df_mongo.airss_id).fillna(df_mongo[Key.mat_id])
 
 df_mongo[Key.structure].map(lambda struct: struct.add_oxidation_state_by_guess())
 

@@ -40,9 +40,13 @@ fom_vals = np.outer(np.arange(y_max + 1), np.arange(x_max + 1))
 for ax, x_col in zip(
     axs.flat, (Key.diel_total_mp, Key.diel_elec_wren, Key.diel_elec_mp), strict=True
 ):
-    df = df_diel_mp.query(f"0 < {x_col} < {x_max}")
+    df_diel_mp_clean = df_diel_mp.query(f"0 < {x_col} < {x_max}")
     *_, mappable = ax.hist2d(
-        df[x_col], df[Key.bandgap_mp], bins=(150, 150), cmin=1, cmap="Blues_r"
+        df_diel_mp_clean[x_col],
+        df_diel_mp_clean[Key.bandgap_mp],
+        bins=(150, 150),
+        cmin=1,
+        cmap="Blues_r",
     )
 
     diel_part = x_col.split("_")[1]  # Key.diel_total_mp -> "total"
@@ -70,7 +74,7 @@ for ax, x_col in zip(
     )
 
     # Annotation of scatter points with fom_level > 240
-    for row in df.to_dict(orient="records"):
+    for row in df_diel_mp_clean.to_dict(orient="records"):
         fom_row = row[x_col] * row[Key.bandgap_mp]
         if "total" in x_col and fom_row > 600:
             continue  # don't overwrite the 'Flash storage'/'CPU'/'RAM' bubbles

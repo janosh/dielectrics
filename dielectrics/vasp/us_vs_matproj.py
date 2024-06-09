@@ -127,7 +127,7 @@ for ax in (ax1, ax2):
     ax.axline([2, 2], [3, 3], color="black", linestyle="dashed", alpha=0.5, zorder=0)
 
 for row in df_mp.itertuples():
-    mp_id = row.material_id
+    mp_id = row[Key.mat_id]
     ax1.annotate(
         mp_id, (row.diel_electronic_mp, row.diel_elec_pbe), ha="center", va="top"
     )

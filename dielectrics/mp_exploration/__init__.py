@@ -50,16 +50,20 @@ def fetch_mp_dielectric_structures(query: str | dict[str, Any]) -> pd.DataFrame:
     """
     mp_diel_train_data = MPRester().query(criteria=query, properties=target_properties)
 
-    df = pd.DataFrame(mp_diel_train_data)
+    df_mp_diel_train = pd.DataFrame(mp_diel_train_data)
 
-    if "diel" in df:
-        df_diel = pd.json_normalize(df.pop("diel"))
-        df[list(df_diel)] = df_diel.to_numpy()
+    if "diel" in df_mp_diel_train:
+        df_diel = pd.json_normalize(df_mp_diel_train.pop("diel"))
+        df_mp_diel_train[list(df_diel)] = df_diel.to_numpy()
 
-    df = df.rename(columns=column_rename_map)
+    df_mp_diel_train = df_mp_diel_train.rename(columns=column_rename_map)
 
-    if Key.diel_total_mp in df:
-        df[Key.diel_elec_wren] = df.diel_total_mp - df.diel_elec_mp
-        df[Key.fom_mp] = df.diel_total_mp * df.bandgap_mp
+    if Key.diel_total_mp in df_mp_diel_train:
+        df_mp_diel_train[Key.diel_elec_wren] = (
+            df_mp_diel_train.diel_total_mp - df_mp_diel_train.diel_elec_mp
+        )
+        df_mp_diel_train[Key.fom_mp] = (
+            df_mp_diel_train.diel_total_mp * df_mp_diel_train.bandgap_mp
+        )
 
-    return df
+    return df_mp_diel_train

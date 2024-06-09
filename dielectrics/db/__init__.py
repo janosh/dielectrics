@@ -1,6 +1,6 @@
 import re
 from collections.abc import Sequence
-from datetime import date
+from datetime import datetime, timezone
 from typing import Any
 
 from bson.json_util import dumps, loads
@@ -45,6 +45,7 @@ def update_str_in_collection(
     db: Database,
     collection_name: str,
     replacements: dict[str, str],
+    *,
     query: dict[str, Any] = None,
     dry_run: bool = True,
     force_clear: bool = False,
@@ -132,7 +133,9 @@ def update_str_in_collection(
             )
 
         # archive the old collection
-        coll.rename(f"{coll.name}_xiv_{date.today()}")
+
+        today = datetime.now(tz=timezone.utc).date()
+        coll.rename(f"{coll.name}_arxiv_{today}")
         # move temp collection to collection
         tmp_coll.rename(coll.name)
 
