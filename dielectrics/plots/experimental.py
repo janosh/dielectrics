@@ -1,12 +1,24 @@
 # %%
+import os
+
+
+# ensure mcsqs and str2cif are in the path
+os.environ["PATH"] += f":{(module_dir := os.path.dirname(__file__))}/atat_bin:"
 import pandas as pd
 import plotly.express as px
+from pymatgen.core import Structure
+from pymatgen.transformations.advanced_transformations import (
+    OrderDisorderedStructureTransformation,
+    SQSTransformation,
+)
 from pymatgen.util.string import htmlify
+from pymatviz import plot_xrd_pattern, set_plotly_template
 from pymatviz.io import save_fig
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 
 
+set_plotly_template("pymatviz_white")
 px.defaults.labels |= {
     Key.freq: "Frequency (Hz)",
     Key.fr_min_e: r"$\sqrt{F(R)-E}$",
@@ -266,3 +278,58 @@ for material in materials:
     fig_xrd.layout.xaxis.update(title_standoff=0)
     fig_xrd.show()
     save_fig(fig_xrd, f"{PAPER_FIGS}/exp-rietveld-{material}.pdf")
+
+
+# %%
+for material in materials:
+    exp_struct = Structure.from_file(f"{DATA_DIR}/experiment/{material}.cif")
+    print(f"--- {material} ---\n\n{exp_struct.get_space_group_info()=}")
+    sqs_struct: Structure = SQSTransformation(scaling=(1, 1, 2)).apply_transformation(
+        exp_struct
+    )
+    sqs_struct.to(f"{DATA_DIR}/experiment/{material}-sqs.cif")
+    print(f"{sqs_struct.get_space_group_info()=}")
+
+    # CsTaTeO6-Fd3m ran for one hour with sqs_method='mcsqs' on an M3 MacBook Pro
+    # without finishing. tried scaling 2, 4, 6 and (2, 1, 1), (1, 2, 1), (1, 1, 2)
+    # only the Ta/Te (0, 0, 0) in CsTaTeO6 is disordered so unclear why it takes so long
+    n_sqs_sites = {"Bi2Zr2O7-Fm3m": 48, "CsTaTeO6-Fd3m": None}
+    if len(sqs_struct) != n_sqs_sites[material]:
+        raise ValueError(
+            f"Unexpected number of sites in SQS structure "
+            f"{len(sqs_struct)=} != {material=}"
+        )
+    exp_struct.add_oxidation_state_by_guess()
+    ordered_struct = OrderDisorderedStructureTransformation().apply_transformation(
+        exp_struct
+    )
+    ordered_struct.get_space_group_info()
+
+
+# %% compare experimental and DFT XRD for Bi2Zr2O7
+exp_zbo = Structure.from_file(f"{DATA_DIR}/experiment/Bi2Zr2O7-Fm3m.cif")
+pbe_zbo = Structure.from_file(f"{DATA_DIR}/experiment/mp-756175-Zr2Bi2O7-dft-pbe.cif")
+
+fig = plot_xrd_pattern(
+    {
+        f"Exp {exp_zbo.formula} ({exp_zbo.get_space_group_info()[1]})": exp_zbo,
+        f"PBE {pbe_zbo.formula} ({pbe_zbo.get_space_group_info()[1]})": pbe_zbo,
+    }
+)
+save_fig(fig, f"{PAPER_FIGS}/xrd-Bi2Zr2O7-exp-vs-dft.pdf")
+
+
+# %% compare experimental and DFT XRD for CsTaTeO6
+exp_cto = Structure.from_file(f"{DATA_DIR}/experiment/CsTaTeO6-Fd3m.cif")
+pbe_cto = Structure.from_file(
+    f"{DATA_DIR}/experiment/mp-1225854-W->Te-CsTaTeO6-dft-pbe.cif"
+)
+
+fig = plot_xrd_pattern(
+    {
+        f"Exp {exp_cto.formula} ({exp_cto.get_space_group_info()[1]})": exp_cto,
+        f"PBE {pbe_cto.formula} ({pbe_cto.get_space_group_info()[1]})": pbe_cto,
+    }
+)
+fig.show()
+save_fig(fig, f"{PAPER_FIGS}/xrd-CsTaTeO6-exp-vs-dft.pdf")

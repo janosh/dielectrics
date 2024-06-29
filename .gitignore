@@ -20,6 +20,10 @@ calcs
 *.json.bz2
 *.csv.bz2
 *.pkl*
+*.tar.gz
 
 # logs
 */airss/**/*.castep
+
+# SQS structure transformation binaries
+dielectrics/plots/atat_bin
