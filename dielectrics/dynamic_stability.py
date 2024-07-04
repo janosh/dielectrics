@@ -53,12 +53,11 @@ assert len(df_phonon) == 2532, f"{len(df_phonon)=}"
 # %% %
 df_tmp = pd.DataFrame(lst[-1]["output"] for lst in df_phonon.calcs_reversed)
 df_tmp.index = df_phonon.index
-df_tmp = df_tmp.rename(
-    columns=dict(
-        normalmode_eigenvals=Key.dyn_mat_eigen_vals,
-        normalmode_eigenvecs=Key.dyn_mat_eigen_vecs,
-    )
+col_map = dict(
+    normalmode_eigenvals=Key.dyn_mat_eigen_vals,
+    normalmode_eigenvecs=Key.dyn_mat_eigen_vecs,
 )
+df_tmp = df_tmp.rename(columns=col_map)
 df_phonon[list(df_tmp)] = df_tmp
 
 df_phonon[Key.phonon_freqs] = df_phonon[Key.dyn_mat_eigen_vals].map(

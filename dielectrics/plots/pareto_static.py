@@ -5,9 +5,10 @@ import pandas as pd
 import plotly.express as px
 import seaborn as sns
 from matplotlib.patches import Patch
+from pymatgen.util.string import htmlify
 from pymatviz.io import save_fig
 
-from dielectrics import DATA_DIR, PAPER_FIGS, Key, today
+from dielectrics import DATA_DIR, PAPER_FIGS, Key, SelectionStatus, today
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
@@ -40,6 +41,9 @@ df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
 # %%
 df_us = df_diel_from_task_coll({})
 assert all(df_us[Key.diel_total_pbe] > 0), "negative dielectric, this shouldn't happen"
+assert len(df_us) == 2_532
+df_us = df_us.query(f"{Key.diel_elec_pbe} < 100")
+assert len(df_us) == 2_522
 
 
 # %%
@@ -110,21 +114,21 @@ ax.set_xlabel(r"$\epsilon_\text{total}$")
 ax.set_ylabel(r"$E_\text{gap\ PBE}$ (eV)")
 
 # ax.set(xlim=[0, xmax := 400], ylim=[0, ymax := 8])
-ax.set(xscale="log", yscale="log", xlim=(1, xmax := 1800), ylim=(0.3, ymax := 15))
+ax.set(xscale="log", yscale="log", xlim=(1, x_max := 1800), ylim=(0.3, y_max := 15))
 
 isoline_label_kwds = dict(inline_spacing=3, fontsize=10, inline=True)
 
-fom_vals = np.outer(np.arange(ymax + 1), np.arange(xmax + 1))
+fom_vals = np.outer(np.arange(y_max + 1), np.arange(x_max + 1))
 fom_levels = (30, 60, 120, 240)
 fom_isolines = ax.contour(
     fom_vals, levels=fom_levels, linestyles="--", colors=["darkblue"], zorder=0
 )
-fom_manual_locations = [(x / (ymax - 4), ymax - 4) for x in fom_levels]
+fom_manual_locations = [(x / (y_max - 4), y_max - 4) for x in fom_levels]
 ax.clabel(fom_isolines, manual=fom_manual_locations, **isoline_label_kwds)
 
 show_fitness_isolines = False
 if show_fitness_isolines:
-    fitness_vals = np.outer(np.arange(ymax + 1), np.sqrt(np.arange(xmax + 1)))
+    fitness_vals = np.outer(np.arange(y_max + 1), np.sqrt(np.arange(x_max + 1)))
     fitness_levels = [15, 30, 60]
     fitness_isolines = ax.contour(
         fitness_vals,
@@ -134,7 +138,7 @@ if show_fitness_isolines:
         zorder=0,
     )
     fitness_manual_locations = [
-        ((x / (ymax - 6)) ** 2, ymax - 6) for x in fitness_levels
+        ((x / (y_max - 6)) ** 2, y_max - 6) for x in fitness_levels
     ]
     ax.clabel(fitness_isolines, manual=fitness_manual_locations, **isoline_label_kwds)
 
@@ -192,7 +196,7 @@ col_map = {
     Key.bandgap_mp: Key.bandgap_pbe,
     Key.bandgap_us: Key.bandgap_pbe,
 }
-src_col = "Source"
+src_col = "Data Source"
 
 df_us[src_col] = f"{len(df_us):,} this work"
 df_qz3[src_col] = f"{len(df_qz3):,} Qu et al. 2020"
@@ -215,6 +219,8 @@ fig = px.scatter(
     log_y=True,
     symbol=src_col,  # change markers for each dataset
     opacity=0.7,
+    render_mode="svg",  # prevents plotly from using ScatterGL, needed for df_synth
+    # markers to appear above other traces
 )
 
 # make marginals narrower
@@ -226,25 +232,42 @@ fig.layout.yaxis2.update(domain=[0, 0.83], mirror=False)
 fig.layout.yaxis3.update(domain=[0.86, 1], range=(-1, 2.5))
 
 # add FoM isolines
-xmax, ymax = 1000, 14
-fig.layout.xaxis.update(range=[-0.02, np.log10(xmax)])
-fig.layout.yaxis.update(range=[-2.1, np.log10(ymax)])
-x_range = np.logspace(np.log10(1), np.log10(xmax), 100)
-y_range = np.logspace(np.log10(0.015), np.log10(ymax), 100)
-xs, ys = np.meshgrid(x_range, y_range)
+x_max, y_max = 1000, 14
+fig.layout.xaxis.update(range=[-0.02, np.log10(x_max)])
+fig.layout.yaxis.update(range=[-2.1, np.log10(y_max)])
+x_log_range = np.logspace(np.log10(1), np.log10(x_max), 100)
+y_log_range = np.logspace(np.log10(0.015), np.log10(y_max), 100)
+xs, ys = np.meshgrid(x_log_range, y_log_range)
 zs = xs * ys
 
 for level in (30, 60, 120, 240):
     contour_kwds = dict(coloring="lines", showlabels=True, labelfont=dict(size=16))
     fig.add_contour(
-        x=x_range,
-        y=y_range,
+        x=x_log_range,
+        y=y_log_range,
         z=zs,
-        colorscale="Blues",
+        colorscale="turbid",
         contours=dict(start=level, end=level, **contour_kwds),
         line=dict(dash="dash", width=2),
         showscale=False,
     )
+
+# highlight experimentally synthesized materials in pareto-us-vs-petousis-vs-qu-plotly
+synth_color = sns.color_palette("tab10").as_hex()[3]
+df_synth = df_us.query(
+    f"{Key.selection_status} == '{SelectionStatus.selected_for_synthesis}'"
+)
+for idx, row in enumerate(df_synth.itertuples()):
+    fig.add_scatter(
+        x=[row.diel_total_pbe],
+        y=[row.bandgap_us],
+        mode="markers",
+        marker=dict(
+            size=15, symbol="cross" if idx % 2 == 0 else "x", color=synth_color
+        ),
+        name=htmlify(row.formula),
+    )
+
 
 fig.layout.legend.update(
     x=0, y=0, title=None, itemsizing="constant", bgcolor="rgba(255,255,255,0.5)"

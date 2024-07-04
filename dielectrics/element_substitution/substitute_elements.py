@@ -46,7 +46,7 @@ df_elem_sub_seeds["elem_list"] = df_elem_sub_seeds[Key.wyckoff].map(
 
 # %%
 dfs, n_iters = [], 1000
-for _ in tqdm(range(n_iters)):  #
+for _ in tqdm(range(n_iters)):
     df_tmp = df_elem_sub_seeds[[Key.mat_id, Key.formula, "elem_list", Key.wyckoff]]
 
     # elem_swap is a tuple of two element symbols: (elem_orig, elem_new)

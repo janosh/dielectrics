@@ -1,9 +1,11 @@
 import os
 from datetime import datetime, timezone
-from enum import StrEnum, unique
+from enum import unique
 
 import plotly.express as px
 from matplotlib import pyplot as plt
+from pymatviz import set_plotly_template
+from pymatviz.enums import LabelEnum
 from pymatviz.utils import styled_html_tag
 
 
@@ -14,11 +16,12 @@ DATA_DIR = f"{ROOT}/data"
 SCRIPTS_DIR = f"{ROOT}/scripts"
 today = f"{datetime.now(tz=timezone.utc):%Y-%m-%d}"
 
+set_plotly_template("pymatviz_white")
 plt.rcParams["figure.constrained_layout.use"] = True
 
 
 @unique
-class Key(StrEnum):
+class Key(LabelEnum):
     """Dataframe column names."""
 
     bandgap = "bandgap"
@@ -67,9 +70,8 @@ class Key(StrEnum):
     min_ph_freq = "min_phonon_frequency"
     n_sites = "n_sites"  # number of sites in the unit cell
     phonon_freqs = "phonon_frequencies"
-    selection_status = (
-        "selection_status"  # synthesis selection status of candidate materials
-    )
+    # synthesis selection status of candidate materials
+    selection_status = "selection_status"
     spg = "spacegroup"  # international space group number
     structure = "structure"
     symmetry = "symmetry"
@@ -116,11 +118,12 @@ px.defaults.labels |= {
 }
 
 
-class SelectionStatus(StrEnum):
+class SelectionStatus(LabelEnum):
     """Enum for synthesis selection status of candidate materials."""
 
-    confirmed = "confirmed dielectric"
+    confirmed = "confirmed dielectric"  # according to literature mention
     discarded = "discarded"
-    strong_candidate = "strong candidate"
+    strong_candidate = "strong candidate"  # promising candidate for exp. synthesis
     weak_candidate = "weak candidate"
+    # to be synthesized if time/resources allow
     selected_for_synthesis = "selected for synthesis"

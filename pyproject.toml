@@ -72,10 +72,11 @@ ignore = [
   "INP001",  # implicit namespace package
   "ISC001",
   "PERF203", # try-except-in-loop
-  "PLR",     # pylint refactor
+  "PLR0913", # too many arguments
+  "PLR0915", # too many statements
+  "PLR2004", # magic value comparison
   "PLW2901", # Outer for loop variable overwritten by inner assignment target
   "PTH",
-  "RUF013",  # implicit-optional
   "S101",    # Use of assert detected
   "S108",
   "S311",

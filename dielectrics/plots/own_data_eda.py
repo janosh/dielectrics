@@ -38,6 +38,20 @@ df_us = df_us.query(f"{Key.diel_elec_pbe} < 100")
 df_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 
+# %% get DFPT counts by structure origin (MP, WBM, element substitution)
+n_dfpt_total = len(df_us)
+print(f"{n_dfpt_total=:,}")
+
+n_dfpt_elem_sub = df_us.index.str.contains("->").sum()
+print(f"{n_dfpt_elem_sub=:,}")
+
+n_dfpt_mp = (df_us.index.str.startswith("mp-") & ~df_us.index.str.contains("->")).sum()
+print(f"{n_dfpt_mp=:,}")
+
+n_dfpt_wbm = df_us.index.str.startswith("wbm-").sum()
+print(f"{n_dfpt_wbm=:,}")
+
+
 # %% recreate figure 3 from Atomate Dielectric paper https://rdcu.be/clY2X with MP
 # dielectric data
 df_melted = df_us.query("0 < diel_total_pbe < 1000").melt(
@@ -212,7 +226,7 @@ for col, title in (
     (Key.fom_pbe, r"$\mathbf{\Phi_M}$"),
     (Key.diel_ionic_pbe, r"$\mathbf{\epsilon}_\text{ionic}$"),
     (Key.diel_elec_pbe, r"$\mathbf{\epsilon}_\text{electronic}$"),
-    (Key.bandgap_pbe, r"$\mathbf{E}_\text{gap}$"),
+    (Key.bandgap_pbe, r"$\mathbf{E}_\text{gap}$ (eV)"),
 ):
     df_per_elem = df_frac_comp * df_us[col].to_numpy()[:, None]
     srs_per_elem = df_per_elem.mean(axis=0)

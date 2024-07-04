@@ -46,7 +46,7 @@ def update_str_in_collection(
     collection_name: str,
     replacements: dict[str, str],
     *,
-    query: dict[str, Any] = None,
+    query: dict[str, Any] | None = None,
     dry_run: bool = True,
     force_clear: bool = False,
     regex: bool = False,
