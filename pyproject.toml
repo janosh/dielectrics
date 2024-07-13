@@ -36,6 +36,7 @@ single_use_deps = [
   "robocrys",
   "scikit_learn",
   "seaborn",
+  "adjustText"
 ]
 
 [tool.setuptools.packages]

@@ -29,7 +29,8 @@ df_all[Key.structure] = [
     for obj in df_all[Key.structure]
 ]
 for row in df_all.itertuples():
-    row.structure.properties["id"] = row[Key.mat_id]
+    row.structure.properties["id"] = getattr(row, Key.mat_id)
+
 if Key.selection_status in df_all:
     df_synth = df_all.query(
         f"{Key.selection_status} == '{SelectionStatus.selected_for_synthesis}'"

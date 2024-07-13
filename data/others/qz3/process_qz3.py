@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import gzip
+import os
 import pickle
 from typing import TYPE_CHECKING, Any
 
 import pandas as pd
+import requests
 from pymatgen.core import Composition
 from tqdm import tqdm
 
@@ -19,6 +21,22 @@ if TYPE_CHECKING:
 __author__ = "Janosh Riebesell"
 __date__ = "2023-11-19"
 
+# %%
+filename = "dielectrics.json"
+url = "https://doi.org/10.6084/m9.figshare.10482707.v2"
+
+if not os.path.exists(filename):
+    response = requests.get("https://figshare.com/ndownloader/files/18979829")  # noqa: S113
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Write the content to a file
+        with open("dielectrics.json", "wb") as file:
+            file.write(response.content)
+        print(f"File downloaded successfully: {filename}")
+    else:
+        raise RuntimeError(f"Failed to download file. Status code: {response.status_code}")
+
 
 # %% download JSON file from https://doi.org/10.6084/m9.figshare.10482707.v2
 # needs manual renaming of column names to match our own naming scheme
@@ -31,29 +49,33 @@ def extract_len1_lists(lst: list[Any]) -> Any:
     """Extract values from single-element lists."""
     return lst[0] if isinstance(lst, list) and len(lst) == 1 else lst
 
-
-# %%
 for col in df_qz3:
     df_qz3[col] = df_qz3[col].map(extract_len1_lists)
     df_qz3[col] = df_qz3[col].map(extract_len1_lists)
     df_qz3[col] = df_qz3[col].map(extract_len1_lists)
 
+# %%
 df_qz3[[Key.formula, "formula_factor"]] = pd.DataFrame(df_qz3[Key.formula].to_list())
 df_qz3 = df_qz3.round(4)
 
-df_qz3[Key.fom_pbe] = df_qz3.bandgap_pbe * df_qz3.diel_total_pbe
-
 # rename columns containing dielectric tensors
 df_qz3 = df_qz3.rename(
-    columns={"e_total": "eps_total", "e_electronic": "eps_electronic"}
+    columns={
+        "bandgap": Key.bandgap_pbe.value,
+        "e_poly": Key.diel_total_pbe.value,
+        "e_total": "eps_total",
+        "e_electronic": "eps_electronic",
+    }
 )
 
+df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
 
 # %%
 df_qz3.hist(bins=100, figsize=(14, 10))
 
 
 # %%
+# FIXME need the ppd?
 ppd_path = f"{PKG_DIR}/patched_phase_diagram/2022-01-25-ppd-mp+wbm.pkl.gz"
 
 with gzip.open(ppd_path, "rb") as file:

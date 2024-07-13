@@ -4,7 +4,6 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Any
 
-import crystal_toolkit.components as ctc
 import dash
 import numpy as np
 import pandas as pd
@@ -13,7 +12,6 @@ import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from bson import ObjectId
 from bson.objectid import InvalidId
-from crystal_toolkit.settings import SETTINGS as CTK_SETTINGS
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from plotly.validators.scatter.marker import SymbolValidator
@@ -23,6 +21,12 @@ from dielectrics import DATA_DIR, Key, SelectionStatus, today
 from dielectrics.db import db
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
+try:
+    import crystal_toolkit.components as ctc
+    from crystal_toolkit.settings import SETTINGS as CTK_SETTINGS
+except ImportError:
+    ctc = None
+    CTK_SETTINGS = {}
 
 if TYPE_CHECKING:
     from pymatgen.core import Structure
@@ -61,14 +65,17 @@ hover_data_keys = dict(
 # %% see db/readme.md for details on how candidates in each df were selected
 df_all = df_diel_from_task_coll({}, cache=True).round(3)
 
+# %%
 df_diel_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 # discard negative and unrealistically large dielectric constants
 df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 2000").round(3)
 
+# %%
 # qz3 for author last name initials (https://rdcu.be/cCMga)
 # unprocessed JSON from https://doi.org/10.6084/m9.figshare.10482707.v2
 df_qz3 = pd.read_csv(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2").round(3)
 
+# %%
 df_yim = pd.read_json(f"{DATA_DIR}/others/yim/dielectrics.json.bz2")
 df_yim = df_yim.query(f"0 < {Key.diel_total_pbe} < 1000").rename(
     columns={"possible_mp_id": Key.mat_id}

@@ -1,9 +1,6 @@
 # %%
 import os
 
-
-# ensure mcsqs and str2cif are in the path
-os.environ["PATH"] += f":{(module_dir := os.path.dirname(__file__))}/atat_bin:"
 import pandas as pd
 import plotly.express as px
 from pymatgen.core import Structure
@@ -17,6 +14,12 @@ from pymatviz.io import save_fig
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 
+
+os.makedirs(PAPER_FIGS, exist_ok=True)
+os.makedirs(f"{PAPER_FIGS}/experiment", exist_ok=True)
+
+# ensure mcsqs and str2cif are in the path
+os.environ["PATH"] += f":{(module_dir := os.path.dirname(__file__))}/atat_bin:"
 
 set_plotly_template("pymatviz_white")
 px.defaults.labels |= {
@@ -280,6 +283,35 @@ for material in materials:
     save_fig(fig_xrd, f"{PAPER_FIGS}/exp-rietveld-{material}.pdf")
 
 
+# %% compare experimental and DFT XRD for Bi2Zr2O7
+exp_zbo = Structure.from_file(f"{DATA_DIR}/experiment/Bi2Zr2O7-Fm3m.cif")
+pbe_zbo = Structure.from_file(f"{DATA_DIR}/experiment/mp-756175-Zr2Bi2O7-dft-pbe.cif")
+
+fig = plot_xrd_pattern(
+    {
+        f"Exp {exp_zbo.formula} ({exp_zbo.get_space_group_info()[1]})": exp_zbo,
+        f"PBE {pbe_zbo.formula} ({pbe_zbo.get_space_group_info()[1]})": pbe_zbo,
+    }
+)
+fig.show()
+save_fig(fig, f"{PAPER_FIGS}/xrd-Bi2Zr2O7-exp-vs-dft.pdf")
+
+
+# %% compare experimental and DFT XRD for CsTaTeO6
+exp_cto = Structure.from_file(f"{DATA_DIR}/experiment/CsTaTeO6-Fd3m.cif")
+pbe_cto = Structure.from_file(
+    f"{DATA_DIR}/experiment/mp-1225854-W->Te-CsTaTeO6-dft-pbe.cif"
+)
+
+fig = plot_xrd_pattern(
+    {
+        f"Exp {exp_cto.formula} ({exp_cto.get_space_group_info()[1]})": exp_cto,
+        f"PBE {pbe_cto.formula} ({pbe_cto.get_space_group_info()[1]})": pbe_cto,
+    }
+)
+fig.show()
+save_fig(fig, f"{PAPER_FIGS}/xrd-CsTaTeO6-exp-vs-dft.pdf")
+
 # %%
 for material in materials:
     exp_struct = Structure.from_file(f"{DATA_DIR}/experiment/{material}.cif")
@@ -304,32 +336,3 @@ for material in materials:
         exp_struct
     )
     ordered_struct.get_space_group_info()
-
-
-# %% compare experimental and DFT XRD for Bi2Zr2O7
-exp_zbo = Structure.from_file(f"{DATA_DIR}/experiment/Bi2Zr2O7-Fm3m.cif")
-pbe_zbo = Structure.from_file(f"{DATA_DIR}/experiment/mp-756175-Zr2Bi2O7-dft-pbe.cif")
-
-fig = plot_xrd_pattern(
-    {
-        f"Exp {exp_zbo.formula} ({exp_zbo.get_space_group_info()[1]})": exp_zbo,
-        f"PBE {pbe_zbo.formula} ({pbe_zbo.get_space_group_info()[1]})": pbe_zbo,
-    }
-)
-save_fig(fig, f"{PAPER_FIGS}/xrd-Bi2Zr2O7-exp-vs-dft.pdf")
-
-
-# %% compare experimental and DFT XRD for CsTaTeO6
-exp_cto = Structure.from_file(f"{DATA_DIR}/experiment/CsTaTeO6-Fd3m.cif")
-pbe_cto = Structure.from_file(
-    f"{DATA_DIR}/experiment/mp-1225854-W->Te-CsTaTeO6-dft-pbe.cif"
-)
-
-fig = plot_xrd_pattern(
-    {
-        f"Exp {exp_cto.formula} ({exp_cto.get_space_group_info()[1]})": exp_cto,
-        f"PBE {pbe_cto.formula} ({pbe_cto.get_space_group_info()[1]})": pbe_cto,
-    }
-)
-fig.show()
-save_fig(fig, f"{PAPER_FIGS}/xrd-CsTaTeO6-exp-vs-dft.pdf")
