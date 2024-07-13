@@ -167,7 +167,7 @@ plt.legend()
 
 plt.xlim((0, 16))
 plt.ylim((0, 9.5))
-# # plt.savefig("plots/diel-elec-vs-bandgap-front-hexbin.pdf")
+# # plt.savefig(f"{PAPER_FIGS}/diel-elec-vs-bandgap-front-hexbin.pdf")
 
 
 # %%
@@ -189,19 +189,19 @@ plt.ylabel(r"PBE Bandgap $E_\mathrm{gap}$ / eV")
 
 plt.xlim((None, 8))
 plt.ylim((-0.1, 9.5))
-# plt.savefig("plots/diel-elec-vs-bandgap.pdf")
+# plt.savefig(f"{PAPER_FIGS}/diel-elec-vs-bandgap.pdf")
 
 
 # %%
 ptable_heatmap(df_diel_mp[Key.formula], log=True)
 plt.title("Elemental Prevalence among MP Dielectric Training Materials")
-# plt.savefig("plots/mp-diel-train-elements-log.pdf")
+# plt.savefig(f"{PAPER_FIGS}/mp-diel-train-elements-log.pdf")
 
 
 # %%
 spacegroup_hist(df_diel_mp["spacegroup.number"])
 plt.title("Spacegroup distribution among MP Dielectric Training Materials")
-# plt.savefig("plots/mp-diel-train-spacegroup-hist.pdf")
+# plt.savefig(f"{PAPER_FIGS}/mp-diel-train-spacegroup-hist.pdf")
 
 
 # %%
@@ -211,13 +211,13 @@ df_diel_screen = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-diel-screen.csv.bz2"
 # %%
 ptable_heatmap(df_diel_screen[Key.formula], log=True)
 plt.title("Elemental Prevalence among MP Dielectric Screening Materials")
-# plt.savefig("plots/mp-diel-screen-elements-log.pdf")
+# plt.savefig(f"{PAPER_FIGS}/mp-diel-screen-elements-log.pdf")
 
 
 # %%
 spacegroup_hist(df_diel_screen["spacegroup_mp"])
 plt.title("Spacegroup distribution among MP Dielectric Screening Materials")
-# plt.savefig("plots/mp-diel-screen-spacegroup-hist.pdf")
+# plt.savefig(f"{PAPER_FIGS}/mp-diel-screen-spacegroup-hist.pdf")
 
 
 # %%
@@ -280,5 +280,5 @@ for cry_sys, df_group in df_diel_mp.groupby(Key.crystal_sys):
 
 fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=list(x_ticks.values()))
 
-# fig.write_image("plots/mp-diel-elec-vs-ionic-strip.pdf")
+# fig.write_image(f"{PAPER_FIGS}/mp-diel-elec-vs-ionic-strip.pdf")
 fig.show()

@@ -4,7 +4,7 @@ from itertools import combinations
 import pandas as pd
 from pymatviz import annotate_metrics
 
-from dielectrics import DATA_DIR, Key
+from dielectrics import DATA_DIR, Key, PAPER_FIGS
 from dielectrics.plots import plt
 
 
@@ -95,7 +95,7 @@ for ax, (col1, col2) in zip(
 
 fig.tight_layout()
 
-plt.savefig("plots/exp-vs-wren-vs-mp-diel-total.pdf")
+plt.savefig(f"{PAPER_FIGS}/exp-vs-wren-vs-mp-diel-total.pdf")
 
 
 # %%
@@ -122,4 +122,4 @@ for ax, wren in zip(axs, ("wren", "robust_wren"), strict=True):
 
 fig.tight_layout()
 
-plt.savefig("plots/exp-vs-wren-std-diel-total.pdf")
+plt.savefig(f"{PAPER_FIGS}/exp-vs-wren-std-diel-total.pdf")

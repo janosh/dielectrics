@@ -144,7 +144,7 @@ ax.set_title(title, y=1.03, fontsize=14)
 
 annotate_metrics(df_exp.n_exp, df_exp.n_petousis, loc="upper left")
 
-# plt.savefig("plots/refractive-index-exp-petousis.pdf")
+# plt.savefig(f"{PAPER_FIGS}/refractive-index-exp-petousis.pdf")
 
 
 # %%

@@ -4,7 +4,7 @@ import plotly.express as px
 from pymatgen.ext.matproj import MPRester
 from pymatviz.powerups import add_identity_line
 
-from dielectrics import Key, today
+from dielectrics import Key, today, PAPER_FIGS
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 from dielectrics.plots import plt
 
@@ -58,7 +58,7 @@ n_us_vs_n_mp_title = (
 ax.set_title(n_us_vs_n_mp_title, y=1.02)
 ax.annotate(today, xy=(1, -0.2), xycoords=ax.transAxes)
 ax.axline([10, 10], [11, 11], c="black", ls="dashed", alpha=0.5, zorder=0)
-# plt.savefig("plots/us-vs-mp-refractive-n.pdf")
+# plt.savefig(f"{PAPER_FIGS}/us-vs-mp-refractive-n.pdf")
 
 
 # %%
@@ -134,4 +134,4 @@ for row in df_mp.itertuples():
     ax2.annotate(mp_id, (row.diel_total_mp, row.diel_total_pbe), ha="center", va="top")
 
 
-# plt.savefig("plots/us-vs-mp-total-diel.png")
+# plt.savefig(f"{PAPER_FIGS}/us-vs-mp-total-diel.png")

@@ -8,7 +8,7 @@ from pymatgen.core import Composition
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp import Kpoints
 
-from dielectrics import Key, DATA_DIR
+from dielectrics import Key, DATA_DIR, PAPER_FIGS
 from dielectrics.plots import plt
 
 
@@ -82,7 +82,7 @@ df_input.sample(1000).plot.scatter(x=Key.date, y="incar.EDIFF", ax=axs[0])
 df_input.sample(1000).plot.scatter(x=Key.date, y="incar.ENCUT", ax=axs[1])
 
 
-plt.savefig("plots/mp-diel-ediff+encut-over-time.pdf")
+plt.savefig(f"{PAPER_FIGS}/mp-diel-ediff+encut-over-time.pdf")
 
 
 # %% important to convert to Composition for 'in' check as Osmium would also give true

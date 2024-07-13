@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from pymatviz import density_hexbin, roc_curve
 
-from dielectrics import DATA_DIR, Key
+from dielectrics import DATA_DIR, Key, PAPER_FIGS
 from dielectrics.plots import plt
 
 
@@ -193,4 +193,4 @@ ax10.set_title(
 )
 
 
-# plt.savefig("plots/wren-bandgap-non-metal-density-scatter.pdf")
+# plt.savefig(f"{PAPER_FIGS}/wren-bandgap-non-metal-density-scatter.pdf")

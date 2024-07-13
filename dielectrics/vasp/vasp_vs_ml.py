@@ -5,7 +5,7 @@ import pandas as pd
 from pymatviz import ptable_heatmap
 from sklearn.metrics import r2_score
 
-from dielectrics import DATA_DIR, Key
+from dielectrics import DATA_DIR, Key, PAPER_FIGS
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
@@ -161,7 +161,7 @@ plt.ylabel("PBE Bandgap / eV")
 
 plt.xlim((0, xmax))
 plt.ylim((0, 9))
-# plt.savefig("plots/pareto-wren-vs-cgcnn.pdf")
+# plt.savefig(f"{PAPER_FIGS}/pareto-wren-vs-cgcnn.pdf")
 
 
 # %%
@@ -222,7 +222,7 @@ plt.title(
 plt.legend()
 plt.xlabel("VASP refractive index")
 plt.ylabel("CGCNN/Wren refractive index")
-plt.savefig("plots/wren+cgcnn-vs-vasp-top-n-scatter.pdf")
+plt.savefig(f"{PAPER_FIGS}/wren+cgcnn-vs-vasp-top-n-scatter.pdf")
 
 
 # %%
@@ -255,7 +255,7 @@ plt.title(
 plt.legend(loc="upper right")
 plt.xlabel("VASP figure of merit")
 plt.ylabel("CGCNN/Wren figure of merit")
-plt.savefig("plots/wren+cgcnn-vs-vasp-top-fom-scatter.pdf")
+plt.savefig(f"{PAPER_FIGS}/wren+cgcnn-vs-vasp-top-fom-scatter.pdf")
 
 
 # %%
@@ -267,7 +267,7 @@ plt.title(
 mae_wren = (df_vasp[Key.fom_pbe] - df_vasp[Key.fom_wren]).abs().mean()
 mae_cgcnn = (df_vasp[Key.fom_pbe] - df_vasp.fom_cgcnn).abs().mean()
 plt.legend(title=f"Wren MAE = {mae_wren:.2f}\nCGCNN MAE = {mae_cgcnn:.2f}")
-# plt.savefig("plots/vasp-vs-wren-vs-cgcnn-top-100-fom-bar.pdf")
+# plt.savefig(f"{PAPER_FIGS}/vasp-vs-wren-vs-cgcnn-top-100-fom-bar.pdf")
 
 
 # %%
@@ -335,7 +335,7 @@ plt.ylabel("PBE Bandgap / eV")
 
 plt.xlim((0, n_max**2))
 plt.ylim((0, 9))
-plt.savefig("plots/wren+cgcnn-pareto.pdf")
+plt.savefig(f"{PAPER_FIGS}/wren+cgcnn-pareto.pdf")
 
 
 # %% Quiver Plot Wren
@@ -378,7 +378,7 @@ epsilon = np.linspace(0.1, n_max**2, 50)
 for num in [4, 9, 16]:
     plt.plot(epsilon, num / epsilon, "r--")
 
-plt.savefig("plots/quiver-wren.pdf")
+plt.savefig(f"{PAPER_FIGS}/quiver-wren.pdf")
 
 
 # %% Quiver Plot CGCNN
@@ -425,7 +425,7 @@ epsilon = np.linspace(0.1, n_max**2, 50)
 for num in [4, 9, 16]:
     plt.plot(epsilon, num / epsilon, "r--")
 
-plt.savefig("plots/quiver-cgcnn.pdf")
+plt.savefig(f"{PAPER_FIGS}/quiver-cgcnn.pdf")
 
 
 # %%
