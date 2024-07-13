@@ -5,12 +5,12 @@ from matplotlib.offsetbox import AnchoredText
 from pymatviz.io import save_fig
 from sklearn.metrics import r2_score
 
-from dielectrics import PAPER_FIGS, Key
+from dielectrics import PAPER_FIGS, Key, DATA_DIR
 from dielectrics.plots import plt
 
 
 # %%
-df_diel_mp = pd.read_json("data/mp-diel-train.json.bz2")
+df_diel_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 2000")
 

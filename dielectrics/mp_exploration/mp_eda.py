@@ -16,12 +16,12 @@ from pymatgen.util.string import latexify
 from pymatviz import ptable_heatmap, spacegroup_hist
 from pymatviz.io import save_fig
 
-from dielectrics import PAPER_FIGS, Key
+from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.plots import plt
 
 
 # %%
-df_diel_mp = pd.read_json("data/mp-diel-train.json.bz2")
+df_diel_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 2000")
 # df_diel_mp[Keys.crystal_sys] = df_diel_mp.pop("spacegroup.crystal_system")
@@ -205,7 +205,7 @@ plt.title("Spacegroup distribution among MP Dielectric Training Materials")
 
 
 # %%
-df_diel_screen = pd.read_csv("data/mp-diel-screen.csv.bz2")
+df_diel_screen = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-diel-screen.csv.bz2")
 
 
 # %%

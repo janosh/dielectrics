@@ -50,18 +50,19 @@ df_diel_screen[Key.wyckoff] = [
 
 # %% save data to disk
 df_diel_train.to_json(
-    "data/mp-diel-train.json.bz2", default_handler=lambda x: x.as_dict()
+    f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2", default_handler=lambda x: x.as_dict()
 )
 
 df_diel_screen.to_json(
-    "data/mp-diel-screen.json.bz2", default_handler=lambda x: x.as_dict()
+    f"{DATA_DIR}/mp-exploration/mp-diel-screen.json.bz2", default_handler=lambda x: x.as_dict()
 )
 
 
 # %% load data from disk
-df_diel_train_2 = pd.read_json("data/mp-diel-train-2.json.bz2")
+# TODO what is train-2?
+df_diel_train_2 = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train-2.json.bz2")
 
-df_diel_screen = pd.read_csv("data/mp-diel-screen.csv.bz2")
+df_diel_screen = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-diel-screen.csv.bz2")
 
 
 # %% Enrichment Experiment 1 (small)
@@ -83,11 +84,11 @@ df_diel_enrich_train = df_diel_train[
 ]
 
 df_diel_enrich_train.to_json(
-    "data/mp-diel-enrich-small-train.json.bz2", default_handler=lambda x: x.as_dict()
+    f"{DATA_DIR}/mp-exploration/mp-diel-enrich-small-train.json.bz2", default_handler=lambda x: x.as_dict()
 )
 
 df_diel_enrich_small_test.to_json(
-    "data/mp-diel-enrich-small-test.json.bz2", default_handler=lambda x: x.as_dict()
+    f"{DATA_DIR}/mp-exploration/mp-diel-enrich-small-test.json.bz2", default_handler=lambda x: x.as_dict()
 )
 
 
@@ -97,11 +98,11 @@ df_diel_enrich_small_test.to_json(
 df_diel_enrich_big_test = df_diel_screen.append(df_diel_top_100)
 
 df_diel_remain.to_json(
-    "data/mp-diel-enrich-big-train.json.bz2", default_handler=lambda x: x.as_dict()
+    f"{DATA_DIR}/mp-exploration/mp-diel-enrich-big-train.json.bz2", default_handler=lambda x: x.as_dict()
 )
 
 df_diel_enrich_big_test.to_json(
-    "data/mp-diel-enrich-big-test.json.bz2", default_handler=lambda x: x.as_dict()
+    f"{DATA_DIR}/mp-exploration/mp-diel-enrich-big-test.json.bz2", default_handler=lambda x: x.as_dict()
 )
 
 
@@ -118,5 +119,5 @@ df_diel_train["chem_sys"] = df_diel_train[Key.formula].map(
 )
 
 df_diel_train.query("chem_sys not in @chem_sys_exp").to_json(
-    "data/mp-diel-train-excl-petousis.json.bz2", default_handler=lambda x: x.as_dict()
+    f"{DATA_DIR}/mp-exploration/mp-diel-train-excl-petousis.json.bz2", default_handler=lambda x: x.as_dict()
 )

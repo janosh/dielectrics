@@ -8,7 +8,7 @@ from pymatgen.core import Composition
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp import Kpoints
 
-from dielectrics import Key
+from dielectrics import Key, DATA_DIR
 from dielectrics.plots import plt
 
 
@@ -54,15 +54,15 @@ df_input[kpoint_cols] = pd.json_normalize(df_input.kpoints.map(lambda x: x.as_di
 
 
 # %%
-# df_input.round(4).to_csv("data/mp-diel-vasp-input.csv")
+# df_input.round(4).to_csv(f"{DATA_DIR}/mp-exploration/mp-diel-vasp-input.csv")
 
-df_input = pd.read_csv("data/mp-diel-vasp-input.csv").set_index(Key.mat_id)
+df_input = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-diel-vasp-input.csv").set_index(Key.mat_id)
 
 df_input[Key.date] = pd.to_datetime(df_input[Key.date])
 
 
 # %%
-df_structs = pd.read_json("data/mp-diel-train.json.bz2")
+df_structs = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 df_input[Key.structure] = df_structs[Key.structure]
 
