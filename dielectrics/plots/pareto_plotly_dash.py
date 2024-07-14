@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Any
 
+import crystal_toolkit.components as ctc
 import dash
 import numpy as np
 import pandas as pd
@@ -12,6 +13,7 @@ import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from bson import ObjectId
 from bson.objectid import InvalidId
+from crystal_toolkit.settings import SETTINGS as CTK_SETTINGS
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from plotly.validators.scatter.marker import SymbolValidator
@@ -21,12 +23,6 @@ from dielectrics import DATA_DIR, Key, SelectionStatus, today
 from dielectrics.db import db
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
-try:
-    import crystal_toolkit.components as ctc
-    from crystal_toolkit.settings import SETTINGS as CTK_SETTINGS
-except ImportError:
-    ctc = None
-    CTK_SETTINGS = {}
 
 if TYPE_CHECKING:
     from pymatgen.core import Structure

@@ -134,8 +134,8 @@ def df_diel_from_task_coll(
         )
     # only fetch dielectric calcs, ignore relaxations
     query["task_label"] = "static dielectric"
-    # material IDs must start with mp- or wbm-
-    query.setdefault(Key.mat_id, {"$regex": "^(mp|wbm)-"})
+    # material IDs must start with mp-, mvc- or wbm-
+    query.setdefault(Key.mat_id, {"$regex": "^(mp|mvc|wbm)-"})
 
     fields = (*fields, *REQUIRED_FIELDS)  # ensure required fields are fetched
 
@@ -223,6 +223,8 @@ def df_diel_from_task_coll(
         if f"bandgap{suffix}" in df_diel
         else df_diel[Key.bandgap_us]
     )
+    df_diel[f"bandgap{suffix}_best"] = bandgaps
+    assert bandgaps.isna().sum() == 0, f"missing {bandgaps.isna().sum()} bandgaps"
 
     df_diel[f"fom{suffix}"] = df_diel[f"diel_total{suffix}"] * bandgaps
 
@@ -238,7 +240,12 @@ def df_diel_from_task_coll(
     df_diel[Key.date] = df_diel.completed_at.str.split(" ").str[0]
 
     if drop_dup_ids:
+        n_duplicates_expected = 138
+        orig_len = len(df_diel)
         df_diel = df_diel.drop_duplicates(subset=Key.mat_id)
+        assert len(df_diel) == orig_len - n_duplicates_expected, (
+            f"{n_duplicates_expected=}, found {orig_len-len(df_diel)}"
+        )
 
     # convert structures to dict before saving to CSV
     df_diel.to_json(json_path, index=False, default_handler=lambda x: x.as_dict())
