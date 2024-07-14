@@ -11,7 +11,14 @@ __author__ = "Janosh Riebesell"
 __date__ = "2023-12-07"
 
 
-df_vasp = df_diel_from_task_coll({})
+df_vasp = df_diel_from_task_coll({}, cache=False)
+assert len(df_vasp) == 2552, f"Expected 2552 materials, got {len(df_vasp)}"
+
+# filter out rows with diel_elec > 100 since those seem untrustworthy
+# in particular wbm-4-26188 with eps_elec = 515 and mp-865145 with eps_elec = 809
+# (see table-fom-pbe-gt-350.pdf)
+df_vasp = df_vasp.query(f"{Key.diel_elec_pbe} < 100")
+assert len(df_vasp) == 2542, f"Expected 2542 materials, got {len(df_vasp)}"
 
 
 # %% Plot rolling MAE of Wren band gap and dielectric models vs DFT
@@ -95,12 +102,11 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
 
     fig.layout.margin = dict(l=20, r=20, t=20, b=20)
     fig.update_traces(marker=dict(size=4), mode="lines+markers")
-    legend_title = dict(text=f"{window=}", font=dict(size=12))
     if "wren" in x_axis_bandgap:
         fig.update_layout(showlegend=False)
     else:
         fig.layout.legend = dict(
-            x=1, y=0.15, xanchor="right", title=legend_title, bgcolor="rgba(0,0,0,0)"
+            x=1, y=0.15, xanchor="right", bgcolor="rgba(0,0,0,0)"
         )
 
     # set x-min to 0 (can't use None for xmax, has no effect)

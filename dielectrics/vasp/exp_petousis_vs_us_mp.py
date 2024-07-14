@@ -20,9 +20,9 @@ import scipy.stats
 from adjustText import adjust_text
 from aviary.wren.utils import get_aflow_label_from_spglib
 from mp_api.client import MPRester
-from pymatviz import annotate_metrics, ptable_heatmap_plotly
+from pymatviz import ptable_heatmap_plotly
 from pymatviz.io import df_to_pdf
-from pymatviz.powerups import add_identity_line
+from pymatviz.powerups import add_identity_line, annotate_metrics
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
@@ -142,7 +142,7 @@ n_points = len(df_exp.dropna(subset=["n_exp", "n_petousis"]))
 title = f"Experimental vs Petousis DFT refractive index ({n_points:,} samples)"
 ax.set_title(title, y=1.03, fontsize=14)
 
-annotate_metrics(df_exp.n_exp, df_exp.n_petousis, loc="upper left")
+annotate_metrics(df_exp.n_exp, df_exp.n_petousis, fig=ax, loc="upper left")
 
 # plt.savefig(f"{PAPER_FIGS}/refractive-index-exp-petousis.pdf")
 
@@ -223,7 +223,7 @@ for ax, (src1, src2) in zip(axs.flat, xy_pairs, strict=True):
     annotate_metrics(
         col1,
         col2,
-        ax=ax,
+        fig=ax,
         suffix=f"{outliers=:.1%}",
         fmt=".3",
         prop={"size": 13},
@@ -328,16 +328,16 @@ for formula in df_us_exp.index:
     fom_exp, fom_pbe = df_us_exp.loc[formula, [Key.fom_exp, Key.fom_pbe]]
     diel_total_exp = df_us_exp.loc[formula, Key.diel_total_exp]
 
-    percentile_exp = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_exp)
-    print(f"{formula} {percentile_exp=:.0f}")
+    percentile_fom_exp = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_exp)
+    print(f"{formula} {percentile_fom_exp=:.0f}")
 
-    percentile_pbe = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_pbe)
-    print(f"{formula} {percentile_pbe=:.0f}")
+    percentile_fom_pbe = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_pbe)
+    print(f"{formula} {percentile_fom_pbe=:.0f}")
 
-    percentile_diel = scipy.stats.percentileofscore(
-        df_exp[Key.diel_total_exp], diel_total_exp
+    percentile_diel_total_exp = scipy.stats.percentileofscore(
+       df_exp[Key.diel_total_exp], diel_total_exp
     )
-    print(f"{formula} {percentile_diel=:.0f}")
+    print(f"{formula} {percentile_diel_total_exp=:.0f}")
 
 print(
     f"\nrelative to {len(df_exp):,} Petousis-collected experimental data but using MP "

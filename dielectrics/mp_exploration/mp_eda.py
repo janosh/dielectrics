@@ -24,6 +24,8 @@ from dielectrics.plots import plt
 df_diel_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 2000")
+df_diel_mp["spacegroup.number"] = df_diel_mp["wyckoff"].str.split("_").str[2].astype(int)
+
 # df_diel_mp[Keys.crystal_sys] = df_diel_mp.pop("spacegroup.crystal_system")
 
 
@@ -38,7 +40,7 @@ x_max, y_max = 400, 8
 fom_vals = np.outer(np.arange(y_max + 1), np.arange(x_max + 1))
 
 for ax, x_col in zip(
-    axs.flat, (Key.diel_total_mp, Key.diel_elec_wren, Key.diel_elec_mp), strict=True
+    axs.flat, (Key.diel_total_mp, Key.diel_ionic_mp, Key.diel_elec_mp), strict=True
 ):
     df_diel_mp_clean = df_diel_mp.query(f"0 < {x_col} < {x_max}")
     *_, mappable = ax.hist2d(
@@ -221,7 +223,7 @@ plt.title("Spacegroup distribution among MP Dielectric Screening Materials")
 
 
 # %%
-df_diel_mp[[Key.diel_elec_mp, Key.diel_elec_wren]].hist(
+df_diel_mp[[Key.diel_elec_mp, Key.diel_ionic_mp]].hist(
     bins=100, log=True, figsize=[18, 4]
 )
 
@@ -232,14 +234,14 @@ df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 1000")
 
 df_melted = df_diel_mp.melt(
     id_vars=[Key.crystal_sys, Key.mat_id, Key.formula],
-    value_vars=[Key.diel_elec_mp, Key.diel_elec_wren],
+    value_vars=[Key.diel_elec_mp, Key.diel_ionic_mp],
     var_name="component",
     value_name="dielectric constant",
     ignore_index=False,
 )
 
 df_melted["component"] = df_melted.component.map(
-    {Key.diel_elec_mp: "electronic", Key.diel_elec_wren: "ionic"}
+    {Key.diel_elec_mp: "electronic", Key.diel_ionic_mp: "ionic"}
 )
 cry_sys_order = (
     "cubic hexagonal trigonal tetragonal orthorhombic monoclinic triclinic".split()

@@ -16,7 +16,14 @@ bandgap_wren_std_col = "bandgap_wren_std"
 diel_elec_wren_std_col = "diel_elec_wren_std"
 diel_ionic_wren_std_col = "diel_ionic_wren_std"
 
-df_vasp = df_diel_from_task_coll({})
+df_vasp = df_diel_from_task_coll({}, cache=False)
+assert len(df_vasp) == 2552, f"Expected 2552 materials, got {len(df_vasp)}"
+
+# filter out rows with diel_elec > 100 since those seem untrustworthy
+# in particular wbm-4-26188 with eps_elec = 515 and mp-865145 with eps_elec = 809
+# (see table-fom-pbe-gt-350.pdf)
+df_vasp = df_vasp.query(f"{Key.diel_elec_pbe} < 100")
+assert len(df_vasp) == 2542, f"Expected 2542 materials, got {len(df_vasp)}"
 
 
 # %%

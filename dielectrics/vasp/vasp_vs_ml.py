@@ -5,6 +5,7 @@ import pandas as pd
 from pymatviz import ptable_heatmap
 from sklearn.metrics import r2_score
 
+
 from dielectrics import DATA_DIR, Key, PAPER_FIGS
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
@@ -25,7 +26,19 @@ df_diel_screen = pd.read_json(
     f"{DATA_DIR}/mp-exploration/mp-diel-{expt}-test.json.bz2"
 ).rename(columns={"band_gap": Key.bandgap_mp})
 
-df_vasp = df_diel_from_task_coll({})
+# %%
+df_vasp = df_diel_from_task_coll({}, cache=False)
+assert len(df_vasp) == 2552, f"Expected 2552 materials, got {len(df_vasp)}"
+
+# filter out rows with diel_elec > 100 since those seem untrustworthy
+# in particular wbm-4-26188 with eps_elec = 515 and mp-865145 with eps_elec = 809
+# (see table-fom-pbe-gt-350.pdf)
+df_vasp = df_vasp.query(f"{Key.diel_elec_pbe} < 100")
+assert len(df_vasp) == 2542, f"Expected 2542 materials, got {len(df_vasp)}"
+
+df_vasp["n_pbe"] = df_vasp[Key.diel_elec_pbe] ** 0.5
+
+# %%
 
 train_top_fom = df_diel_screen.query("n > 0")
 n_top = 100
@@ -186,9 +199,9 @@ df_vasp["n_cgcnn"] = df_cgcnn.n_pred_n0
 
 
 # %%
-df_vasp[Key.fom_pbe] = df_vasp.n_pbe**2 * df_vasp[Key.bandgap]
-df_vasp[Key.fom_wren] = df_vasp[Key.diel_total_wren] * df_vasp[Key.bandgap]
-df_vasp["fom_cgcnn"] = df_vasp.n_cgcnn**2 * df_vasp[Key.bandgap]
+df_vasp[Key.fom_pbe] = df_vasp.n_pbe**2 * df_vasp[Key.bandgap_pbe]
+df_vasp[Key.fom_wren] = df_vasp[Key.diel_total_wren] * df_vasp[Key.bandgap_pbe]
+df_vasp["fom_cgcnn"] = df_vasp.n_cgcnn**2 * df_vasp[Key.bandgap_pbe]
 
 
 # %%

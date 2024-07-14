@@ -2,6 +2,7 @@
 import pandas as pd
 import plotly.express as px
 from pymatgen.ext.matproj import MPRester
+from pymatgen.ext.matproj_legacy import _MPResterLegacy
 from pymatviz.powerups import add_identity_line
 
 from dielectrics import Key, today, PAPER_FIGS
@@ -10,7 +11,14 @@ from dielectrics.plots import plt
 
 
 # %%
-df_vasp = df_diel_from_task_coll({})  # get all static dielectric calcs
+df_vasp = df_diel_from_task_coll({}, cache=False)
+assert len(df_vasp) == 2552, f"Expected 2552 materials, got {len(df_vasp)}"
+
+# filter out rows with diel_elec > 100 since those seem untrustworthy
+# in particular wbm-4-26188 with eps_elec = 515 and mp-865145 with eps_elec = 809
+# (see table-fom-pbe-gt-350.pdf)
+df_vasp = df_vasp.query(f"{Key.diel_elec_pbe} < 100")
+assert len(df_vasp) == 2542, f"Expected 2542 materials, got {len(df_vasp)}"
 
 df_vasp["n_pbe"] = df_vasp[Key.diel_elec_pbe] ** 0.5
 
@@ -41,6 +49,7 @@ print(
 )
 # 2022-06-02: 236 / 2,532 = 9.3% of our materials have MP data
 # 2024-04-19: 241 / 2,532 = 9.5% of our materials have MP data
+# 2024-07-14: 238 / 2,542 = 9.4% of our materials have MP data
 
 
 # %%
@@ -90,7 +99,7 @@ df_vasp_mp_wbm = df_diel_from_task_coll(
 
 
 # %%
-mp_docs = MPRester().query(
+mp_docs = _MPResterLegacy().query(
     {Key.mat_id: {"$in": list(df_vasp_mp_wbm.index)}, "has": "diel"},
     [Key.mat_id, "pretty_formula", "diel"],
 )
