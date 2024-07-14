@@ -31,3 +31,4 @@ dielectrics/plots/atat_bin
 # downloaded from urls
 data/others/qz3/dielectrics.json
 dielectrics/render_structs/mp/*.cif
+paper/figs/

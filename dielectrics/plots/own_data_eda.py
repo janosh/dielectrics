@@ -1,6 +1,7 @@
 """Exploratory data analysis of this work's high-throughput DFPT data."""
 
 # %% from https://colab.research.google.com/drive/131MZKKeOhoseoVTJmPuOXVJvDoNes1ge
+import os
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -17,6 +18,8 @@ from pymatviz.io import df_to_pdf, save_fig
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
+
+os.makedirs(f"{PAPER_FIGS}/ptable/", exist_ok=True)
 
 def rgb_color(val: float, max: float) -> str:  # noqa: A002
     """Convert a value between 0 and max to a color between red and blue."""
@@ -111,7 +114,7 @@ for cry_sys, df_group in df_us.groupby(Key.crystal_sys):
 fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=list(x_ticks.values()))
 
 fig.show()
-img_path = f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin-alternate.pdf"
+# img_path = f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin-alternate.pdf"
 # save_fig(fig, img_path, width=900, height=400)
 
 
@@ -197,7 +200,7 @@ for df in (df_us, df_mp):
         fmt=".0f",
     )
 
-    save_fig(ax, f"{PAPER_FIGS}/ptable-elem-counts-{df.attrs['name']}.pdf")
+    save_fig(ax, f"{PAPER_FIGS}/ptable/ptable-elem-counts-{df.attrs['name']}.pdf")
 
 
 # %%
@@ -216,7 +219,7 @@ ax = ptable_heatmap_ratio(
     label_font_size=18,
     value_font_size=16,
 )
-save_fig(ax, f"{PAPER_FIGS}/ptable-elem-ratio-us-vs-mp.pdf")
+save_fig(ax, f"{PAPER_FIGS}/ptable/ptable-elem-ratio-us-vs-mp.pdf")
 
 
 # %% project FoM onto periodic table
@@ -245,7 +248,7 @@ for col, title in (
         value_font_size=18,
         fmt=".0f",
     )
-    save_fig(ax, f"{PAPER_FIGS}/ptable-per-elem-{col.replace('_', '-')}.pdf")
+    save_fig(ax, f"{PAPER_FIGS}/ptable/ptable-per-elem-{col.replace('_', '-')}.pdf")
 
 
 # %% export LaTeX table of all data points with FoM > fom_tresh for SI

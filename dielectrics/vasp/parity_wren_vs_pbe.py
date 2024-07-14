@@ -1,7 +1,10 @@
 # %%
+import os
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from pymatviz import density_scatter
 from pymatviz.io import save_fig
 from pymatviz.powerups import add_identity_line
 
@@ -11,6 +14,8 @@ from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 __author__ = "Janosh Riebesell"
 __date__ = "2023-12-07"
+
+os.makedirs(f"{PAPER_FIGS}/ml/", exist_ok=True)
 
 bandgap_wren_std_col = "bandgap_wren_std"
 diel_elec_wren_std_col = "diel_elec_wren_std"
@@ -58,21 +63,23 @@ axis_labels = {
 
 
 for pbe_col, wren_col, std_col in (
-    (Key.diel_elec_pbe, Key.diel_elec_wren, diel_elec_wren_std_col),
-    (Key.diel_ionic_pbe, Key.diel_ionic_wren, diel_ionic_wren_std_col),
+    # (Key.diel_elec_pbe, Key.diel_elec_wren, diel_elec_wren_std_col),
+    # (Key.diel_ionic_pbe, Key.diel_ionic_wren, diel_ionic_wren_std_col),
     (Key.bandgap_us, Key.bandgap_wren, bandgap_wren_std_col),
 ):
     df_plot = df_vasp.sort_values(by=std_col).dropna(subset=[pbe_col, wren_col])
     if pbe_col == Key.diel_elec_pbe:
         df_plot = df_plot.query(f"{wren_col} < 50")
     grid = sns.jointplot(
-        x=pbe_col, y=wren_col, data=df_plot, space=0, marginal_kws=dict(bins=100)
+        x=pbe_col, y=wren_col, data=df_plot, space=0,
+        # x=pbe_col, y=wren_col, data=df_plot, space=0, marginal_kws=dict(bins=100)
     )
     ax = grid.ax_joint
     # ax.set_xscale("log")
     # ax.set_yscale("log")
     if pbe_col == Key.diel_elec_pbe:
         ax.set(xlim=(0, 50), ylim=(0, 50))
+
     scatter = ax.scatter(
         x=pbe_col,
         y=wren_col,
@@ -84,7 +91,7 @@ for pbe_col, wren_col, std_col in (
     cbar = plt.colorbar(
         scatter,
         ax=ax,
-        label=f"std. dev. of {axis_labels[wren_col]}",
+        label=f"{axis_labels[wren_col]} std",
         shrink=0.6,  # shorten and thin color bar
         orientation="horizontal",
         pad=-0.15,  # move left
@@ -97,9 +104,11 @@ for pbe_col, wren_col, std_col in (
     )
 
     n_points = len(df_vasp[[pbe_col, wren_col]].dropna())
-    ax.annotate(  # add annotation with number of points
-        f"n = {n_points:,}", xy=(0.8, 0.4), xycoords="axes fraction", size=11
-    )
+    # ax.annotate(  # add annotation with number of points
+    #     f"n = {n_points:,}", xy=(0.8, 0.4), xycoords="axes fraction", size=11
+    # )
 
     quantity = pbe_col.rsplit("_", 1)[0].replace("_", "-")
-    save_fig(grid.fig, f"{PAPER_FIGS}/parity-wren-vs-pbe-{quantity}.pdf")
+    # save_fig(grid.fig, f"{PAPER_FIGS}/ml/parity-wren-vs-pbe-{quantity}.pdf")
+
+# %%

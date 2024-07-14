@@ -1,4 +1,6 @@
 # %%
+import os
+
 import pandas as pd
 import plotly.express as px
 from pymatviz.io import save_fig
@@ -10,6 +12,7 @@ from dielectrics.db.fetch_data import df_diel_from_task_coll
 __author__ = "Janosh Riebesell"
 __date__ = "2023-12-07"
 
+os.makedirs(f"{PAPER_FIGS}/ml/", exist_ok=True)
 
 df_vasp = df_diel_from_task_coll({}, cache=False)
 assert len(df_vasp) == 2552, f"Expected 2552 materials, got {len(df_vasp)}"
@@ -119,7 +122,7 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
         (False, False),
     )
     suffix = f"{'wren' if 'wren' in x_axis_bandgap else 'pbe'}-as-x.pdf"
-    save_fig(fig, f"{PAPER_FIGS}/rolling-bandgap+diel-error-{suffix}")
+    save_fig(fig, f"{PAPER_FIGS}/ml/rolling-bandgap+diel-error-{suffix}")
 
 
 # %% plot wren and PBE rolling MAE into same plot
@@ -154,3 +157,5 @@ for ml_col, pbe_col in [
     )
 
     fig = px.line(df_plot, marginal_x="histogram", marginal_y="histogram")
+
+# %%

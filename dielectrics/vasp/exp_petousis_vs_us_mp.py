@@ -283,7 +283,7 @@ if "spacegroup symbol" not in df_exp:
     )
     df_exp = df_exp.assign(**dict(spg_dict))
 
-df_exp[[*info_cols, *color_cols]].to_csv(
+df_exp[[*info_cols, *color_cols]].round(4).to_csv(
     f"{DATA_DIR}/others/petousis/exp-vs-dfpt-diel-const.csv", index=False
 )
 
@@ -301,7 +301,7 @@ for idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1
         styler = styler.background_gradient(
             subset=col, cmap="viridis", axis=None, vmin=vmin[key], vmax=vmax[key]
         )
-    df_to_pdf(styler, f"{PAPER_FIGS}/table-exp-data-{idx}.pdf")
+    # df_to_pdf(styler, f"{PAPER_FIGS}/table-exp-data-{idx}.pdf")
 
 
 # %% calculate percentiles for our experimental results w.r.t.
