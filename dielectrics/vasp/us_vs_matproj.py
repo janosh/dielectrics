@@ -2,10 +2,9 @@
 import pandas as pd
 import plotly.express as px
 from pymatgen.ext.matproj import MPRester
-from pymatgen.ext.matproj_legacy import _MPResterLegacy
 from pymatviz.powerups import add_identity_line
 
-from dielectrics import Key, today, PAPER_FIGS
+from dielectrics import PAPER_FIGS, Key, today
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 from dielectrics.plots import plt
 
@@ -99,7 +98,7 @@ df_vasp_mp_wbm = df_diel_from_task_coll(
 
 
 # %%
-mp_docs = _MPResterLegacy().query(
+mp_docs = MPRester().query(
     {Key.mat_id: {"$in": list(df_vasp_mp_wbm.index)}, "has": "diel"},
     [Key.mat_id, "pretty_formula", "diel"],
 )
