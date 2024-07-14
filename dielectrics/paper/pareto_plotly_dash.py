@@ -1,3 +1,6 @@
+"""NOTE as of 2024-07-13 in order to run this script to need to install crystal_toolkit
+from github as the most recent PyPI release gives a matplotlib error.
+"""
 # %%
 from __future__ import annotations
 
@@ -62,26 +65,37 @@ hover_data_keys = dict(
 df_all = df_diel_from_task_coll({}, cache=True).round(3)
 
 # %%
-df_diel_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
-# discard negative and unrealistically large dielectric constants
-df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 2000").round(3)
+if os.path.isfile(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2"):
+    INCLUDE_MP = True
+    df_diel_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
+    # discard negative and unrealistically large dielectric constants
+    df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 2000").round(3)
+else:
+    INCLUDE_MP = False
 
 # %%
 # qz3 for author last name initials (https://rdcu.be/cCMga)
 # unprocessed JSON from https://doi.org/10.6084/m9.figshare.10482707.v2
-df_qz3 = pd.read_csv(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2").round(3)
+if os.path.isfile(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2"):
+    INCLUDE_QZ3 = True
+    df_qz3 = pd.read_csv(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2").round(3)
+else:
+    INCLUDE_QZ3 = False
 
 # %%
-df_yim = pd.read_json(f"{DATA_DIR}/others/yim/dielectrics.json.bz2")
-df_yim = df_yim.query(f"0 < {Key.diel_total_pbe} < 1000").rename(
-    columns={"possible_mp_id": Key.mat_id}
-)
-df_yim = df_yim.dropna(subset=[Key.mat_id, Key.formula])
-for accu in ["pbe", "hse"]:
-    df_yim = df_yim.eval(f"fom_{accu} = bandgap_{accu} * {Key.diel_total_pbe};")
+if os.path.isfile(f"{DATA_DIR}/others/yim/dielectrics.json.bz2"):
+    INCLUDE_YIM = True
+    df_yim = pd.read_json(f"{DATA_DIR}/others/yim/dielectrics.json.bz2")
+    df_yim = df_yim.query(f"0 < {Key.diel_total_pbe} < 1000").rename(
+        columns={"possible_mp_id": Key.mat_id}
+    )
+    df_yim = df_yim.dropna(subset=[Key.mat_id, Key.formula])
+    for accu in ["pbe", "hse"]:
+        df_yim = df_yim.eval(f"fom_{accu} = bandgap_{accu} * {Key.diel_total_pbe};")
 
-df_yim = df_yim.nlargest(500, Key.fom_pbe)
-
+    df_yim = df_yim.nlargest(500, Key.fom_pbe)
+else:
+    INCLUDE_YIM = False
 
 # %%
 def get_mp_link(data: str, text: str | None = None) -> str:
@@ -258,59 +272,62 @@ symbol_iter = iter(SymbolValidator().values[2::6])  # noqa: PD011
 color_iter = iter(px.colors.qualitative.Dark24)
 
 fig = go.Figure()
-fig.add_histogram2dcontour(
-    x=df_diel_mp[Key.diel_total_mp],
-    y=df_diel_mp[Key.bandgap_mp],
-    name=f"KDE of {len(df_diel_mp):,} Materials Project<br>dielectric training points",
-    showlegend=True,
-    colorscale=[[0, "rgba(0, 0, 0, 0)"], [1, "red"]],
-    showscale=False,
-    hoverinfo="skip",
-    visible="legendonly",
-)
+
+if INCLUDE_MP:
+    fig.add_histogram2dcontour(
+        x=df_diel_mp[Key.diel_total_mp],
+        y=df_diel_mp[Key.bandgap_mp],
+        name=f"KDE of {len(df_diel_mp):,} Materials Project<br>dielectric training points",
+        showlegend=True,
+        colorscale=[[0, "rgba(0, 0, 0, 0)"], [1, "red"]],
+        showscale=False,
+        hoverinfo="skip",
+        visible="legendonly",
+    )
 
 
-known_diels = [
-    # formulas taken from fig. 4 in 2nd atomate dielectric paper https://rdcu.be/cBCqt
-    *["AlTlF4", "Bi2SO2", "BiCl3", "BiF3", "HfO2", "SiO2", "SnCl2", "Tl2SnCl6"],
-    *["Tl2TiF6", "Tl2SnF6", "TlF"],
-    # commercial dielectrics https://rdcu.be/cClNr
-    *["ZrO2", "Al2O3", "Y2O3", "SrTiO", "BaTiO3"],
-]
+    known_diels = [
+        # formulas taken from fig. 4 in 2nd atomate dielectric paper https://rdcu.be/cBCqt
+        *["AlTlF4", "Bi2SO2", "BiCl3", "BiF3", "HfO2", "SiO2", "SnCl2", "Tl2SnCl6"],
+        *["Tl2TiF6", "Tl2SnF6", "TlF"],
+        # commercial dielectrics https://rdcu.be/cClNr
+        *["ZrO2", "Al2O3", "Y2O3", "SrTiO", "BaTiO3"],
+    ]
 
-# mp-557118 seems like a DFPT calc gone wrong (https://matsci.org/t/40913)
-df_petousis = (
-    df_diel_mp.query("formula in @known_diels & material_id != 'mp-557118'")
-    .sort_values(Key.fom_mp)  # only plot highest FoM polymorph for each formula
-    .drop_duplicates(Key.formula, keep="last")
-)
-petousis_mp = scatter(
-    df_petousis,
-    x_col=Key.diel_total_mp,
-    y_col=Key.bandgap_mp,
-    legend_name=f"{len(df_petousis):,} Best Petousis 2017 Candidates (MP data)",
-)
-petousis_mp.update_traces(marker=dict(size=15, symbol="star", color="teal"))
-# petousis_mp.data[0]["visible"] = True
-fig.add_traces(data=petousis_mp.data)
+    # mp-557118 seems like a DFPT calc gone wrong (https://matsci.org/t/40913)
+    df_petousis = (
+        df_diel_mp.query("formula in @known_diels & material_id != 'mp-557118'")
+        .sort_values(Key.fom_mp)  # only plot highest FoM polymorph for each formula
+        .drop_duplicates(Key.formula, keep="last")
+    )
+    petousis_mp = scatter(
+        df_petousis,
+        x_col=Key.diel_total_mp,
+        y_col=Key.bandgap_mp,
+        legend_name=f"{len(df_petousis):,} Best Petousis 2017 Candidates (MP data)",
+    )
+    petousis_mp.update_traces(marker=dict(size=15, symbol="star", color="teal"))
+    # petousis_mp.data[0]["visible"] = True
+    fig.add_traces(data=petousis_mp.data)
 
-n_top_fom = 200
-best_fom_mp = scatter(
-    df_diel_mp.query("index not in @df_petousis.index").nlargest(200, Key.fom_mp),
-    x_col=Key.diel_total_mp,
-    y_col=Key.bandgap_mp,
-    legend_name=f"Top {n_top_fom:,} MP Training Points",
-)
-fig.add_traces(data=best_fom_mp.data)
+    n_top_fom = 200
+    best_fom_mp = scatter(
+        df_diel_mp.query("index not in @df_petousis.index").nlargest(200, Key.fom_mp),
+        x_col=Key.diel_total_mp,
+        y_col=Key.bandgap_mp,
+        legend_name=f"Top {n_top_fom:,} MP Training Points",
+    )
+    fig.add_traces(data=best_fom_mp.data)
 
 
-qz3_points = scatter(
-    df_qz3,
-    x_col=Key.diel_total_pbe,
-    y_col=Key.bandgap_pbe,
-    legend_name=f"{len(df_qz3):,} Qu et al. 2020 Ternary Oxides",
-)
-fig.add_traces(data=qz3_points.data)
+if INCLUDE_QZ3:
+    qz3_points = scatter(
+        df_qz3,
+        x_col=Key.diel_total_pbe,
+        y_col=Key.bandgap_pbe,
+        legend_name=f"{len(df_qz3):,} Qu et al. 2020 Ternary Oxides",
+    )
+    fig.add_traces(data=qz3_points.data)
 
 for id_prefix, color in (("exp-parent=", "red"), ("rerun-", "blue")):
     exp_structs_points = scatter(
@@ -402,16 +419,17 @@ scatter_with_quiver(
     lax_nan=True,
 )
 
-scatter_with_quiver(
-    df_yim,
-    scatter_1=dict(x=Key.diel_total_pbe, y=Key.bandgap_pbe),
-    scatter_2=dict(x=Key.diel_total_pbe, y=Key.bandgap_hse),
-    legend_labels=(
-        "Yim et al. 2015",
-        f"GGA mean FoM = {df_yim[Key.fom_pbe].mean():.0f}",
-        f"HSE mean FoM = {df_yim.fom_hse.mean():.0f}",
-    ),
-)
+if INCLUDE_YIM:
+    scatter_with_quiver(
+        df_yim,
+        scatter_1=dict(x=Key.diel_total_pbe, y=Key.bandgap_pbe),
+        scatter_2=dict(x=Key.diel_total_pbe, y=Key.bandgap_hse),
+        legend_labels=(
+            "Yim et al. 2015",
+            f"GGA mean FoM = {df_yim[Key.fom_pbe].mean():.0f}",
+            f"HSE mean FoM = {df_yim.fom_hse.mean():.0f}",
+        ),
+    )
 
 
 # contour: figure of merit surface
@@ -490,10 +508,9 @@ for xs, ys, clr, txt in [
     )
 
 
-fig.write_html(f"{module_dir}/pareto-plotly.html", include_plotlyjs="cdn")
+# fig.write_html(f"{module_dir}/pareto-plotly.html", include_plotlyjs="cdn")
 # fig.write_image(f"{module_dir}/pareto-plotly.pdf")
-fig.show()
-
+# fig.show()
 
 # %% Dash app to display structure and notes for selected material next to Pareto plot
 app = Dash(
@@ -662,3 +679,5 @@ def update_structure(
 
 
 app.run(debug=False, port=8000, jupyter_mode="external")
+
+# %%
