@@ -22,7 +22,7 @@ from dash.dependencies import Input, Output
 from plotly.validators.scatter.marker import SymbolValidator
 from pymatviz import pmv_white_template
 
-from dielectrics import DATA_DIR, Key, SelectionStatus, today
+from dielectrics import DATA_DIR, PAPER_FIGS, Key, SelectionStatus, today
 from dielectrics.db import db
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
@@ -508,8 +508,8 @@ for xs, ys, clr, txt in [
     )
 
 
-# fig.write_html(f"{module_dir}/pareto-plotly.html", include_plotlyjs="cdn")
-# fig.write_image(f"{module_dir}/pareto-plotly.pdf")
+fig.write_html(f"{PAPER_FIGS}/pareto-plotly.html", include_plotlyjs="cdn")
+# fig.write_image(f"{PAPER_FIGS}/pareto-plotly.pdf")
 # fig.show()
 
 # %% Dash app to display structure and notes for selected material next to Pareto plot

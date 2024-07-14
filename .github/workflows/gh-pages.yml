@@ -21,7 +21,7 @@ jobs:
       - name: Copy file to artifact folder
         run: |
           mkdir -p artifacts
-          cp dielectrics/plots/pareto-plotly.html artifacts/index.html
+          cp dielectrics/paper/figs/pareto-plotly.html artifacts/index.html
 
       - name: Upload build artifact
         uses: actions/upload-pages-artifact@v2
