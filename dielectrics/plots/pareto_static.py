@@ -28,6 +28,7 @@ df_mp = df_mp.query(f"0 < {Key.diel_total_mp} < 2000")
 df_qz3 = pd.read_csv(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2")
 df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
 
+
 # %%
 # Petousis 2017: https://nature.com/articles/sdata2016134
 df_petousis = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv").set_index(
@@ -37,6 +38,7 @@ df_petousis = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv").set_in
 df_petousis[Key.fom_pbe] = (
     df_petousis[Key.bandgap_mp] * df_petousis["diel_total_petousis"]
 )
+
 
 # %%
 df_us = df_diel_from_task_coll({})
@@ -212,6 +214,7 @@ datasets = [
     df_petousis[["diel_total_petousis", Key.bandgap_mp, src_col]],
 ]
 
+
 # %%
 fig = px.scatter(
     pd.concat(df.rename(columns=col_map) for df in datasets),
@@ -283,5 +286,3 @@ fig.layout.margin.update(l=0, r=0, t=0, b=0)
 fig.show()
 img_path = f"{PAPER_FIGS}/pareto-us-vs-petousis-vs-qu-plotly.pdf"
 save_fig(fig, img_path, width=550, height=350)
-
-# %%

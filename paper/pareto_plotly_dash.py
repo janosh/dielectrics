@@ -65,6 +65,7 @@ hover_data_keys = dict(
 # %% see db/readme.md for details on how candidates in each df were selected
 df_all = df_diel_from_task_coll({}, cache=True).round(3)
 
+
 # %%
 if os.path.isfile(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2"):
     INCLUDE_MP = True
@@ -74,6 +75,7 @@ if os.path.isfile(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2"):
 else:
     INCLUDE_MP = False
 
+
 # %%
 # qz3 for author last name initials (https://rdcu.be/cCMga)
 # unprocessed JSON from https://doi.org/10.6084/m9.figshare.10482707.v2
@@ -82,6 +84,7 @@ if os.path.isfile(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2"):
     df_qz3 = pd.read_csv(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2").round(3)
 else:
     INCLUDE_QZ3 = False
+
 
 # %%
 if os.path.isfile(f"{DATA_DIR}/others/yim/dielectrics.json.bz2"):
@@ -516,6 +519,7 @@ fig.write_html(f"{PAPER_FIGS}/pareto-plotly.html", include_plotlyjs="cdn")
 # fig.write_image(f"{PAPER_FIGS}/pareto-plotly.pdf")
 # fig.show()
 
+
 # %% Dash app to display structure and notes for selected material next to Pareto plot
 app = Dash(
     prevent_initial_callbacks=True,
@@ -683,5 +687,3 @@ def update_structure(
 
 
 app.run(debug=False, port=8000, jupyter_mode="external")
-
-# %%

@@ -66,6 +66,7 @@ assert n_dfpt_total == n_dfpt_elem_sub + n_dfpt_mp + n_dfpt_wbm, (
     f"{n_dfpt_elem_sub + n_dfpt_mp + n_dfpt_wbm}."
 )
 
+
 # %% recreate figure 3 from Atomate Dielectric paper https://rdcu.be/clY2X with MP
 # dielectric data
 df_melted = df_us.query("0 < diel_total_pbe < 1000").melt(

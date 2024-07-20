@@ -8,6 +8,7 @@ from dielectrics.db.fetch_data import df_diel_from_task_coll
 # %% see db/readme.md for details on how candidates in each df were selected
 df_all = df_diel_from_task_coll({}, cache=False).round(3)
 
+
 # %%
 diel_elec_threshold = 100
 pbe_bandgap_threshold = 0.1
@@ -103,14 +104,15 @@ print(
     f"{all_mask.sum() / diel_bandgap_mask.sum():.2%}"
 )
 
+
 # %%
 ax = df_all[(~sub_mask) & diel_elec_mask][Key.bandgap_pbe].hist(bins=100, alpha=0.5)
 df_all[(~sub_mask) & diel_elec_mask][Key.bandgap_us].hist(bins=100, alpha=0.5)
 df_all[(~sub_mask) & diel_elec_mask]["bandgap_pbe_best"].hist(bins=100, alpha=0.5)
 ax.legend(["PBE", "US", "PBE best"])
 
-# %%
 
+# %%
 assert all(
     x in df_all[diel_bandgap_mask][Key.mat_id].to_list()
     for x in ["mp-756175", "mp-1225854:W->Te"]

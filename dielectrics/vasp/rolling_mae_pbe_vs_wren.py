@@ -155,5 +155,3 @@ for ml_col, pbe_col in [
     )
 
     fig = px.line(df_plot, marginal_x="histogram", marginal_y="histogram")
-
-# %%

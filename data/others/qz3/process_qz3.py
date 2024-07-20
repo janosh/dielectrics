@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 __author__ = "Janosh Riebesell"
 __date__ = "2023-11-19"
 
+
 # %%
 filename = "dielectrics.json"
 url = "https://doi.org/10.6084/m9.figshare.10482707.v2"
@@ -57,6 +58,7 @@ for col in df_qz3:
     df_qz3[col] = df_qz3[col].map(extract_len1_lists)
     df_qz3[col] = df_qz3[col].map(extract_len1_lists)
 
+
 # %%
 df_qz3[[Key.formula, "formula_factor"]] = pd.DataFrame(df_qz3[Key.formula].to_list())
 df_qz3 = df_qz3.round(4)
@@ -72,6 +74,7 @@ df_qz3 = df_qz3.rename(
 )
 
 df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
+
 
 # %%
 df_qz3.hist(bins=100, figsize=(14, 10))

@@ -25,6 +25,7 @@ df_diel_screen = pd.read_json(
     f"{DATA_DIR}/mp-exploration/mp-diel-{expt}-test.json.bz2"
 ).rename(columns={"band_gap": Key.bandgap_mp})
 
+
 # %%
 df_vasp = df_diel_from_task_coll({}, cache=False)
 assert len(df_vasp) == 2552, f"Expected 2552 materials, got {len(df_vasp)}"
@@ -37,8 +38,8 @@ assert len(df_vasp) == 2542, f"Expected 2542 materials, got {len(df_vasp)}"
 
 df_vasp["n_pbe"] = df_vasp[Key.diel_elec_pbe] ** 0.5
 
-# %%
 
+# %%
 train_top_fom = df_diel_screen.query("n > 0")
 n_top = 100
 assert len(train_top_fom) == n_top
