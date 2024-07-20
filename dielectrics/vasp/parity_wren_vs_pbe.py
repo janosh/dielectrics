@@ -114,4 +114,3 @@ for pbe_col, wren_col, std_col in (
     quantity = pbe_col.rsplit("_", 1)[0].replace("_", "-")
     save_fig(grid.figure, f"{PAPER_FIGS}/ml/parity-wren-vs-pbe-{quantity}.pdf")
 #
-# %%
