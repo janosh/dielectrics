@@ -21,7 +21,6 @@ from adjustText import adjust_text
 from aviary.wren.utils import get_aflow_label_from_spglib
 from mp_api.client import MPRester
 from pymatviz import ptable_heatmap_plotly
-from pymatviz.io import df_to_pdf
 from pymatviz.powerups import add_identity_line, annotate_metrics
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
@@ -290,7 +289,7 @@ df_exp[[*info_cols, *color_cols]].round(4).to_csv(
 vmin, vmax = df_exp[list(color_cols)].min(), df_exp[list(color_cols)].max()
 
 # split dataframes into two tables for and write each to a separate PDF
-for idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1):
+for _idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1):
     sub_df.index += 1  # start index at 1, must come after reset_index
     styler = (
         sub_df[[*info_cols, *color_cols]]
@@ -335,7 +334,7 @@ for formula in df_us_exp.index:
     print(f"{formula} {percentile_fom_pbe=:.0f}")
 
     percentile_diel_total_exp = scipy.stats.percentileofscore(
-       df_exp[Key.diel_total_exp], diel_total_exp
+        df_exp[Key.diel_total_exp], diel_total_exp
     )
     print(f"{formula} {percentile_diel_total_exp=:.0f}")
 

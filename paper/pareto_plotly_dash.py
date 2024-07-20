@@ -1,6 +1,7 @@
 """NOTE as of 2024-07-13 in order to run this script to need to install crystal_toolkit
 from github as the most recent PyPI release gives a matplotlib error.
 """
+
 # %%
 from __future__ import annotations
 
@@ -96,6 +97,7 @@ if os.path.isfile(f"{DATA_DIR}/others/yim/dielectrics.json.bz2"):
     df_yim = df_yim.nlargest(500, Key.fom_pbe)
 else:
     INCLUDE_YIM = False
+
 
 # %%
 def get_mp_link(data: str, text: str | None = None) -> str:
@@ -277,14 +279,16 @@ if INCLUDE_MP:
     fig.add_histogram2dcontour(
         x=df_diel_mp[Key.diel_total_mp],
         y=df_diel_mp[Key.bandgap_mp],
-        name=f"KDE of {len(df_diel_mp):,} Materials Project<br>dielectric training points",
+        name=(
+            f"KDE of {len(df_diel_mp):,} Materials Project"
+            "<br>dielectric training points"
+        ),
         showlegend=True,
         colorscale=[[0, "rgba(0, 0, 0, 0)"], [1, "red"]],
         showscale=False,
         hoverinfo="skip",
         visible="legendonly",
     )
-
 
     known_diels = [
         # formulas taken from fig. 4 in 2nd atomate dielectric paper https://rdcu.be/cBCqt

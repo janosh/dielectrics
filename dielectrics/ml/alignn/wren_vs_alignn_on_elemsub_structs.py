@@ -9,7 +9,7 @@ from pymatviz.powerups import add_identity_line
 from sklearn.metrics import r2_score
 from tqdm import tqdm
 
-from dielectrics import DATA_DIR, Key, today, PAPER_FIGS
+from dielectrics import DATA_DIR, PAPER_FIGS, Key, today
 from dielectrics.db import db
 from dielectrics.plots import px
 

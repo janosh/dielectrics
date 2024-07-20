@@ -2,6 +2,7 @@
 
 # %% from https://colab.research.google.com/drive/131MZKKeOhoseoVTJmPuOXVJvDoNes1ge
 import os
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -20,6 +21,7 @@ from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
 os.makedirs(f"{PAPER_FIGS}/ptable/", exist_ok=True)
+
 
 def rgb_color(val: float, max: float) -> str:  # noqa: A002
     """Convert a value between 0 and max to a color between red and blue."""
@@ -49,10 +51,14 @@ print(f"{n_dfpt_total=:,}")
 n_dfpt_elem_sub = df_us.index.str.contains("->").sum()
 print(f"{n_dfpt_elem_sub=:,}")
 
-n_dfpt_mp = (df_us.index.str.startswith(("mp-", "mvc-")) & ~df_us.index.str.contains("->")).sum()
+n_dfpt_mp = (
+    df_us.index.str.startswith(("mp-", "mvc-")) & ~df_us.index.str.contains("->")
+).sum()
 print(f"{n_dfpt_mp=:,}")
 
-n_dfpt_wbm = (df_us.index.str.startswith("wbm-") & ~df_us.index.str.contains("->")).sum()
+n_dfpt_wbm = (
+    df_us.index.str.startswith("wbm-") & ~df_us.index.str.contains("->")
+).sum()
 print(f"{n_dfpt_wbm=:,}")
 
 assert n_dfpt_total == n_dfpt_elem_sub + n_dfpt_mp + n_dfpt_wbm, (

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from pymatviz import density_hexbin, roc_curve
 
-from dielectrics import DATA_DIR, Key, PAPER_FIGS
+from dielectrics import DATA_DIR, Key
 from dielectrics.plots import plt
 
 

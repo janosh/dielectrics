@@ -35,7 +35,9 @@ if not os.path.exists(filename):
             file.write(response.content)
         print(f"File downloaded successfully: {filename}")
     else:
-        raise RuntimeError(f"Failed to download file. Status code: {response.status_code}")
+        raise RuntimeError(
+            f"Failed to download file. Status code: {response.status_code}"
+        )
 
 
 # %% download JSON file from https://doi.org/10.6084/m9.figshare.10482707.v2
@@ -48,6 +50,7 @@ df_qz3[list(df_tmp)] = df_tmp
 def extract_len1_lists(lst: list[Any]) -> Any:
     """Extract values from single-element lists."""
     return lst[0] if isinstance(lst, list) and len(lst) == 1 else lst
+
 
 for col in df_qz3:
     df_qz3[col] = df_qz3[col].map(extract_len1_lists)
@@ -75,7 +78,6 @@ df_qz3.hist(bins=100, figsize=(14, 10))
 
 
 # %%
-# FIXME need the ppd?
 ppd_path = f"{PKG_DIR}/patched_phase_diagram/2022-01-25-ppd-mp+wbm.pkl.gz"
 
 with gzip.open(ppd_path, "rb") as file:

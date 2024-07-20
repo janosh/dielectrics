@@ -5,8 +5,7 @@ import pandas as pd
 from pymatviz import ptable_heatmap
 from sklearn.metrics import r2_score
 
-
-from dielectrics import DATA_DIR, Key, PAPER_FIGS
+from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 

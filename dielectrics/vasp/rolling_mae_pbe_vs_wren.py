@@ -108,9 +108,7 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
     if "wren" in x_axis_bandgap:
         fig.update_layout(showlegend=False)
     else:
-        fig.layout.legend = dict(
-            x=1, y=0.15, xanchor="right", bgcolor="rgba(0,0,0,0)"
-        )
+        fig.layout.legend = dict(x=1, y=0.15, xanchor="right", bgcolor="rgba(0,0,0,0)")
 
     # set x-min to 0 (can't use None for xmax, has no effect)
     fig.layout.xaxis.update(range=[0, 8.5])

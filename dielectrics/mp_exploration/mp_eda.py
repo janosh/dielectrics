@@ -9,6 +9,7 @@ https://docs.google.com/presentation/d/1yDkW4ml_FSdwlWxCpNMz-1oxdkeScDRVZgZQAScs
 
 # %% from https://colab.research.google.com/drive/131MZKKeOhoseoVTJmPuOXVJvDoNes1ge
 import os
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -20,13 +21,16 @@ from pymatviz.io import save_fig
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.plots import plt
 
+
 os.makedirs(f"{PAPER_FIGS}/eda/", exist_ok=True)
 
 # %%
 df_diel_mp = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 df_diel_mp = df_diel_mp.query("0 < diel_total_mp < 2000")
-df_diel_mp["spacegroup.number"] = df_diel_mp["wyckoff"].str.split("_").str[2].astype(int)
+df_diel_mp["spacegroup.number"] = (
+    df_diel_mp["wyckoff"].str.split("_").str[2].astype(int)
+)
 
 # df_diel_mp[Keys.crystal_sys] = df_diel_mp.pop("spacegroup.crystal_system")
 
@@ -37,7 +41,6 @@ width = (n_cols := 3) * 8
 
 for file_part in ["total", "parts"]:
     fig, axs = plt.subplots(n_rows, n_cols, figsize=(width, height))
-
 
     x_max, y_max = 400, 8
     fom_vals = np.outer(np.arange(y_max + 1), np.arange(x_max + 1))
@@ -56,7 +59,9 @@ for file_part in ["total", "parts"]:
 
         diel_part = x_col.split("_")[1]  # Key.diel_total_mp -> "total"
         exponent = {"elec": r"\infty", "ionic": "0"}.get(diel_part, diel_part)
-        diel_part = {"elec": "electronic"}.get(diel_part, diel_part)  # elec -> electronic
+        diel_part = {"elec": "electronic"}.get(
+            diel_part, diel_part
+        )  # elec -> electronic
         x_label = rf"{diel_part} permittivity $\epsilon^\mathrm{{{exponent}}}$"
 
         ax.set(xlim=[0, x_max], xlabel=x_label)
@@ -85,8 +90,9 @@ for file_part in ["total", "parts"]:
                 continue  # don't overwrite the 'Flash storage'/'CPU'/'RAM' bubbles
             if fom_row > (50 if "elec" in x_col else 500):
                 anno = latexify(row[Key.formula])  # make numbers in formula subscript
-                ax.annotate(anno, (row[x_col], row[Key.bandgap_mp]), ha="right", va="top")
-
+                ax.annotate(
+                    anno, (row[x_col], row[Key.bandgap_mp]), ha="right", va="top"
+                )
 
     handles, labels = fom_iso_lines.legend_elements()
     labels = [r"$\epsilon \cdot E_\mathrm{gap}$ isolines"]
@@ -119,7 +125,6 @@ for file_part in ["total", "parts"]:
         rotation=-38,
     ).set(color="gray", fontsize=16)
 
-
     for (x1, x2), (y1, y2), clr, txt in (
         ((150, 300), (6, 7.5), "blue", "Flash storage"),
         ((200, 350), (4.2, 6.2), "teal", "CPU"),
@@ -135,9 +140,6 @@ for file_part in ["total", "parts"]:
             txt, rotation=-0.3 * 45, xy=(0.5, 0.5), xycoords=ellipse, ha=ha, va=va
         )
 
-
-
-    
     if file_part == "total":
         axs[1].remove()
         axs[2].remove()
