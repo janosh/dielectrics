@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 __author__ = "Janosh Riebesell"
 __date__ = "2023-11-19"
 
+
 # %%
 filename = "dielectrics.json"
 url = "https://doi.org/10.6084/m9.figshare.10482707.v2"
@@ -35,7 +36,9 @@ if not os.path.exists(filename):
             file.write(response.content)
         print(f"File downloaded successfully: {filename}")
     else:
-        raise RuntimeError(f"Failed to download file. Status code: {response.status_code}")
+        raise RuntimeError(
+            f"Failed to download file. Status code: {response.status_code}"
+        )
 
 
 # %% download JSON file from https://doi.org/10.6084/m9.figshare.10482707.v2
@@ -49,10 +52,12 @@ def extract_len1_lists(lst: list[Any]) -> Any:
     """Extract values from single-element lists."""
     return lst[0] if isinstance(lst, list) and len(lst) == 1 else lst
 
+
 for col in df_qz3:
     df_qz3[col] = df_qz3[col].map(extract_len1_lists)
     df_qz3[col] = df_qz3[col].map(extract_len1_lists)
     df_qz3[col] = df_qz3[col].map(extract_len1_lists)
+
 
 # %%
 df_qz3[[Key.formula, "formula_factor"]] = pd.DataFrame(df_qz3[Key.formula].to_list())
@@ -69,6 +74,7 @@ df_qz3 = df_qz3.rename(
 )
 
 df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
+
 
 # %%
 df_qz3.hist(bins=100, figsize=(14, 10))

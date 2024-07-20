@@ -5,7 +5,7 @@ from matplotlib.offsetbox import AnchoredText
 from pymatviz.io import save_fig
 from sklearn.metrics import r2_score
 
-from dielectrics import PAPER_FIGS, Key, DATA_DIR
+from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.plots import plt
 
 

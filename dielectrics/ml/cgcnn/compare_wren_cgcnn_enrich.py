@@ -1,7 +1,7 @@
 # %%
 import pandas as pd
 
-from dielectrics import DATA_DIR, Key, PAPER_FIGS
+from dielectrics import DATA_DIR, Key
 from dielectrics.plots import plt
 
 

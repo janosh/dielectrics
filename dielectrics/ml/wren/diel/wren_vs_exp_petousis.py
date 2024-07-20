@@ -4,7 +4,7 @@ from itertools import combinations
 import pandas as pd
 from pymatviz import annotate_metrics
 
-from dielectrics import DATA_DIR, Key, PAPER_FIGS
+from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.plots import plt
 
 

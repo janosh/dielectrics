@@ -21,7 +21,6 @@ from adjustText import adjust_text
 from aviary.wren.utils import get_aflow_label_from_spglib
 from mp_api.client import MPRester
 from pymatviz import ptable_heatmap_plotly
-from pymatviz.io import df_to_pdf
 from pymatviz.powerups import add_identity_line, annotate_metrics
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
@@ -335,7 +334,7 @@ for formula in df_us_exp.index:
     print(f"{formula} {percentile_fom_pbe=:.0f}")
 
     percentile_diel_total_exp = scipy.stats.percentileofscore(
-       df_exp[Key.diel_total_exp], diel_total_exp
+        df_exp[Key.diel_total_exp], diel_total_exp
     )
     print(f"{formula} {percentile_diel_total_exp=:.0f}")
 

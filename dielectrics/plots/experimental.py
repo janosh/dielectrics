@@ -312,6 +312,7 @@ fig = plot_xrd_pattern(
 fig.show()
 save_fig(fig, f"{PAPER_FIGS}/experimental/xrd-CsTaTeO6-exp-vs-dft.pdf")
 
+
 # %%
 for material in materials:
     exp_struct = Structure.from_file(f"{DATA_DIR}/experiment/{material}.cif")

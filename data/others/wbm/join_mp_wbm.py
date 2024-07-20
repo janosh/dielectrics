@@ -6,7 +6,7 @@ from matbench_discovery.data import DATA_FILES
 from matbench_discovery.data import df_wbm as df_summary
 from pymatgen.ext.matproj import MPRester
 
-from dielectrics import DATA_DIR, Key, PAPER_FIGS
+from dielectrics import DATA_DIR, Key
 
 
 module_dir = os.path.dirname(__file__)

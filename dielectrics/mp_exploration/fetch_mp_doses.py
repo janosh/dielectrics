@@ -37,7 +37,10 @@ print(f"materials matching filters: {len(mp_data):,}")
 
 # df_dos.round(4).to_csv(f"{DATA_DIR}/mp-exploration/mp-doses.csv")
 
-df_dos = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-doses.csv").set_index(Key.mat_id, drop=False)
+df_dos = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-doses.csv").set_index(
+    Key.mat_id, drop=False
+)
+
 
 # %%
 doses = {}
@@ -57,4 +60,6 @@ dos_plotter.get_plot()
 
 # %%
 df_dos["dos"] = pd.Series(doses)
-df_dos.to_json(f"{DATA_DIR}/mp-exploration/mp_doses.json.gz", default_handler=lambda x: x.as_dict())
+df_dos.to_json(
+    f"{DATA_DIR}/mp-exploration/mp_doses.json.gz", default_handler=lambda x: x.as_dict()
+)
