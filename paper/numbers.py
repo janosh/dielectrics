@@ -104,6 +104,25 @@ print(
     f"{all_mask.sum() / diel_bandgap_mask.sum():.2%}"
 )
 
+# %%
+all_mp_source_mask = mp_source_mask+mvc_source_mask
+print(f"\nMP Hit rate all: {(all_mp_source_mask&diel_fom_mask).sum() / (all_mp_source_mask&diel_elec_mask).sum():.2%}%")
+print(
+    f"MP Hit rate bandgap > {pbe_bandgap_threshold}: "
+    f"{(all_mp_source_mask&all_mask).sum() / (all_mp_source_mask&diel_bandgap_mask).sum():.2%}"
+)
+
+print(f"\nWBM Hit rate all: {(wbm_source_mask&diel_fom_mask).sum() / (wbm_source_mask&diel_elec_mask).sum():.2%}%")
+print(
+    f"WBM Hit rate bandgap > {pbe_bandgap_threshold}: "
+    f"{(wbm_source_mask&all_mask).sum() / (wbm_source_mask&diel_bandgap_mask).sum():.2%}"
+)
+
+print(f"\nSUB Hit rate all: {(sub_mask&diel_fom_mask).sum() / (sub_mask&diel_elec_mask).sum():.2%}%")
+print(
+    f"SUB Hit rate bandgap > {pbe_bandgap_threshold}: "
+    f"{(sub_mask&all_mask).sum() / (sub_mask&diel_bandgap_mask).sum():.2%}"
+)
 
 # %%
 ax = df_all[(~sub_mask) & diel_elec_mask][Key.bandgap_pbe].hist(bins=100, alpha=0.5)
