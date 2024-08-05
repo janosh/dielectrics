@@ -6,7 +6,7 @@ import plotly.express as px
 from matplotlib import pyplot as plt
 from pymatviz import set_plotly_template
 from pymatviz.enums import LabelEnum
-from pymatviz.utils import styled_html_tag
+from pymatviz.utils import html_tag
 
 
 PKG_DIR = os.path.dirname(__file__)
@@ -79,9 +79,8 @@ class Key(LabelEnum):
     wyckoff = "wyckoff"
 
 
-small_font = "font-size: 0.9em; font-weight: lighter;"
-ev_per_atom = styled_html_tag("(eV/atom)", tag="span", style=small_font)
-eV = styled_html_tag("(eV)", tag="span", style=small_font)  # noqa: N816
+ev_per_atom = html_tag("(eV/atom)", tag="span", style="small")
+eV = html_tag("(eV)", tag="span", style="small")  # noqa: N816
 
 px.defaults.labels |= {
     Key.bandgap_hse: f"E<sub>gap HSE</sub> {eV}",

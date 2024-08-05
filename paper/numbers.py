@@ -36,13 +36,10 @@ print(f"Number from all sources: {len(df_all) - sub_mask.sum()}")
 print(f"\tNumber of mp candidates: {mp_source_mask.sum()}")
 print(f"\tNumber of mvc candidates: {mvc_source_mask.sum()}")
 print(f"\tNumber of wbm candidates: {wbm_source_mask.sum()}")
-assert (
-    len(df_all)
-    == sub_mask.sum()
-    + mp_source_mask.sum()
-    + mvc_source_mask.sum()
-    + wbm_source_mask.sum()
-)
+if len(df_all) != sum(sub_mask) + sum(mp_source_mask) + sum(mvc_source_mask) + sum(
+    wbm_source_mask
+):
+    raise ValueError("Sum of masks does not equal total number of candidates")
 
 print(f"\nUsing dielectric constant threshold: {diel_elec_threshold}")
 print(f"Using bandgap threshold: {pbe_bandgap_threshold}")
@@ -56,30 +53,26 @@ print(f"Number with FOM > {fom_threshold}: {fom_mask.sum()}")
 
 print(
     "\nNumber of generated candidates with dielectric constant < "
-    f"{diel_elec_threshold}: {(diel_elec_mask&sub_mask).sum()}"
+    f"{diel_elec_threshold}: {(diel_elec_mask & sub_mask).sum()}"
 )
-print(
-    f"Number from all sources: {diel_elec_mask.sum() - (diel_elec_mask&sub_mask).sum()}"
-)
+n_all_sources = diel_elec_mask.sum() - (diel_elec_mask & sub_mask).sum()
+print(f"Number from all sources: {n_all_sources}")
 print(
     f"\tNumber of mp candidates with dielectric constant < {diel_elec_threshold}: "
-    f"{(diel_elec_mask&mp_source_mask).sum()}"
+    f"{(diel_elec_mask & mp_source_mask).sum()}"
 )
 print(
     f"\tNumber of mvc candidates with dielectric constant < {diel_elec_threshold}: "
-    f"{(diel_elec_mask&mvc_source_mask).sum()}"
+    f"{(diel_elec_mask & mvc_source_mask).sum()}"
 )
 print(
     f"\tNumber of wbm candidates with dielectric constant < {diel_elec_threshold}: "
-    f"{(diel_elec_mask&wbm_source_mask).sum()}"
+    f"{(diel_elec_mask & wbm_source_mask).sum()}"
 )
-assert (
-    len(diel_elec_mask)
-    == sub_mask.sum()
-    + mp_source_mask.sum()
-    + mvc_source_mask.sum()
-    + wbm_source_mask.sum()
-)
+if len(diel_elec_mask) != sum(sub_mask) + sum(mp_source_mask) + sum(
+    mvc_source_mask
+) + sum(wbm_source_mask):
+    raise ValueError("Sum of masks does not equal total number of candidates")
 
 print(
     f"\nNumber with dielectric constant < {diel_elec_threshold} and "
@@ -98,7 +91,7 @@ print(
     f"bandgap > {pbe_bandgap_threshold} eV, and FOM > {fom_threshold}: {all_mask.sum()}"
 )
 
-print(f"\nHit rate all: {diel_fom_mask.sum() / diel_elec_mask.sum():.2%}%")
+print(f"\nHit rate all: {diel_fom_mask.sum() / diel_elec_mask.sum():.2%}")
 print(
     f"Hit rate bandgap > {pbe_bandgap_threshold}: "
     f"{all_mask.sum() / diel_bandgap_mask.sum():.2%}"
@@ -107,28 +100,30 @@ print(
 
 # %%
 all_mp_source_mask = mp_source_mask + mvc_source_mask
-print(
-    f"\nMP Hit rate all: {(all_mp_source_mask&diel_fom_mask).sum() / (all_mp_source_mask&diel_elec_mask).sum():.2%}%"
+mp_hit_rate_all = sum(all_mp_source_mask & diel_fom_mask) / sum(
+    all_mp_source_mask & diel_elec_mask
 )
-print(
-    f"MP Hit rate bandgap > {pbe_bandgap_threshold}: "
-    f"{(all_mp_source_mask&all_mask).sum() / (all_mp_source_mask&diel_bandgap_mask).sum():.2%}"
+print(f"\nMP Hit rate all: {mp_hit_rate_all:.2%}")
+mp_hit_rate_bandgap = sum(all_mp_source_mask & all_mask) / sum(
+    all_mp_source_mask & diel_bandgap_mask
 )
+print(f"MP Hit rate bandgap > {pbe_bandgap_threshold}: {mp_hit_rate_bandgap:.2%}")
 
-print(
-    f"\nWBM Hit rate all: {(wbm_source_mask&diel_fom_mask).sum() / (wbm_source_mask&diel_elec_mask).sum():.2%}%"
+wbm_hit_rate_all = sum(wbm_source_mask & diel_fom_mask) / sum(
+    wbm_source_mask & diel_elec_mask
 )
-print(
-    f"WBM Hit rate bandgap > {pbe_bandgap_threshold}: "
-    f"{(wbm_source_mask&all_mask).sum() / (wbm_source_mask&diel_bandgap_mask).sum():.2%}"
+print(f"\nWBM Hit rate all: {wbm_hit_rate_all:.2%}")
+wbm_hit_rate_bandgap = sum(wbm_source_mask & all_mask) / sum(
+    wbm_source_mask & diel_bandgap_mask
 )
+print(f"WBM Hit rate bandgap > {pbe_bandgap_threshold}: {wbm_hit_rate_bandgap:.2%}")
 
-print(
-    f"\nSUB Hit rate all: {(sub_mask&diel_fom_mask).sum() / (sub_mask&diel_elec_mask).sum():.2%}%"
-)
+elem_sub_hit_rate_all = sum(sub_mask & diel_fom_mask) / sum(sub_mask & diel_elec_mask)
+print(f"\nSUB Hit rate all: {elem_sub_hit_rate_all:.2%}")
+elem_sub_hit_rate_bandgap = sum(sub_mask & all_mask) / sum(sub_mask & diel_bandgap_mask)
 print(
     f"SUB Hit rate bandgap > {pbe_bandgap_threshold}: "
-    f"{(sub_mask&all_mask).sum() / (sub_mask&diel_bandgap_mask).sum():.2%}"
+    f"{elem_sub_hit_rate_bandgap:.2%}"
 )
 
 

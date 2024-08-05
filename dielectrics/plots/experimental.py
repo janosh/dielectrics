@@ -80,7 +80,7 @@ if auto_slopes := False:
         # compute intersection with y=0
         x0 = x1 - y1 * (x2 - x1) / (y2 - y1)
         # extend line to y=y_max
-        x2 = x2 + (y_max - y2) * (x2 - x1) / (y2 - y1)
+        x2 += (y_max - y2) * (x2 - x1) / (y2 - y1)
         fig_tauc.add_shape(
             x0=x0, y0=0, x1=x2, y1=y_max, type="line", line=dict(width=1)
         )

@@ -247,7 +247,7 @@ def df_diel_from_task_coll(
             n_duplicates_expected = 138
             assert (
                 len(df_diel) == orig_len - n_duplicates_expected
-            ), f"{n_duplicates_expected=}, found {orig_len-len(df_diel)}"
+            ), f"{n_duplicates_expected=}, found {orig_len - len(df_diel)}"
 
     # convert structures to dict before saving to CSV
     df_diel.to_json(json_path, index=False, default_handler=lambda x: x.as_dict())

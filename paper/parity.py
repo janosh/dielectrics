@@ -13,7 +13,7 @@ os.makedirs(f"{PAPER_FIGS}/parity/", exist_ok=True)
 
 # %%
 df_bandgap = pd.read_csv(f"{DATA_DIR}/wren/bandgap/wren-bandgap-mp+wbm-ensemble.csv")
-df_bandgap = df_bandgap.rename(columns={"bandgap_target": Key.bandgap_pbe.value})
+df_bandgap = df_bandgap.rename(columns={"bandgap_target": Key.bandgap_pbe})
 df_bandgap[Key.bandgap_wren] = df_bandgap.filter(like="pred_n").mean(1)
 df_bandgap["bandgap_wren_std"] = df_bandgap.filter(like="pred_n").std(1)
 
@@ -83,7 +83,7 @@ save_fig(
 df_elec = pd.read_csv(f"{DATA_DIR}/wren/diel/wren-mp-diel-elec-ensemble-robust.csv")
 bad_mpids = df_elec[df_elec["diel_elec_target"] < 0][Key.mat_id]
 df_elec = df_elec[~df_elec[Key.mat_id].isin(bad_mpids)]
-df_elec = df_elec.rename(columns={"diel_elec_target": Key.diel_elec_pbe.value})
+df_elec = df_elec.rename(columns={"diel_elec_target": Key.diel_elec_pbe})
 
 df_elec[Key.diel_elec_wren] = df_elec.filter(like="pred_n").mean(1)
 df_elec["diel_elec_wren_std"] = df_elec.filter(like="pred_n").std(1)
@@ -107,7 +107,7 @@ save_fig(
 # %%
 df_ionic = pd.read_csv(f"{DATA_DIR}/wren/diel/wren-mp-diel-ionic-ensemble-robust.csv")
 df_ionic = df_ionic[~df_ionic[Key.mat_id].isin(bad_mpids)]
-df_ionic = df_ionic.rename(columns={"diel_ionic_target": Key.diel_ionic_pbe.value})
+df_ionic = df_ionic.rename(columns={"diel_ionic_target": Key.diel_ionic_pbe})
 df_ionic[Key.diel_ionic_wren] = df_ionic.filter(like="pred_n").mean(1)
 df_ionic["diel_ionic_wren_std"] = df_ionic.filter(like="pred_n").std(1)
 
