@@ -183,7 +183,7 @@ def scatter(
     hover_keys = sorted(hover_keys)
     hover_data = dict.fromkeys(hover_keys, True)
     # don't show text value in hover tooltip
-    hover_data["text"] = False  # type: ignore[index]
+    hover_data["text"] = False
 
     global color_iter  # noqa: PLW0602
     kwargs["color_discrete_sequence"] = [next(color_iter)]
@@ -554,7 +554,7 @@ span = html.Span(id="status", style={"color": "green"})
 
 status_dd = dcc.Dropdown(
     id="status-dropdown",
-    options=[dict(label=stat, value=stat) for stat in SelectionStatus],
+    options=[dict(label=stat, value=stat) for stat in SelectionStatus],  # type: ignore[attr-defined]
     style=dict(display="inline-block", width="15em", lineHeight="0em"),
     placeholder="Selection status",
 )

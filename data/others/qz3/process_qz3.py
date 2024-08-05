@@ -64,14 +64,13 @@ df_qz3[[Key.formula, "formula_factor"]] = pd.DataFrame(df_qz3[Key.formula].to_li
 df_qz3 = df_qz3.round(4)
 
 # rename columns containing dielectric tensors
-df_qz3 = df_qz3.rename(
-    columns={
-        "bandgap": Key.bandgap_pbe.value,
-        "e_poly": Key.diel_total_pbe.value,
-        "e_total": "eps_total",
-        "e_electronic": "eps_electronic",
-    }
-)
+col_map = {
+    "bandgap": Key.bandgap_pbe,
+    "e_poly": Key.diel_total_pbe,
+    "e_total": "eps_total",
+    "e_electronic": "eps_electronic",
+}
+df_qz3 = df_qz3.rename(columns=col_map)
 
 df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
 
@@ -83,8 +82,8 @@ df_qz3.hist(bins=100, figsize=(14, 10))
 # %%
 ppd_path = f"{PKG_DIR}/patched_phase_diagram/2022-01-25-ppd-mp+wbm.pkl.gz"
 
-with gzip.open(ppd_path, "rb") as file:
-    ppd_mp_wbm: PatchedPhaseDiagram = pickle.load(file)  # noqa: S301
+with gzip.open(ppd_path, mode="rb") as pkl_file:
+    ppd_mp_wbm: PatchedPhaseDiagram = pickle.load(pkl_file)  # noqa: S301
 
 
 compositions = df_qz3[Key.formula].map(Composition)

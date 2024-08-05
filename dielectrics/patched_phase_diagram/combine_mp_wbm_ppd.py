@@ -81,7 +81,7 @@ with gzip.open(f"{MODULE_DIR}/{today}-ppd-mp.pkl.gz", "wb") as zip_file:
     pickle.dump(mp_ppd, zip_file)
 
 # load from disk
-# with gzip.open(f"{MODULE_DIR}/ppd-mp-2022-01-25.pkl.gz", "rb") as zip_file:
+# with gzip.open(f"{MODULE_DIR}/ppd-mp-2022-01-25.pkl.gz", mode="rb") as zip_file:
 #     mp_ppd = pickle.load(zip_file)
 
 
