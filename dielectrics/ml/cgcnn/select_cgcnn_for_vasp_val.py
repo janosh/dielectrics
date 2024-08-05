@@ -62,4 +62,4 @@ cgcnn_for_vasp_val.to_json(
 cgcnn_for_vasp_val.plot.scatter(
     x=Key.bandgap, y="n_pred_n0", c="fom_cgcnn", cmap="viridis", s="nsites"
 )
-# plt.savefig("plots/cgcnn-for-vasp-val-bandgap-vs-n_pred.pdf")
+# plt.savefig(f"{PAPER_FIGS}/cgcnn-for-vasp-val-bandgap-vs-n_pred.pdf")

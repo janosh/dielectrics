@@ -107,7 +107,7 @@ n_stable = (df_phonon[Key.min_ph_freq] > imaginary_tol).sum()
 
 stable_report = (
     f"{n_stable:,} Stable Materials out of {len(df_phonon):,} = "
-    f"{n_stable/len(df_phonon):.1%}"
+    f"{n_stable / len(df_phonon):.1%}"
 )
 print(stable_report)
 

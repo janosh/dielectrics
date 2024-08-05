@@ -10,7 +10,14 @@ from dielectrics.plots import plt
 
 
 # %%
-df_vasp = df_diel_from_task_coll({})  # get all static dielectric calcs
+df_vasp = df_diel_from_task_coll({}, cache=False)
+assert len(df_vasp) == 2552, f"Expected 2552 materials, got {len(df_vasp)}"
+
+# filter out rows with diel_elec > 100 since those seem untrustworthy
+# in particular wbm-4-26188 with eps_elec = 515 and mp-865145 with eps_elec = 809
+# (see table-fom-pbe-gt-350.pdf)
+df_vasp = df_vasp.query(f"{Key.diel_elec_pbe} < 100")
+assert len(df_vasp) == 2542, f"Expected 2542 materials, got {len(df_vasp)}"
 
 df_vasp["n_pbe"] = df_vasp[Key.diel_elec_pbe] ** 0.5
 
@@ -41,6 +48,7 @@ print(
 )
 # 2022-06-02: 236 / 2,532 = 9.3% of our materials have MP data
 # 2024-04-19: 241 / 2,532 = 9.5% of our materials have MP data
+# 2024-07-14: 238 / 2,542 = 9.4% of our materials have MP data
 
 
 # %%
@@ -58,7 +66,7 @@ n_us_vs_n_mp_title = (
 ax.set_title(n_us_vs_n_mp_title, y=1.02)
 ax.annotate(today, xy=(1, -0.2), xycoords=ax.transAxes)
 ax.axline([10, 10], [11, 11], c="black", ls="dashed", alpha=0.5, zorder=0)
-# plt.savefig("plots/us-vs-mp-refractive-n.pdf")
+# plt.savefig(f"{PAPER_FIGS}/us-vs-mp-refractive-n.pdf")
 
 
 # %%
@@ -134,4 +142,4 @@ for row in df_mp.itertuples():
     ax2.annotate(mp_id, (row.diel_total_mp, row.diel_total_pbe), ha="center", va="top")
 
 
-# plt.savefig("plots/us-vs-mp-total-diel.png")
+# plt.savefig(f"{PAPER_FIGS}/us-vs-mp-total-diel.png")

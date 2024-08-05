@@ -1,9 +1,6 @@
 # %%
 import os
 
-
-# ensure mcsqs and str2cif are in the path
-os.environ["PATH"] += f":{(module_dir := os.path.dirname(__file__))}/atat_bin:"
 import pandas as pd
 import plotly.express as px
 from pymatgen.core import Structure
@@ -17,6 +14,12 @@ from pymatviz.io import save_fig
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 
+
+os.makedirs(PAPER_FIGS, exist_ok=True)
+os.makedirs(f"{PAPER_FIGS}/experimental/", exist_ok=True)
+
+# ensure mcsqs and str2cif are in the path
+os.environ["PATH"] += f":{(module_dir := os.path.dirname(__file__))}/atat_bin:"
 
 set_plotly_template("pymatviz_white")
 px.defaults.labels |= {
@@ -77,7 +80,7 @@ if auto_slopes := False:
         # compute intersection with y=0
         x0 = x1 - y1 * (x2 - x1) / (y2 - y1)
         # extend line to y=y_max
-        x2 = x2 + (y_max - y2) * (x2 - x1) / (y2 - y1)
+        x2 += (y_max - y2) * (x2 - x1) / (y2 - y1)
         fig_tauc.add_shape(
             x0=x0, y0=0, x1=x2, y1=y_max, type="line", line=dict(width=1)
         )
@@ -115,7 +118,7 @@ fig_tauc.layout.legend.update(title=None, x=1, y=0, xanchor="right")
 fig_tauc.layout.yaxis.title.update(text=r"$\sqrt{F(R) - E}$", standoff=9)
 fig_tauc.layout.xaxis.title.update(standoff=8)
 fig_tauc.show()
-save_fig(fig_tauc, f"{PAPER_FIGS}/exp-tauc-bandgaps.pdf")
+save_fig(fig_tauc, f"{PAPER_FIGS}/experimental/exp-tauc-bandgaps.pdf")
 
 
 # %% Diffuse Reflectance Plot
@@ -130,7 +133,7 @@ fig_refl.layout.margin.update(l=0, r=0, b=0, t=0)
 fig_refl.layout.legend.update(title=None, x=1, y=0, xanchor="right")
 fig_refl.layout.yaxis.title = "Reflectance (%)"
 fig_refl.show()
-save_fig(fig_refl, f"{PAPER_FIGS}/exp-diffuse-reflectance.pdf")
+save_fig(fig_refl, f"{PAPER_FIGS}/experimental/exp-diffuse-reflectance.pdf")
 
 
 # %% DE-data Plot
@@ -193,7 +196,7 @@ for formula in formulas_plain:
     # hide legend since figures will be shown side-by-side
     # fig_diel.update_layout(showlegend=formula == "Bi2Zr2O7")
     img_name = f"exp-{formula}-diel-real-imag-loss-vs-freq"
-    save_fig(fig_diel, f"{PAPER_FIGS}/{img_name}.pdf")
+    save_fig(fig_diel, f"{PAPER_FIGS}/experimental/{img_name}.pdf")
 
     # save inset for CsTaTeO6 plot at 1MHz
     if formula == "CsTaTeO6":
@@ -209,7 +212,7 @@ for formula in formulas_plain:
         fig_diel.data = fig_diel.data[:-1]  # remove diel loss tangent from inset
 
         fig_diel.show()
-        save_fig(fig_diel, f"{PAPER_FIGS}/{img_name}-inset.png")
+        save_fig(fig_diel, f"{PAPER_FIGS}/experimental/{img_name}-inset.png")
 
 
 # %% Rietveld XRD fits for Zr2Bi2O7 Fm3m (227) and CsTaTeO6 Fd3m
@@ -277,7 +280,37 @@ for material in materials:
     )
     fig_xrd.layout.xaxis.update(title_standoff=0)
     fig_xrd.show()
-    save_fig(fig_xrd, f"{PAPER_FIGS}/exp-rietveld-{material}.pdf")
+    save_fig(fig_xrd, f"{PAPER_FIGS}/experimental/exp-rietveld-{material}.pdf")
+
+
+# %% compare experimental and DFT XRD for Bi2Zr2O7
+exp_zbo = Structure.from_file(f"{DATA_DIR}/experiment/Bi2Zr2O7-Fm3m.cif")
+pbe_zbo = Structure.from_file(f"{DATA_DIR}/experiment/mp-756175-Zr2Bi2O7-dft-pbe.cif")
+
+fig = plot_xrd_pattern(
+    {
+        f"Exp {exp_zbo.formula} ({exp_zbo.get_space_group_info()[1]})": exp_zbo,
+        f"PBE {pbe_zbo.formula} ({pbe_zbo.get_space_group_info()[1]})": pbe_zbo,
+    }
+)
+fig.show()
+save_fig(fig, f"{PAPER_FIGS}/experimental/xrd-Bi2Zr2O7-exp-vs-dft.pdf")
+
+
+# %% compare experimental and DFT XRD for CsTaTeO6
+exp_cto = Structure.from_file(f"{DATA_DIR}/experiment/CsTaTeO6-Fd3m.cif")
+pbe_cto = Structure.from_file(
+    f"{DATA_DIR}/experiment/mp-1225854-W->Te-CsTaTeO6-dft-pbe.cif"
+)
+
+fig = plot_xrd_pattern(
+    {
+        f"Exp {exp_cto.formula} ({exp_cto.get_space_group_info()[1]})": exp_cto,
+        f"PBE {pbe_cto.formula} ({pbe_cto.get_space_group_info()[1]})": pbe_cto,
+    }
+)
+fig.show()
+save_fig(fig, f"{PAPER_FIGS}/experimental/xrd-CsTaTeO6-exp-vs-dft.pdf")
 
 
 # %%
@@ -304,32 +337,3 @@ for material in materials:
         exp_struct
     )
     ordered_struct.get_space_group_info()
-
-
-# %% compare experimental and DFT XRD for Bi2Zr2O7
-exp_zbo = Structure.from_file(f"{DATA_DIR}/experiment/Bi2Zr2O7-Fm3m.cif")
-pbe_zbo = Structure.from_file(f"{DATA_DIR}/experiment/mp-756175-Zr2Bi2O7-dft-pbe.cif")
-
-fig = plot_xrd_pattern(
-    {
-        f"Exp {exp_zbo.formula} ({exp_zbo.get_space_group_info()[1]})": exp_zbo,
-        f"PBE {pbe_zbo.formula} ({pbe_zbo.get_space_group_info()[1]})": pbe_zbo,
-    }
-)
-save_fig(fig, f"{PAPER_FIGS}/xrd-Bi2Zr2O7-exp-vs-dft.pdf")
-
-
-# %% compare experimental and DFT XRD for CsTaTeO6
-exp_cto = Structure.from_file(f"{DATA_DIR}/experiment/CsTaTeO6-Fd3m.cif")
-pbe_cto = Structure.from_file(
-    f"{DATA_DIR}/experiment/mp-1225854-W->Te-CsTaTeO6-dft-pbe.cif"
-)
-
-fig = plot_xrd_pattern(
-    {
-        f"Exp {exp_cto.formula} ({exp_cto.get_space_group_info()[1]})": exp_cto,
-        f"PBE {pbe_cto.formula} ({pbe_cto.get_space_group_info()[1]})": pbe_cto,
-    }
-)
-fig.show()
-save_fig(fig, f"{PAPER_FIGS}/xrd-CsTaTeO6-exp-vs-dft.pdf")

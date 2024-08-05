@@ -42,7 +42,7 @@ axs = df_enrich_1.hist(
 df_enrich_2.hist(["n_pred", Key.fom], bins=50, alpha=0.7, ax=axs, label=model_2)
 plt.legend()
 plt.suptitle(f"{model_1.title()} vs {model_2.title()} histogram")
-# plt.savefig(f"plots/{model_1}-vs-{model_2}-hist-n+fom.pdf")
+# plt.savefig(f"{PAPER_FIGS}/{model_1}-vs-{model_2}-hist-n+fom.pdf")
 
 
 # %%
@@ -75,7 +75,7 @@ df_top_100_diel_n.plot.scatter(
     x="n", y=f"n_pred_{model_2}", ax=ax, color="red", label=model_2
 )
 ax.axline([5, 5], [6, 6], color="gray", linestyle="dotted", zorder=0)
-# plt.savefig(f"plots/enrich-{expt}-n-true-vs-pred-bar.pdf")
+# plt.savefig(f"{PAPER_FIGS}/enrich-{expt}-n-true-vs-pred-bar.pdf")
 
 
 # %%
@@ -107,7 +107,7 @@ sum(top_100_fom_1.index.isin(df_enrich_1.nlargest(100, "fom_pred").index))
 top_100_fom_1["fom_cgcnn"] = df_enrich_1.fom_pred
 top_100_fom_1.plot.bar(y=[Key.fom, "fom_cgcnn"], figsize=[14, 8], width=1)
 plt.yscale("log")
-# plt.savefig("plots/enrich-fom-true-vs-pred-bar.pdf")
+# plt.savefig(f"{PAPER_FIGS}/enrich-fom-true-vs-pred-bar.pdf")
 
 
 # %%
@@ -119,4 +119,4 @@ top_100_fom_1.plot.bar(
     figsize=[12, 8],
 )
 plt.yscale("log")
-# plt.savefig("plots/enrich-fom-(non-)selected-bar.pdf")
+# plt.savefig(f"{PAPER_FIGS}/enrich-fom-(non-)selected-bar.pdf")

@@ -56,13 +56,19 @@ df_yim[Key.diel_elec_pbe] = [np.linalg.eigvalsh(x).mean() for x in df_yim.eps_el
 df_yim[Key.diel_ionic_pbe] = [np.linalg.eigvalsh(x).mean() for x in df_yim.eps_ionic]
 
 assert (
-    max(df_yim.diel_elec + df_yim.diel_ionic - df_yim[Key.diel_total]) < 0.002
+    max(
+        df_yim[Key.diel_elec_pbe]
+        + df_yim[Key.diel_ionic_pbe]
+        - df_yim[Key.diel_total_pbe]
+    )
+    < 0.002
 ), "Discrepancy between total diel. constant and sum of electronic and ionic tensors"
 
 assert all(df_yim.isna().sum() == 0)
 
 
 # %%
+# TODO: can these cifs be shared?
 cif_dir = f"{ROOT}/../icsd/icsd_cifs"
 assert isdir(cif_dir), "Looking for CIFs in the wrong place"
 

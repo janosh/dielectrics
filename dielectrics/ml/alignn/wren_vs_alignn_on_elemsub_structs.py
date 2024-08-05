@@ -9,7 +9,7 @@ from pymatviz.powerups import add_identity_line
 from sklearn.metrics import r2_score
 from tqdm import tqdm
 
-from dielectrics import DATA_DIR, Key, today
+from dielectrics import DATA_DIR, PAPER_FIGS, Key, today
 from dielectrics.db import db
 from dielectrics.plots import px
 
@@ -172,7 +172,7 @@ add_identity_line(fig)
 fig.layout.title.update(text=title, x=0.5, y=0.95)
 fig.layout.margin.update(l=30, r=30, t=30, b=30)
 fig.layout.legend.update(bgcolor="rgba(255, 255, 255, 0.4)")
-img_path = (f"plots/{today}-e-above-hull-scatter-alignn-vs-wren.png",)
+img_path = (f"{PAPER_FIGS}/{today}-e-above-hull-scatter-alignn-vs-wren.png",)
 fig.write_image(img_path, scale=2, width=1000, height=500)
 fig.show()
 
@@ -197,5 +197,5 @@ fig.layout.title.update(text=title, x=0.5, y=0.95)
 fig.layout.margin.update(l=30, r=30, t=50, b=30)
 fig.layout.legend.update(x=1, y=0.5, xanchor="right", font_size=16)
 
-# fig.write_image(f"plots/{today}-bandgap-errors-hist-vs-wren.png", scale=2)
+# fig.write_image(f"{PAPER_FIGS}/{today}-bandgap-errors-hist-vs-wren.png", scale=2)
 fig.show()

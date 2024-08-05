@@ -5,7 +5,7 @@ import pandas as pd
 from pymatviz import ptable_heatmap
 from sklearn.metrics import r2_score
 
-from dielectrics import DATA_DIR, Key
+from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
@@ -25,8 +25,21 @@ df_diel_screen = pd.read_json(
     f"{DATA_DIR}/mp-exploration/mp-diel-{expt}-test.json.bz2"
 ).rename(columns={"band_gap": Key.bandgap_mp})
 
-df_vasp = df_diel_from_task_coll({})
 
+# %%
+df_vasp = df_diel_from_task_coll({}, cache=False)
+assert len(df_vasp) == 2552, f"Expected 2552 materials, got {len(df_vasp)}"
+
+# filter out rows with diel_elec > 100 since those seem untrustworthy
+# in particular wbm-4-26188 with eps_elec = 515 and mp-865145 with eps_elec = 809
+# (see table-fom-pbe-gt-350.pdf)
+df_vasp = df_vasp.query(f"{Key.diel_elec_pbe} < 100")
+assert len(df_vasp) == 2542, f"Expected 2542 materials, got {len(df_vasp)}"
+
+df_vasp["n_pbe"] = df_vasp[Key.diel_elec_pbe] ** 0.5
+
+
+# %%
 train_top_fom = df_diel_screen.query("n > 0")
 n_top = 100
 assert len(train_top_fom) == n_top
@@ -161,7 +174,7 @@ plt.ylabel("PBE Bandgap / eV")
 
 plt.xlim((0, xmax))
 plt.ylim((0, 9))
-# plt.savefig("plots/pareto-wren-vs-cgcnn.pdf")
+# plt.savefig(f"{PAPER_FIGS}/pareto-wren-vs-cgcnn.pdf")
 
 
 # %%
@@ -186,9 +199,9 @@ df_vasp["n_cgcnn"] = df_cgcnn.n_pred_n0
 
 
 # %%
-df_vasp[Key.fom_pbe] = df_vasp.n_pbe**2 * df_vasp[Key.bandgap]
-df_vasp[Key.fom_wren] = df_vasp[Key.diel_total_wren] * df_vasp[Key.bandgap]
-df_vasp["fom_cgcnn"] = df_vasp.n_cgcnn**2 * df_vasp[Key.bandgap]
+df_vasp[Key.fom_pbe] = df_vasp.n_pbe**2 * df_vasp[Key.bandgap_pbe]
+df_vasp[Key.fom_wren] = df_vasp[Key.diel_total_wren] * df_vasp[Key.bandgap_pbe]
+df_vasp["fom_cgcnn"] = df_vasp.n_cgcnn**2 * df_vasp[Key.bandgap_pbe]
 
 
 # %%
@@ -222,7 +235,7 @@ plt.title(
 plt.legend()
 plt.xlabel("VASP refractive index")
 plt.ylabel("CGCNN/Wren refractive index")
-plt.savefig("plots/wren+cgcnn-vs-vasp-top-n-scatter.pdf")
+plt.savefig(f"{PAPER_FIGS}/wren+cgcnn-vs-vasp-top-n-scatter.pdf")
 
 
 # %%
@@ -255,7 +268,7 @@ plt.title(
 plt.legend(loc="upper right")
 plt.xlabel("VASP figure of merit")
 plt.ylabel("CGCNN/Wren figure of merit")
-plt.savefig("plots/wren+cgcnn-vs-vasp-top-fom-scatter.pdf")
+plt.savefig(f"{PAPER_FIGS}/wren+cgcnn-vs-vasp-top-fom-scatter.pdf")
 
 
 # %%
@@ -267,7 +280,7 @@ plt.title(
 mae_wren = (df_vasp[Key.fom_pbe] - df_vasp[Key.fom_wren]).abs().mean()
 mae_cgcnn = (df_vasp[Key.fom_pbe] - df_vasp.fom_cgcnn).abs().mean()
 plt.legend(title=f"Wren MAE = {mae_wren:.2f}\nCGCNN MAE = {mae_cgcnn:.2f}")
-# plt.savefig("plots/vasp-vs-wren-vs-cgcnn-top-100-fom-bar.pdf")
+# plt.savefig(f"{PAPER_FIGS}/vasp-vs-wren-vs-cgcnn-top-100-fom-bar.pdf")
 
 
 # %%
@@ -335,7 +348,7 @@ plt.ylabel("PBE Bandgap / eV")
 
 plt.xlim((0, n_max**2))
 plt.ylim((0, 9))
-plt.savefig("plots/wren+cgcnn-pareto.pdf")
+plt.savefig(f"{PAPER_FIGS}/wren+cgcnn-pareto.pdf")
 
 
 # %% Quiver Plot Wren
@@ -378,7 +391,7 @@ epsilon = np.linspace(0.1, n_max**2, 50)
 for num in [4, 9, 16]:
     plt.plot(epsilon, num / epsilon, "r--")
 
-plt.savefig("plots/quiver-wren.pdf")
+plt.savefig(f"{PAPER_FIGS}/quiver-wren.pdf")
 
 
 # %% Quiver Plot CGCNN
@@ -425,7 +438,7 @@ epsilon = np.linspace(0.1, n_max**2, 50)
 for num in [4, 9, 16]:
     plt.plot(epsilon, num / epsilon, "r--")
 
-plt.savefig("plots/quiver-cgcnn.pdf")
+plt.savefig(f"{PAPER_FIGS}/quiver-cgcnn.pdf")
 
 
 # %%

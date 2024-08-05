@@ -20,9 +20,8 @@ import scipy.stats
 from adjustText import adjust_text
 from aviary.wren.utils import get_aflow_label_from_spglib
 from mp_api.client import MPRester
-from pymatviz import annotate_metrics, ptable_heatmap_plotly
-from pymatviz.io import df_to_pdf
-from pymatviz.powerups import add_identity_line
+from pymatviz import ptable_heatmap_plotly
+from pymatviz.powerups import add_identity_line, annotate_metrics
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
@@ -142,9 +141,9 @@ n_points = len(df_exp.dropna(subset=["n_exp", "n_petousis"]))
 title = f"Experimental vs Petousis DFT refractive index ({n_points:,} samples)"
 ax.set_title(title, y=1.03, fontsize=14)
 
-annotate_metrics(df_exp.n_exp, df_exp.n_petousis, loc="upper left")
+annotate_metrics(df_exp.n_exp, df_exp.n_petousis, fig=ax, loc="upper left")
 
-# plt.savefig("plots/refractive-index-exp-petousis.pdf")
+# plt.savefig(f"{PAPER_FIGS}/refractive-index-exp-petousis.pdf")
 
 
 # %%
@@ -223,7 +222,7 @@ for ax, (src1, src2) in zip(axs.flat, xy_pairs, strict=True):
     annotate_metrics(
         col1,
         col2,
-        ax=ax,
+        fig=ax,
         suffix=f"{outliers=:.1%}",
         fmt=".3",
         prop={"size": 13},
@@ -283,14 +282,14 @@ if "spacegroup symbol" not in df_exp:
     )
     df_exp = df_exp.assign(**dict(spg_dict))
 
-df_exp[[*info_cols, *color_cols]].to_csv(
+df_exp[[*info_cols, *color_cols]].round(4).to_csv(
     f"{DATA_DIR}/others/petousis/exp-vs-dfpt-diel-const.csv", index=False
 )
 
 vmin, vmax = df_exp[list(color_cols)].min(), df_exp[list(color_cols)].max()
 
 # split dataframes into two tables for and write each to a separate PDF
-for idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1):
+for _idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1):
     sub_df.index += 1  # start index at 1, must come after reset_index
     styler = (
         sub_df[[*info_cols, *color_cols]]
@@ -301,7 +300,7 @@ for idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1
         styler = styler.background_gradient(
             subset=col, cmap="viridis", axis=None, vmin=vmin[key], vmax=vmax[key]
         )
-    df_to_pdf(styler, f"{PAPER_FIGS}/table-exp-data-{idx}.pdf")
+    # df_to_pdf(styler, f"{PAPER_FIGS}/table-exp-data-{idx}.pdf")
 
 
 # %% calculate percentiles for our experimental results w.r.t.
@@ -328,16 +327,16 @@ for formula in df_us_exp.index:
     fom_exp, fom_pbe = df_us_exp.loc[formula, [Key.fom_exp, Key.fom_pbe]]
     diel_total_exp = df_us_exp.loc[formula, Key.diel_total_exp]
 
-    percentile_exp = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_exp)
-    print(f"{formula} {percentile_exp=:.0f}")
+    percentile_fom_exp = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_exp)
+    print(f"{formula} {percentile_fom_exp=:.0f}")
 
-    percentile_pbe = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_pbe)
-    print(f"{formula} {percentile_pbe=:.0f}")
+    percentile_fom_pbe = scipy.stats.percentileofscore(df_exp[Key.fom_exp], fom_pbe)
+    print(f"{formula} {percentile_fom_pbe=:.0f}")
 
-    percentile_diel = scipy.stats.percentileofscore(
+    percentile_diel_total_exp = scipy.stats.percentileofscore(
         df_exp[Key.diel_total_exp], diel_total_exp
     )
-    print(f"{formula} {percentile_diel=:.0f}")
+    print(f"{formula} {percentile_diel_total_exp=:.0f}")
 
 print(
     f"\nrelative to {len(df_exp):,} Petousis-collected experimental data but using MP "

@@ -56,7 +56,7 @@ for ax, df, title in zip(
     density_hexbin(x, y, ax=ax)
     ax.set_title(title)
 
-# plt.savefig("plots/wren-diel-density-scatter-trained-on-all-mp.pdf")
+# plt.savefig(f"{PAPER_FIGS}/wren-diel-density-scatter-trained-on-all-mp.pdf")
 
 
 # %%
@@ -75,7 +75,7 @@ ax_res.set_title(
     "Histogram of residual between directly predicting total dielectric "
     "constant vs\nionic + electronic individually on MP + WBM dataset"
 )
-# plt.savefig("plots/mp+wbm-indi-vs-direct-diel-residual.pdf")
+# plt.savefig(f"{PAPER_FIGS}/mp+wbm-indi-vs-direct-diel-residual.pdf")
 
 
 # %%
@@ -224,4 +224,4 @@ x, y = df_elec_ens[["diel_elec_target", "diel_elec_pred"]].to_numpy().T
 density_hexbin(x, y, ax=ax4, **labels)
 ax4.set_title("Ensemble electronic")
 
-# plt.savefig("plots/wren-diel-density-scatter-trained-on-mp-excl-petousis.pdf")
+# plt.savefig(f"{PAPER_FIGS}/wren-diel-density-scatter-trained-on-mp-excl-petousis.pdf")

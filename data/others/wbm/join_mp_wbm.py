@@ -52,7 +52,7 @@ df_mp_wbm = df_mp_wbm.query("bandgap.notnull()")
 ax1.set_xlabel("VASP energy [eV]")
 ax2.set_xlabel("formation energy [eV/atom]")
 ax3.set_xlabel("band gap [eV]")
-# plt.savefig("plots/wbm+mp-hists.pdf")
+# plt.savefig(f"{PAPER_FIGS}/wbm+mp-hists.pdf")
 
 
 # %%

@@ -26,7 +26,10 @@ df_mp = df_mp.query(f"0 < {Key.diel_total_mp} < 2000")
 # %% qz3 for author last name initials (https://rdcu.be/cCMga)
 # unprocessed JSON from https://doi.org/10.6084/m9.figshare.10482707.v2
 df_qz3 = pd.read_csv(f"{DATA_DIR}/others/qz3/qz3-diel.csv.bz2")
+df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
 
+
+# %%
 # Petousis 2017: https://nature.com/articles/sdata2016134
 df_petousis = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv").set_index(
     Key.mat_id, drop=False
@@ -35,15 +38,19 @@ df_petousis = pd.read_csv(f"{DATA_DIR}/others/petousis/exp-petousis.csv").set_in
 df_petousis[Key.fom_pbe] = (
     df_petousis[Key.bandgap_mp] * df_petousis["diel_total_petousis"]
 )
-df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
 
 
 # %%
 df_us = df_diel_from_task_coll({})
-assert all(df_us[Key.diel_total_pbe] > 0), "negative dielectric, this shouldn't happen"
-assert len(df_us) == 2_532
+assert len(df_us) == 2552, f"Expected 2552 materials, got {len(df_us)}"
+
+# filter out rows with diel_elec > 100 since those seem untrustworthy
+# in particular wbm-4-26188 with eps_elec = 515 and mp-865145 with eps_elec = 809
+# (see table-fom-pbe-gt-350.pdf)
 df_us = df_us.query(f"{Key.diel_elec_pbe} < 100")
-assert len(df_us) == 2_522
+assert len(df_us) == 2542, f"Expected 2542 materials, got {len(df_us)}"
+
+assert all(df_us[Key.diel_total_pbe] > 0), "negative dielectric, this shouldn't happen"
 
 
 # %%
@@ -153,7 +160,7 @@ for handle, text in zip(
 ):
     text.set_color(handle.get_color())
 
-save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}-matplotlib.pdf")
+# save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}-matplotlib.pdf")
 
 for level in fom_levels:
     n_hits = sum(df_us[Key.fom_pbe] > level)
@@ -207,6 +214,8 @@ datasets = [
     df_petousis[["diel_total_petousis", Key.bandgap_mp, src_col]],
 ]
 
+
+# %%
 fig = px.scatter(
     pd.concat(df.rename(columns=col_map) for df in datasets),
     x=Key.diel_total_pbe,
