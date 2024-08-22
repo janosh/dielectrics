@@ -8,7 +8,7 @@ from collections.abc import Sequence
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from pymatviz.io import save_fig
+import pymatviz as pmv
 from scipy.constants import milli, tera, value
 
 from dielectrics import PAPER_FIGS, Key
@@ -95,7 +95,9 @@ for mat_id in ("mp-756175", "mp-1225854:W->Te"):
     fig.layout.margin = dict(l=0, t=30, b=0, r=0)
     fig.show()
 
-    save_fig(fig, f"{PAPER_FIGS}/{mat_id}-phonon-freqs.svg", width=300, height=200)
+    pmv.io.save_fig(
+        fig, f"{PAPER_FIGS}/{mat_id}-phonon-freqs.svg", width=300, height=200
+    )
 
 
 # %%
@@ -159,4 +161,4 @@ fig.layout.margin = dict(l=0, t=30, b=0, r=0)
 fig.layout.update(showlegend=False)
 fig.show()
 
-save_fig(fig, f"{PAPER_FIGS}/min-phonon-freq-hist.svg", width=600, height=400)
+pmv.io.save_fig(fig, f"{PAPER_FIGS}/min-phonon-freq-hist.svg", width=600, height=400)

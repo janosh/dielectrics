@@ -16,16 +16,15 @@ References can be resolved on page 4 of the SI linked above.
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import pymatviz as pmv
 import scipy.stats
 from adjustText import adjust_text
 from aviary.wren.utils import get_aflow_label_from_spglib
 from mp_api.client import MPRester
-from pymatviz import ptable_heatmap_plotly
-from pymatviz.powerups import add_identity_line, annotate_metrics
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 # %%
@@ -116,7 +115,7 @@ def diel_tensor_to_const(csv: str) -> float:
 
 
 # %%
-ptable_heatmap_plotly(
+pmv.ptable_heatmap_plotly(
     df_exp[Key.formula],
     color_bar=dict(title="Element count"),
     count_mode="occurrence",
@@ -141,7 +140,7 @@ n_points = len(df_exp.dropna(subset=["n_exp", "n_petousis"]))
 title = f"Experimental vs Petousis DFT refractive index ({n_points:,} samples)"
 ax.set_title(title, y=1.03, fontsize=14)
 
-annotate_metrics(df_exp.n_exp, df_exp.n_petousis, fig=ax, loc="upper left")
+pmv.powerups.annotate_metrics(df_exp.n_exp, df_exp.n_petousis, fig=ax, loc="upper left")
 
 # plt.savefig(f"{PAPER_FIGS}/refractive-index-exp-petousis.pdf")
 
@@ -174,7 +173,7 @@ fig.update_traces(marker={"size": 15})
 if log_log:
     fig.layout.xaxis.range = [0.7, 3]
     fig.layout.yaxis.range = [0.7, 3]
-add_identity_line(fig)
+pmv.powerups.add_identity_line(fig)
 
 
 # %%
@@ -219,7 +218,7 @@ for ax, (src1, src2) in zip(axs.flat, xy_pairs, strict=True):
     weak_outliers = (col1 * lb > col2) | (col1 * ub < col2)
     far_outliers = (col1 * lb / 2 > col2) | (col1 * ub * 2 < col2)
     outliers = sum(weak_outliers) / len(df_exp)  # fraction of weak outliers
-    annotate_metrics(
+    pmv.powerups.annotate_metrics(
         col1,
         col2,
         fig=ax,

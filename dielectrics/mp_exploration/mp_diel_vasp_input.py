@@ -9,7 +9,7 @@ from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp import Kpoints
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 # %%

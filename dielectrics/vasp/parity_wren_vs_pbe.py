@@ -3,9 +3,8 @@ import os
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import pymatviz as pmv
 import seaborn as sns
-from pymatviz.io import save_fig
-from pymatviz.powerups import add_identity_line, annotate_metrics
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
@@ -100,8 +99,8 @@ for pbe_col, wren_col, std_col in (
         anchor=(0.8, 0.8) if pbe_col == Key.bandgap_us else (0.8, 7.2),
     )
     cbar.ax.xaxis.set_label_position("top")
-    add_identity_line(ax)
-    annotate_metrics(df_plot[pbe_col], df_plot[wren_col], ax)
+    pmv.powerups.add_identity_line(ax)
+
     grid.set_axis_labels(
         axis_labels[pbe_col], axis_labels[wren_col], fontsize=14, labelpad=0
     )
@@ -112,4 +111,4 @@ for pbe_col, wren_col, std_col in (
     # )
 
     quantity = pbe_col.rsplit("_", 1)[0].replace("_", "-")
-    save_fig(grid.figure, f"{PAPER_FIGS}/ml/parity-wren-vs-pbe-{quantity}.pdf")
+    pmv.io.save_fig(grid.figure, f"{PAPER_FIGS}/ml/parity-wren-vs-pbe-{quantity}.pdf")

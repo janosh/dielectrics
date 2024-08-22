@@ -1,8 +1,8 @@
 # %%
 import pandas as pd
+import pymatviz as pmv
 from pymatgen.core import Composition
 from pymatgen.ext.matproj import MPRester
-from pymatviz import count_elements, ptable_heatmap, ptable_heatmap_ratio
 from tqdm import tqdm
 
 from dielectrics import DATA_DIR, Key
@@ -138,12 +138,12 @@ print(f"removing existing MP compositions: {prev_len:,} -> {len(df_clean):,}")
 
 
 # %%
-elem_counts = count_elements(df_clean[Key.formula])
-orig_elem_counts = count_elements(df_clean.orig_formula)
+elem_counts = pmv.count_elements(df_clean[Key.formula])
+orig_elem_counts = pmv.count_elements(df_clean.orig_formula)
 
-ptable_heatmap(elem_counts, log=True)
+pmv.ptable_heatmap(elem_counts, log=True)
 
-ptable_heatmap_ratio(
+pmv.ptable_heatmap_ratio(
     elem_counts, orig_elem_counts, cbar_title="substituted/original elements"
 )
 

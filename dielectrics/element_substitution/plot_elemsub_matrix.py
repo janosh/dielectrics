@@ -2,13 +2,12 @@
 import os
 
 import pandas as pd
+import pymatviz as pmv
 from matplotlib.colors import SymLogNorm
-from pymatviz.io import save_fig
-from pymatviz.utils import element_symbols
 
 from dielectrics import DATA_DIR
 from dielectrics.element_substitution import load_icsd_trans_mat
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 module_dir = os.path.dirname(__file__)
@@ -33,8 +32,8 @@ plt.xticks(range(n_elements))
 plt.yticks(range(n_elements))
 
 ax = plt.gca()
-ax.set_xticklabels(element_symbols[idx + 1] for idx in range(n_elements))
-ax.set_yticklabels(element_symbols[idx + 1] for idx in range(n_elements))
+ax.set_xticklabels(pmv.utils.element_symbols[idx + 1] for idx in range(n_elements))
+ax.set_yticklabels(pmv.utils.element_symbols[idx + 1] for idx in range(n_elements))
 
 # hide even/odd element symbols along x/y axis
 ax.set_xticks(ax.get_xticks()[1::2])
@@ -51,7 +50,7 @@ title1 = "ICSD elemental substitution matrix"
 title2 = "ICSD chemical similarity matrix"
 ax.set_title(title1, y=1.1)
 
-save_fig(ax, f"{module_dir}/plots/icsd-elem-substitution-matrix.pdf")
+pmv.io.save_fig(ax, f"{module_dir}/plots/icsd-elem-substitution-matrix.pdf")
 
 
 # %% downloaded from https://tddft.org/bmg/data.php

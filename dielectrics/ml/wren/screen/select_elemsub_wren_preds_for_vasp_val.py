@@ -1,9 +1,9 @@
 # %%
 import matplotlib.pyplot as plt
 import pandas as pd
+import pymatviz as pmv
 from matplotlib.transforms import blended_transform_factory
 from pymatgen.core import Composition
-from pymatviz import ptable_heatmap
 
 from dielectrics import DATA_DIR, Key
 from dielectrics.element_substitution import df_struct_apply_elem_substitution
@@ -42,11 +42,11 @@ ene_cols = [Key.e_above_hull_wren, "e_above_hull_wren_std_adj"]
 df_wren = df_ene[id_cols + ene_cols].copy()
 
 for col, df in zip(cols, dfs, strict=True):
-    df_wren[col] = df.filter(like="pred_n").mean(1)
+    df_wren[col] = df.filter(like="pred_n").mean(axis=1)
     df_wren[f"{col}_std"] = (
-        df.filter(like="pred_n").var(1)
+        df.filter(like="pred_n").var(axis=1)
         # average aleatoric uncertainties in quadrature
-        + (df.filter(like="ale_n") ** 2).mean(1).fillna(0)
+        + (df.filter(like="ale_n") ** 2).mean(axis=1).fillna(0)
     ) ** 0.5
 
 
@@ -162,8 +162,8 @@ for ax in (*axs1.flat, *axs2.flat):
 
 
 # %%
-ptable_heatmap(df_clean[Key.formula])
-ptable_heatmap(df_clean.nlargest(1000, Key.fom_wren_std_adj)[Key.formula])
+pmv.ptable_heatmap(df_clean[Key.formula])
+pmv.ptable_heatmap(df_clean.nlargest(1000, Key.fom_wren_std_adj)[Key.formula])
 # no change in elemental prevalence from selecting the top 1k Wren-predicted FoMs
 
 

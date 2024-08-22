@@ -11,9 +11,9 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import pymatviz as pmv
 from numpy.typing import NDArray
 from pymatgen.core import Composition, Structure
-from pymatviz.utils import atomic_numbers, element_symbols
 
 from dielectrics import DATA_DIR, Key
 
@@ -97,7 +97,7 @@ def replace_similar_elem(
 
     # unlike Rhys' original code, this does not handle isotopes (mostly relevant for
     # Deuterium and Tritium, heavier isotopes are less different) https://git.io/JRUC7
-    z_orig = element_symbols[orig_elem]
+    z_orig = pmv.utils.element_symbols[orig_elem]
 
     while True:
         # Z_orig - 1 for 0-indexing
@@ -107,7 +107,7 @@ def replace_similar_elem(
         if z_new not in elem_list:
             break
 
-    new_elem = atomic_numbers[z_new]
+    new_elem = pmv.utils.atomic_numbers[z_new]
 
     return (orig_elem, new_elem)
 

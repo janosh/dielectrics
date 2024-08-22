@@ -2,10 +2,10 @@
 from itertools import combinations
 
 import pandas as pd
-from pymatviz import annotate_metrics
+import pymatviz as pmv
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 # %%
@@ -41,17 +41,21 @@ for key, df_diel_model in dfs.items():
 
     df_diel_model = df_diel_model.set_index(Key.mat_id)
 
-    df_diel_model[f"diel_{key}_pred"] = df_diel_model.filter(like="_pred_n").mean(1)
+    df_diel_model[f"diel_{key}_pred"] = df_diel_model.filter(like="_pred_n").mean(
+        axis=1
+    )
 
     df_exp[f"diel_{key}_wren"] = df_diel_model[f"diel_{key}_pred"]
 
     if "robust" in key:
         df_exp[f"diel_{key}_wren_std"] = (
-            (df_diel_model.filter(like="_ale_n") ** 2).mean(1)
-            + df_diel_model.filter(like="_pred_n").var(1)
+            (df_diel_model.filter(like="_ale_n") ** 2).mean(axis=1)
+            + df_diel_model.filter(like="_pred_n").var(axis=1)
         ) ** 0.5
     else:
-        df_exp[f"diel_{key}_wren_std"] = df_diel_model.filter(like="_pred_n").std(1)
+        df_exp[f"diel_{key}_wren_std"] = df_diel_model.filter(like="_pred_n").std(
+            axis=1
+        )
 
     dfs[key] = df_diel_model
 
@@ -88,7 +92,9 @@ for ax, (col1, col2) in zip(
     ax.set(yscale="log", ylabel=rf"$\epsilon_\mathrm{{tot}}^\mathrm{{{col2}}}$")
     ax.set(title=f"{col1} vs {col2} total dielectric ({n_samples=})")
 
-    annotate_metrics(df_exp[f"diel_total_{col1}"], df_exp[f"diel_total_{col2}"], ax=ax)
+    pmv.powerups.annotate_metrics(
+        df_exp[f"diel_total_{col1}"], df_exp[f"diel_total_{col2}"], ax=ax
+    )
     ax.axline(
         [10, 10], [11, 11], color="black", linestyle="dashed", alpha=0.5, zorder=0
     )
@@ -115,7 +121,9 @@ for ax, wren in zip(axs, ("wren", "robust_wren"), strict=True):
     ax.set(ylabel=rf"$\epsilon_\mathrm{{tot}}^\mathrm{{{wren}}}$")
     ax.set(title=f"{wren} vs exp total dielectric ({n_samples=})")
 
-    annotate_metrics(df_exp[f"diel_total_{wren}"], df_exp[Key.diel_total_exp], ax=ax)
+    pmv.powerups.annotate_metrics(
+        df_exp[f"diel_total_{wren}"], df_exp[Key.diel_total_exp], ax=ax
+    )
     ax.axline(
         [10, 10], [11, 11], color="black", linestyle="dashed", alpha=0.5, zorder=0
     )

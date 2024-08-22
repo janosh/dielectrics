@@ -31,12 +31,12 @@ Repo = "https://github.com/janosh/dielectrics"
 [project.optional-dependencies]
 aflow_wyckoff_labels = ["aviary"]
 single_use_deps = [
+  "adjustText",
   "crystal_toolkit",
   "dash",
   "robocrys",
   "scikit_learn",
   "seaborn",
-  "adjustText"
 ]
 
 [tool.setuptools.packages]
@@ -54,6 +54,7 @@ no_implicit_optional = false
 
 [tool.ruff]
 target-version = "py310"
+output-format = "concise"
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -73,6 +74,7 @@ ignore = [
   "INP001",  # implicit namespace package
   "ISC001",
   "PERF203", # try-except-in-loop
+  "PLR0912", # too many branches
   "PLR0913", # too many arguments
   "PLR0915", # too many statements
   "PLR2004", # magic value comparison

@@ -119,7 +119,7 @@ def df_diel_from_task_coll(
         drop_dup_ids (bool, optional): If True (default), drop duplicate material IDs.
 
     Raises:
-        AssertionError: If not all dielectric constants are positive.
+        ValueError: If not all dielectric constants are positive.
 
     Returns:
         pd.DataFrame: DataFrame with the requested fields plus electronic, ionic and
@@ -127,7 +127,8 @@ def df_diel_from_task_coll(
     """
     if isinstance(query, list | tuple):  # treat list of strings as material_ids
         query = {Key.mat_id: {"$in": query}}
-    assert isinstance(query, dict)
+    if not isinstance(query, dict):
+        raise TypeError(f"{query=} must be a dict or list of material IDs")
     if "task_label" in query:
         raise ValueError(
             "Don't set task_label in fields, 'static dielectric' is auto-set"
@@ -204,16 +205,22 @@ def df_diel_from_task_coll(
     orig_len = len(df_diel)
     df_diel = df_diel.dropna(subset=[f"diel_elec{suffix}", f"diel_ionic{suffix}"])
     n_dropped = 25
-    assert len(df_diel) > orig_len - (
-        n_dropped
-    ), f"{len(df_diel)=} was expected to be no smaller than {orig_len - n_dropped=}"
+    if len(df_diel) <= orig_len - n_dropped:
+        min_size = orig_len - n_dropped
+        raise ValueError(
+            f"{len(df_diel)=} was expected to be no smaller than {min_size}"
+        )
 
-    assert not any(
-        diel_elec < 0
-    ), f"negative electronic diel const shouldn't happen, found {sum(diel_elec < 0):,}"
-    assert not any(
-        diel_ionic < 0
-    ), f"negative ionic diel const shouldn't happen, found {sum(diel_ionic < 0):,}"
+    if n_diel_const_elec_neg := sum(diel_elec < 0):
+        raise ValueError(
+            "negative electronic dielectric constants shouldn't happen, "
+            f"found {n_diel_const_elec_neg:,}"
+        )
+    if n_diel_const_ionic_neg := sum(diel_ionic < 0):
+        raise ValueError(
+            "negative ionic dielectric constants shouldn't happen, "
+            f"found {n_diel_const_ionic_neg:,}"
+        )
 
     df_diel[f"diel_total{suffix}"] = diel_elec + diel_ionic
 
@@ -224,7 +231,8 @@ def df_diel_from_task_coll(
         else df_diel[Key.bandgap_us]
     )
     df_diel[f"bandgap{suffix}_best"] = bandgaps
-    assert bandgaps.isna().sum() == 0, f"missing {bandgaps.isna().sum()} bandgaps"
+    if bandgaps.isna().sum() > 0:
+        raise ValueError(f"missing {bandgaps.isna().sum()} bandgaps")
 
     df_diel[f"fom{suffix}"] = df_diel[f"diel_total{suffix}"] * bandgaps
 
@@ -245,9 +253,10 @@ def df_diel_from_task_coll(
 
         if query == {}:
             n_duplicates_expected = 138
-            assert (
-                len(df_diel) == orig_len - n_duplicates_expected
-            ), f"{n_duplicates_expected=}, found {orig_len - len(df_diel)}"
+            if len(df_diel) != orig_len - n_duplicates_expected:
+                raise ValueError(
+                    f"{n_duplicates_expected=}, found {orig_len - len(df_diel)}"
+                )
 
     # convert structures to dict before saving to CSV
     df_diel.to_json(json_path, index=False, default_handler=lambda x: x.as_dict())

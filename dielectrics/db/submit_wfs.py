@@ -2,6 +2,7 @@
 from glob import glob
 
 import pandas as pd
+import pymatviz as pmv
 import yaml
 from atomate.common.powerups import add_additional_fields_to_taskdocs, add_metadata
 from atomate.vasp.powerups import (
@@ -17,7 +18,6 @@ from fireworks import LaunchPad
 from pymatgen.core import Structure
 from pymatgen.io.res import AirssProvider
 from pymatgen.io.vasp import Kpoints
-from pymatviz import ptable_heatmap
 
 from dielectrics import DATA_DIR, ROOT, SCRIPTS_DIR, Key
 from dielectrics.db import db
@@ -214,5 +214,5 @@ assert not any(
 
 
 # %%
-ax = ptable_heatmap(df_new_wfs.index)
+ax = pmv.ptable_heatmap(df_new_wfs.index)
 ax.set(title="Elemental distribution of new workflows")

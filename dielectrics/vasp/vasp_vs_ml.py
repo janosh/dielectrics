@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pymatviz import ptable_heatmap
+import pymatviz as pmv
 from sklearn.metrics import r2_score
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
@@ -178,11 +178,11 @@ plt.ylim((0, 9))
 
 
 # %%
-ax = ptable_heatmap(
+ax = pmv.ptable_heatmap(
     wren_top_fom.reset_index()[Key.formula], count_mode="occurrence", fmt=".0f"
 )
 ax.set_title(f"Elemental prevalence among Wren-predicted top {n_top} FoM materials")
-ax = ptable_heatmap(
+ax = pmv.ptable_heatmap(
     cgcnn_top_fom.reset_index()[Key.formula], count_mode="occurrence", fmt=".0f"
 )
 ax.set_title(f"Elemental prevalence among CGCNN-predicted top {n_top} FoM materials")

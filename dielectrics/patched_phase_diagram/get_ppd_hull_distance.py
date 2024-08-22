@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from dielectrics import DATA_DIR, PKG_DIR, Key
 from dielectrics.db import db
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 if TYPE_CHECKING:

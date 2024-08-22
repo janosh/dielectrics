@@ -15,13 +15,13 @@ import pandas as pd
 import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
+import pymatviz as pmv
 from bson import ObjectId
 from bson.objectid import InvalidId
 from crystal_toolkit.settings import SETTINGS as CTK_SETTINGS
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from plotly.validators.scatter.marker import SymbolValidator
-from pymatviz import pmv_white_template
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key, SelectionStatus, today
 from dielectrics.db import db
@@ -463,8 +463,7 @@ fig.add_contour(
 fig.update_xaxes(range=[0, 500], mirror=True, showline=True)
 fig.update_yaxes(range=[0, 7], mirror=True, showline=True)
 
-
-fig.layout.template = pmv_white_template
+fig.layout.template = pmv.pmv_white_template
 
 fig.layout.margin = dict(l=80, r=30, t=80, b=60)
 fig.layout.legend = dict(

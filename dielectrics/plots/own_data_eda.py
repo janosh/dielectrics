@@ -6,15 +6,8 @@ import os
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import pymatviz as pmv
 from pymatgen.core import Composition
-from pymatviz import (
-    count_elements,
-    pmv_white_template,
-    ptable_heatmap,
-    ptable_heatmap_plotly,
-    ptable_heatmap_ratio,
-)
-from pymatviz.io import df_to_pdf, save_fig
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
@@ -94,7 +87,7 @@ fig = px.violin(
     color_discrete_map={"electronic": "blue", "ionic": "green"},
     labels={Key.crystal_sys: "crystal system"},
     hover_data=dict(material_id=True, formula=True),
-    template=pmv_white_template,
+    template=pmv.pmv_white_template,
     # sort strips from high to low spacegroup number
     category_orders={Key.crystal_sys: cry_sys_order},
     height=500,
@@ -122,7 +115,7 @@ fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=list(x_ticks.values())
 
 fig.show()
 # img_path = f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin-alternate.pdf"
-# save_fig(fig, img_path, width=900, height=400)
+# pmv.io.save_fig(fig, img_path, width=900, height=400)
 
 
 # %%
@@ -187,7 +180,7 @@ fig.layout.yaxis.title.update(text="ε<sub>elec / ionic</sub>", font_size=18)
 
 fig.show()
 
-save_fig(fig, f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin.pdf")
+pmv.io.save_fig(fig, f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin.pdf")
 
 
 # %%
@@ -195,7 +188,7 @@ df_us.attrs.update(name="us", label="This Work")
 df_mp.attrs.update(name="mp", label="MP Data")
 
 for df in (df_us, df_mp):
-    ax = ptable_heatmap(
+    ax = pmv.ptable_heatmap(
         df[Key.formula],
         exclude_elements=("O", "F"),
         colorscale="viridis",
@@ -207,16 +200,18 @@ for df in (df_us, df_mp):
         fmt=".0f",
     )
 
-    save_fig(ax, f"{PAPER_FIGS}/ptable/ptable-elem-counts-{df.attrs['name']}.pdf")
+    pmv.io.save_fig(
+        ax, f"{PAPER_FIGS}/ptable/ptable-elem-counts-{df.attrs['name']}.pdf"
+    )
 
 
 # %%
-us_elem_counts = count_elements(df_us[Key.formula])
-mp_elem_counts = count_elements(df_mp[Key.formula])
+us_elem_counts = pmv.count_elements(df_us[Key.formula])
+mp_elem_counts = pmv.count_elements(df_mp[Key.formula])
 # normalize by number of materials
 us_elem_counts /= len(df_us)
 mp_elem_counts /= len(df_mp)
-ax = ptable_heatmap_ratio(
+ax = pmv.ptable_heatmap_ratio(
     us_elem_counts,
     mp_elem_counts,
     not_in_numerator=("white", ""),
@@ -226,7 +221,7 @@ ax = ptable_heatmap_ratio(
     label_font_size=18,
     value_font_size=16,
 )
-save_fig(ax, f"{PAPER_FIGS}/ptable/ptable-elem-ratio-us-vs-mp.pdf")
+pmv.io.save_fig(ax, f"{PAPER_FIGS}/ptable/ptable-elem-ratio-us-vs-mp.pdf")
 
 
 # %% project FoM onto periodic table
@@ -247,7 +242,7 @@ for col, title in (
     srs_per_elem = df_per_elem.mean(axis=0)
     srs_per_elem.index.name = f"Element-projected {title}"
 
-    ax = ptable_heatmap(
+    ax = pmv.ptable_heatmap(
         srs_per_elem.dropna(),
         colorscale="viridis",
         cbar_title=srs_per_elem.index.name,
@@ -255,7 +250,9 @@ for col, title in (
         value_font_size=18,
         fmt=".0f",
     )
-    save_fig(ax, f"{PAPER_FIGS}/ptable/ptable-per-elem-{col.replace('_', '-')}.pdf")
+    pmv.io.save_fig(
+        ax, f"{PAPER_FIGS}/ptable/ptable-per-elem-{col.replace('_', '-')}.pdf"
+    )
 
 
 # %% export LaTeX table of all data points with FoM > fom_tresh for SI
@@ -319,7 +316,7 @@ styler = (
     )
 )
 
-df_to_pdf(styler, f"{PAPER_FIGS}/table-fom-pbe-gt-{fom_tresh}.pdf", size="100cm")
+pmv.io.df_to_pdf(styler, f"{PAPER_FIGS}/table-fom-pbe-gt-{fom_tresh}.pdf", size="100cm")
 df_high_fom.to_csv(f"{DATA_DIR}/our-data-with-fom-pbe-gt-{fom_tresh}.csv", index=False)
 styler.set_caption(f"Table of materials with 𝚽<sub>M</sub> > {fom_tresh} eV")
 
@@ -329,4 +326,4 @@ styler.data.query("~Formula.str.contains('O')")
 
 
 # %%
-ptable_heatmap_plotly(df_high_fom[Key.formula], exclude_elements="O")
+pmv.ptable_heatmap_plotly(df_high_fom[Key.formula], exclude_elements="O")

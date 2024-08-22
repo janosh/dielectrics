@@ -2,7 +2,7 @@
 import pandas as pd
 
 from dielectrics import DATA_DIR, Key
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 # %%

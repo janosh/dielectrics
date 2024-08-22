@@ -73,9 +73,6 @@ def update_str_in_collection(
             f"{coll_name}_tmp_str_replace" is removed!
         regex (bool): Pass each key-value pair as a regular expression to
             re.sub(key, val, str) instead str.replace(key, val).
-
-    Returns:
-        None, but if dry_run==False it replaces the collection with the updated one
     """
     tmp_coll_name = f"{collection_name}_tmp_str_replace"
     tmp_coll = db[tmp_coll_name]

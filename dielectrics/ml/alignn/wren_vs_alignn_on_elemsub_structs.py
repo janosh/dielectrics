@@ -1,11 +1,11 @@
 # %%
 import pandas as pd
+import pymatviz as pmv
 from alignn.pretrained import get_figshare_model
 from jarvis.core.graphs import Graph
 from matbench_discovery.data import df_wbm as df_summary
 from pymatgen.core import Structure
 from pymatgen.io.jarvis import JarvisAtomsAdaptor
-from pymatviz.powerups import add_identity_line
 from sklearn.metrics import r2_score
 from tqdm import tqdm
 
@@ -33,8 +33,8 @@ df_wren_bandgaps = pd.read_csv(
     f"{DATA_DIR}/wren/bandgap/wren-bandgap-mp+wbm-ensemble.csv"
 ).set_index(Key.mat_id)
 
-df_wren_bandgaps[Key.bandgap_wren] = df_wren_bandgaps.filter(like="pred_n").mean(1)
-df_wren_bandgaps["bandgap_std"] = df_wren_bandgaps.filter(like="pred_n").std(1)
+df_wren_bandgaps[Key.bandgap_wren] = df_wren_bandgaps.filter(like="pred_n").mean(axis=1)
+df_wren_bandgaps["bandgap_std"] = df_wren_bandgaps.filter(like="pred_n").std(axis=1)
 
 df_wbm_step1[Key.bandgap_wren] = df_wren_bandgaps[Key.bandgap_wren]
 
@@ -168,7 +168,7 @@ fig = px.scatter(
 )
 fig.update_traces(visible="legendonly", selector=lambda trace: "Vasp" in trace["name"])
 
-add_identity_line(fig)
+pmv.powerups.add_identity_line(fig)
 fig.layout.title.update(text=title, x=0.5, y=0.95)
 fig.layout.margin.update(l=30, r=30, t=30, b=30)
 fig.layout.legend.update(bgcolor="rgba(255, 255, 255, 0.4)")

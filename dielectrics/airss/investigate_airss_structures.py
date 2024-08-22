@@ -7,12 +7,12 @@ from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pymatviz as pmv
 from matminer.featurizers.site import CrystalNNFingerprint
 from matminer.featurizers.structure import SiteStatsFingerprint
 from pymatgen.core import Structure
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.res import AirssProvider
-from pymatviz import plot_structure_2d
 from robocrys import StructureCondenser, StructureDescriber
 
 from dielectrics import DATA_DIR, Key, today
@@ -139,7 +139,7 @@ for ax, (material_id, struct) in zip(
     axs.flat, df_mongo[Key.structure].items(), strict=False
 ):
     spg_num, sgp_symbol = struct.get_space_group_info()
-    plot_structure_2d(struct, ax=ax)
+    pmv.structure_2d(struct, ax=ax)
     ax.set(title=f"{material_id} {spg_num} ({sgp_symbol})")
 
 fig.suptitle(struct.formula, fontweight="bold", fontsize=16)
@@ -198,7 +198,7 @@ for ax, (material_id, struct) in zip(
     axs.flat, df_res_and_mongo[Key.structure].items(), strict=False
 ):
     spg_num, sgp_symbol = struct.get_space_group_info()
-    plot_structure_2d(struct, ax=ax)
+    pmv.structure_2d(struct, ax=ax)
     ax.set(title=f"{material_id}\n{spg_num} ({sgp_symbol})")
 
 fig.suptitle("AIRSS vs VASP relaxed structures", fontweight="bold", fontsize=16)

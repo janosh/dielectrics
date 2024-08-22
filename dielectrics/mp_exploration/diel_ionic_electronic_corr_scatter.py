@@ -1,12 +1,12 @@
 # %%
 import pandas as pd
 import plotly.express as px
+import pymatviz as pmv
 from matplotlib.offsetbox import AnchoredText
-from pymatviz.io import save_fig
 from sklearn.metrics import r2_score
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 # %%
@@ -82,4 +82,4 @@ fig.layout.margin = dict(t=40, l=10, r=10, b=10)
 fig.layout.title = dict(text=ax_title, x=0.5)
 
 fig.show()
-save_fig(fig, f"{PAPER_FIGS}/diel-ionic-vs-electronic-corr-mp.pdf")
+pmv.io.save_fig(fig, f"{PAPER_FIGS}/diel-ionic-vs-electronic-corr-mp.pdf")

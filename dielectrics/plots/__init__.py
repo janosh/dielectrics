@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.io as pio
-from pymatviz import pmv_dark_template
+import pymatviz as pmv
 
 
 px.defaults.labels |= dict(
@@ -34,8 +34,8 @@ crystal_sys_order = (
 )
 
 
-pio.templates.default = pmv_dark_template
-px.defaults.template = pmv_dark_template
+pio.templates.default = pmv.pmv_dark_template
+px.defaults.template = pmv.pmv_dark_template
 
 
 plt.rc("font", size=16)

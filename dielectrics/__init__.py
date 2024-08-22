@@ -3,10 +3,8 @@ from datetime import datetime, timezone
 from enum import unique
 
 import plotly.express as px
+import pymatviz as pmv
 from matplotlib import pyplot as plt
-from pymatviz import set_plotly_template
-from pymatviz.enums import LabelEnum
-from pymatviz.utils import html_tag
 
 
 PKG_DIR = os.path.dirname(__file__)
@@ -16,12 +14,12 @@ DATA_DIR = f"{ROOT}/data"
 SCRIPTS_DIR = f"{ROOT}/scripts"
 today = f"{datetime.now(tz=timezone.utc):%Y-%m-%d}"
 
-set_plotly_template("pymatviz_white")
+pmv.set_plotly_template("pymatviz_white")
 plt.rcParams["figure.constrained_layout.use"] = True
 
 
 @unique
-class Key(LabelEnum):
+class Key(pmv.enums.LabelEnum):
     """Dataframe column names."""
 
     bandgap = "bandgap"
@@ -79,8 +77,8 @@ class Key(LabelEnum):
     wyckoff = "wyckoff"
 
 
-ev_per_atom = html_tag("(eV/atom)", tag="span", style="small")
-eV = html_tag("(eV)", tag="span", style="small")  # noqa: N816
+ev_per_atom = pmv.utils.html_tag("(eV/atom)", tag="span", style="small")
+eV = pmv.utils.html_tag("(eV)", tag="span", style="small")  # noqa: N816
 
 px.defaults.labels |= {
     Key.bandgap_hse: f"E<sub>gap HSE</sub> {eV}",
@@ -119,7 +117,7 @@ px.defaults.labels |= {
 }
 
 
-class SelectionStatus(LabelEnum):
+class SelectionStatus(pmv.enums.LabelEnum):
     """Enum for synthesis selection status of candidate materials."""
 
     confirmed = "confirmed dielectric"  # according to literature mention

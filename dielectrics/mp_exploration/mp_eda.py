@@ -13,13 +13,12 @@ import os
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import pymatviz as pmv
 from matplotlib.patches import Ellipse
 from pymatgen.util.string import latexify
-from pymatviz import ptable_heatmap, spacegroup_hist
-from pymatviz.io import save_fig
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 os.makedirs(f"{PAPER_FIGS}/eda/", exist_ok=True)
@@ -147,8 +146,6 @@ for file_part in ["total", "parts"]:
     else:
         axs[0].remove()
 
-    save_fig(fig, f"{PAPER_FIGS}/eda/diel-{file_part}-vs-bandgap-mp.pdf")
-
 
 # %%
 plt.figure(figsize=(10, 8))
@@ -201,13 +198,13 @@ plt.ylim((-0.1, 9.5))
 
 
 # %%
-ptable_heatmap(df_diel_mp[Key.formula], log=True)
+pmv.ptable_heatmap(df_diel_mp[Key.formula], log=True)
 plt.title("Elemental Prevalence among MP Dielectric Training Materials")
 # plt.savefig(f"{PAPER_FIGS}/eda/mp-diel-train-elements-log.pdf")
 
 
 # %%
-spacegroup_hist(df_diel_mp["spacegroup.number"])
+pmv.spacegroup_bar(df_diel_mp["spacegroup.number"])
 plt.title("Spacegroup distribution among MP Dielectric Training Materials")
 # plt.savefig(f"{PAPER_FIGS}/eda/mp-diel-train-spacegroup-hist.pdf")
 
@@ -217,13 +214,13 @@ df_diel_screen = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-diel-screen.csv.bz2"
 
 
 # %%
-ptable_heatmap(df_diel_screen[Key.formula], log=True)
+pmv.ptable_heatmap(df_diel_screen[Key.formula], log=True)
 plt.title("Elemental Prevalence among MP Dielectric Screening Materials")
 # plt.savefig(f"{PAPER_FIGS}/eda/mp-diel-screen-elements-log.pdf")
 
 
 # %%
-spacegroup_hist(df_diel_screen["spacegroup_mp"])
+pmv.spacegroup_bar(df_diel_screen["spacegroup_mp"])
 plt.title("Spacegroup distribution among MP Dielectric Screening Materials")
 # plt.savefig(f"{PAPER_FIGS}/eda/mp-diel-screen-spacegroup-hist.pdf")
 

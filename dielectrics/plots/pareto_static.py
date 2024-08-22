@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import pymatviz as pmv
 import seaborn as sns
 from matplotlib.patches import Patch
 from pymatgen.util.string import htmlify
-from pymatviz.io import save_fig
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key, SelectionStatus, today
 from dielectrics.db.fetch_data import df_diel_from_task_coll
@@ -160,7 +160,7 @@ for handle, text in zip(
 ):
     text.set_color(handle.get_color())
 
-# save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}-matplotlib.pdf")
+# pmv.io.save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}-matplotlib.pdf")
 
 for level in fom_levels:
     n_hits = sum(df_us[Key.fom_pbe] > level)
@@ -285,4 +285,4 @@ fig.layout.margin.update(l=0, r=0, t=0, b=0)
 
 fig.show()
 img_path = f"{PAPER_FIGS}/pareto-us-vs-petousis-vs-qu-plotly.pdf"
-save_fig(fig, img_path, width=550, height=350)
+pmv.io.save_fig(fig, img_path, width=550, height=350)

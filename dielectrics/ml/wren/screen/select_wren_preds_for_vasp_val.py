@@ -1,12 +1,12 @@
 # %%
 import pandas as pd
+import pymatviz as pmv
 from matbench_discovery.data import DATA_FILES
 from matbench_discovery.data import df_wbm as df_summary
 from pymatgen.ext.matproj import MPRester
-from pymatviz import ptable_heatmap
 
 from dielectrics import DATA_DIR, Key
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 # %%
@@ -21,8 +21,8 @@ df_ionic = pd.read_csv(
 # %%
 df_wren = df_ionic[[Key.formula, Key.wyckoff, Key.bandgap_pbe]].copy()
 
-df_wren[Key.diel_elec_wren] = df_elec.filter(like="_pred_n").mean(1)
-df_wren[Key.diel_ionic_wren] = df_ionic.filter(like="_pred_n").mean(1)
+df_wren[Key.diel_elec_wren] = df_elec.filter(like="_pred_n").mean(axis=1)
+df_wren[Key.diel_ionic_wren] = df_ionic.filter(like="_pred_n").mean(axis=1)
 df_wren[Key.diel_total_wren] = (
     df_wren[Key.diel_elec_wren] + df_wren[Key.diel_ionic_wren]
 )
@@ -146,11 +146,11 @@ df_mp_wbm_screen = pd.read_json(f"{DATA_DIR}/wbm/mp+wbm-for-screen.json.gz").set
 # %%
 df_wren = df_ionic[[Key.formula, Key.wyckoff]].copy()
 
-df_wren[Key.diel_elec_wren] = df_elec.filter(like="_pred_n").mean(1)
-df_wren["diel_elec_wren_std"] = df_elec.filter(like="_pred_n").std(1)
+df_wren[Key.diel_elec_wren] = df_elec.filter(like="_pred_n").mean(axis=1)
+df_wren["diel_elec_wren_std"] = df_elec.filter(like="_pred_n").std(axis=1)
 
-df_wren[Key.diel_ionic_wren] = df_ionic.filter(like="_pred_n").mean(1)
-df_wren["diel_ionic_wren_std"] = df_ionic.filter(like="_pred_n").std(1)
+df_wren[Key.diel_ionic_wren] = df_ionic.filter(like="_pred_n").mean(axis=1)
+df_wren["diel_ionic_wren_std"] = df_ionic.filter(like="_pred_n").std(axis=1)
 
 df_wren[Key.diel_total_wren] = (
     df_wren[Key.diel_elec_wren] + df_wren[Key.diel_ionic_wren]
@@ -183,9 +183,11 @@ plt.suptitle(f"{len(df_wren):,} samples", y=1.02)
 
 
 # %%
-ptable_heatmap(df_wren.nlargest(1000, Key.fom_wren)[Key.formula], heat_label="percent")
+pmv.ptable_heatmap(
+    df_wren.nlargest(1000, Key.fom_wren)[Key.formula], heat_label="percent"
+)
 
-ptable_heatmap(df_wren.sample(1000)[Key.formula], heat_label="percent")
+pmv.ptable_heatmap(df_wren.sample(1000)[Key.formula], heat_label="percent")
 
 
 # %%

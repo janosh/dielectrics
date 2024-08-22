@@ -4,16 +4,14 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import pymatviz as pmv
 from plotly.subplots import make_subplots
 from pymatgen.core import Structure
 from pymatgen.ext.matproj import MPRester
-from pymatviz import spacegroup_sunburst
-from pymatviz.powerups import add_identity_line, annotate_bars
-from pymatviz.utils import crystal_sys_from_spg_num
 from tqdm import tqdm
 
 from dielectrics import DATA_DIR, Key
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 # %%
@@ -31,7 +29,9 @@ for row in tqdm(df_yim.itertuples(), total=len(df_yim)):
         cols = ["spg_symbol", Key.spg]
         if struct := row.structure:
             df_yim.loc[row.Index, cols] = _, spg_num = struct.get_space_group_info()
-            df_yim.loc[row.Index, Key.crystal_sys] = crystal_sys_from_spg_num(spg_num)
+            df_yim.loc[row.Index, Key.crystal_sys] = pmv.utils.crystal_sys_from_spg_num(
+                spg_num
+            )
     except TypeError:  # 'NoneType' object is not subscriptable
         continue
 
@@ -53,7 +53,7 @@ fig.layout.xaxis.update(range=xy_range, type="log")
 fig.layout.yaxis.update(range=xy_range, type="log")
 fig.layout.margin = dict(t=10, b=10, l=10, r=10)
 fig.layout.legend.update(x=1, y=0, xanchor="right", yanchor="bottom")
-add_identity_line(fig)
+pmv.powerups.add_identity_line(fig)
 
 
 # %%
@@ -84,7 +84,7 @@ for idx, (xcol, ycol) in enumerate(combinations(labels, 2), 1):
 
     for trace in sub_fig.data:
         fig.add_trace(trace, row=1, col=idx)
-    fig = add_identity_line(fig, row=1, col=idx)
+    fig = pmv.powerups.add_identity_line(fig, row=1, col=idx)
 
 fig.layout.margin = dict(t=40, b=10, l=10, r=10)
 # fig.layout.width = 1500
@@ -92,7 +92,7 @@ fig.show()
 
 
 # %%
-fig = spacegroup_sunburst(df_yim[Key.spg], show_counts="percent")
+fig = pmv.spacegroup_sunburst(df_yim[Key.spg], show_counts="percent")
 title = "Space distribution of Yin et al. dielectric materials"
 fig.layout.title.update(text=title, x=0.5, font=dict(color="lightgray"))
 fig.show()
@@ -133,7 +133,7 @@ df_yim[mp_ids_col := "likely_mp_ids"] = pd.Series(mp_ids)
 
 # %%
 df_yim[mp_ids_col].map(len).value_counts().plot(kind="bar", log=True)
-annotate_bars()
+pmv.powerups.annotate_bars()
 plt.savefig(f"{mp_ids_col}_lens.pdf")
 
 

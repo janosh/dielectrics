@@ -1,12 +1,12 @@
 # %%
 import pandas as pd
 import plotly.express as px
+import pymatviz as pmv
 from pymatgen.ext.matproj import MPRester
-from pymatviz.powerups import add_identity_line
 
 from dielectrics import Key, today
 from dielectrics.db.fetch_data import df_diel_from_task_coll
-from dielectrics.plots import plt
+from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
 # %%
@@ -87,7 +87,7 @@ fig = px.scatter(
     },
     title=n_us_vs_n_mp_title,
 )
-add_identity_line(fig)
+pmv.powerups.add_identity_line(fig)
 fig.update_traces(marker_sizeref=0.04, selector=dict(mode="markers"))
 
 
