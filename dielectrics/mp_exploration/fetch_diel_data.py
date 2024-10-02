@@ -76,8 +76,8 @@ df_diel_screen = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-diel-screen.csv.bz2"
 df_diel_top_100 = df_diel_train.nlargest(100, Key.fom_mp)
 df_diel_remain = df_diel_train.nlargest(100, Key.fom_mp)
 
-df_diel_enrich_small_test = df_diel_top_100.append(
-    df_diel_remain.sample(900, random_state=0)
+df_diel_enrich_small_test = pd.concat(
+    [df_diel_top_100, df_diel_remain.sample(900, random_state=0)]
 )
 
 
@@ -99,7 +99,7 @@ df_diel_enrich_small_test.to_json(
 # %% Enrichment Experiment 2 (big)
 # combine 100 highest figure of merit materials with MP screening set
 # see screen_data criteria above for what enters the screening set
-df_diel_enrich_big_test = df_diel_screen.append(df_diel_top_100)
+df_diel_enrich_big_test = pd.concat([df_diel_screen, df_diel_top_100])
 
 df_diel_remain.to_json(
     f"{DATA_DIR}/mp-exploration/mp-diel-enrich-big-train.json.bz2",

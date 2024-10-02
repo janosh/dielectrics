@@ -18,7 +18,7 @@ import warnings
 
 import pandas as pd
 import plotly.express as px
-from matbench_discovery.data import DATA_FILES
+from matbench_discovery.data import DataFiles
 from pymatgen.analysis.phase_diagram import PatchedPhaseDiagram, PDEntry
 from pymatgen.core import Composition
 from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
@@ -35,7 +35,9 @@ __date__ = "2021-08-05"
 
 
 # %%
-df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(Key.mat_id)
+df_wbm = pd.read_json(DataFiles.wbm_computed_structure_entries.path).set_index(
+    Key.mat_id
+)
 
 df_wbm.computed_structure_entry = df_wbm.computed_structure_entry.map(
     ComputedStructureEntry.from_dict

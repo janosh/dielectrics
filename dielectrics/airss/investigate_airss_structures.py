@@ -4,7 +4,6 @@ from collections.abc import Sequence
 from glob import glob
 from typing import Literal
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pymatviz as pmv
@@ -131,18 +130,9 @@ df_mongo["robocrys_description"] = (
 
 
 # %%
-n_cols = min(len(df_mongo), 4)
-n_rows = int(np.ceil(len(df_mongo) / n_cols))
-fig, axs = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 5 * n_rows))
-
-for ax, (material_id, struct) in zip(
-    axs.flat, df_mongo[Key.structure].items(), strict=False
-):
-    spg_num, sgp_symbol = struct.get_space_group_info()
-    pmv.structure_2d(struct, ax=ax)
-    ax.set(title=f"{material_id} {spg_num} ({sgp_symbol})")
-
-fig.suptitle(struct.formula, fontweight="bold", fontsize=16)
+struct = df_mongo[Key.structure].iloc[0]
+fig = pmv.structure_2d_plotly(df_mongo[Key.structure].to_dict())
+fig.layout.title = struct.formula
 fig.show()
 
 # compute pairwise dissimilarity matrix for VASP-relaxed AIRSS + WBM seed structures
@@ -182,7 +172,7 @@ df_mp_struct_dists.head()
 
 
 # %%
-df_res_and_mongo = df_res.append(df_mongo.drop(columns=[Key.mat_id]))
+df_res_and_mongo = pd.concat([df_res, df_mongo.drop(columns=[Key.mat_id])])
 
 df_res_and_mongo = df_res_and_mongo.filter(regex="(4142|6811)", axis=0).sort_index()
 
@@ -190,16 +180,6 @@ get_pairwise_struct_distances(df_res_and_mongo)
 
 
 # %%
-n_cols = min(len(df_res_and_mongo), 2)
-n_rows = int(np.ceil(len(df_res_and_mongo) / n_cols))
-fig, axs = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 5 * n_rows))
-
-for ax, (material_id, struct) in zip(
-    axs.flat, df_res_and_mongo[Key.structure].items(), strict=False
-):
-    spg_num, sgp_symbol = struct.get_space_group_info()
-    pmv.structure_2d(struct, ax=ax)
-    ax.set(title=f"{material_id}\n{spg_num} ({sgp_symbol})")
-
-fig.suptitle("AIRSS vs VASP relaxed structures", fontweight="bold", fontsize=16)
+fig = pmv.structure_2d_plotly(df_res_and_mongo[Key.structure].to_dict(), n_cols=2)
+fig.layout.title = "AIRSS vs VASP relaxed structures"
 fig.show()

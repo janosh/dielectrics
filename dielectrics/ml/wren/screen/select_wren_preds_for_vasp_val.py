@@ -1,7 +1,7 @@
 # %%
 import pandas as pd
 import pymatviz as pmv
-from matbench_discovery.data import DATA_FILES
+from matbench_discovery.data import DataFiles
 from matbench_discovery.data import df_wbm as df_summary
 from pymatgen.ext.matproj import MPRester
 
@@ -103,15 +103,16 @@ df_mp = df_mp.rename(
 
 
 # %%
-df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(Key.mat_id)
+df_wbm = pd.read_json(DataFiles.wbm_computed_structure_entries.path)
+df_wbm = df_wbm.set_index(Key.mat_id)
 df_wbm[list(df_summary)] = df_summary
-df_wbm = df_wbm.query("bandgap_pbe > 0")  # discard metals
+df_wbm = df_wbm.query(f"{Key.bandgap_pbe} > 0")  # discard metals
 
 df_top_1k[Key.structure] = df_wbm.computed_structure_entry.map(
     lambda cse: cse.structure
 ).append(df_mp[Key.structure])
 cols = ["energy", "e_form", "e_hull"]
-df_top_1k[cols] = df_wbm.append(df_mp)[cols]
+df_top_1k[cols] = pd.concat([df_wbm, df_mp])[cols]
 
 nans_per_col = df_top_1k.isna().sum()
 assert not any(nans_per_col), f"some columns have missing data:\n{nans_per_col}"

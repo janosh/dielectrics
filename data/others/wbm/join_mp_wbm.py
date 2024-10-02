@@ -2,7 +2,7 @@
 import os
 
 import pandas as pd
-from matbench_discovery.data import DATA_FILES
+from matbench_discovery.data import DataFiles
 from matbench_discovery.data import df_wbm as df_summary
 from pymatgen.ext.matproj import MPRester
 
@@ -13,9 +13,11 @@ module_dir = os.path.dirname(__file__)
 
 
 # %%
-df_mp_wbm = pd.read_csv(f"{module_dir}/data/mp+wbm-all.csv.bz2").set_index(Key.mat_id)
+df_mp_wbm = pd.read_csv(f"{module_dir}/mp+wbm-all.csv.bz2").set_index(Key.mat_id)
 
-df_wbm = pd.read_json(DATA_FILES.wbm_computed_structure_entries).set_index(Key.mat_id)
+df_wbm = pd.read_json(DataFiles.wbm_computed_structure_entries.path).set_index(
+    Key.mat_id
+)
 df_wbm[list(df_summary)] = df_summary
 
 
@@ -34,12 +36,10 @@ assert n_wbm + n_mp == len(df_mp_wbm)
 # positions, leaves about ~108k materials
 material_ids = [x for x in df_mp_wbm.index if x.startswith("mp-")]
 
-mp_data = MPRester().query(
-    {Key.mat_id: {"$in": material_ids}}, [Key.mat_id, Key.bandgap]
-)
+mp_data = MPRester().materials.search(fields=[Key.mat_id, Key.bandgap])
 
-df_mp_wbm[Key.bandgap] = df_wbm[Key.bandgap].append(
-    pd.DataFrame(mp_data).set_index(Key.mat_id)[Key.bandgap]
+df_mp_wbm[Key.bandgap] = pd.concat(
+    [df_wbm[Key.bandgap_pbe], pd.DataFrame(mp_data).set_index(Key.mat_id)[Key.bandgap]]
 )
 
 # 3,314 MP materials with mvc-... IDs have no band gap, we drop them
@@ -67,11 +67,11 @@ print(
 
 # %%
 df_mp_wbm.to_json(
-    f"{module_dir}/data/mp+wbm-all.json.gz", default_handler=lambda x: x.as_dict()
+    f"{module_dir}/mp+wbm-all.json.gz", default_handler=lambda x: x.as_dict()
 )
 
 df_mp_wbm.query("bandgap > 0").to_json(
-    f"{module_dir}/data/mp+wbm-bandgap>0.json.gz", default_handler=lambda x: x.as_dict()
+    f"{module_dir}/mp+wbm-bandgap>0.json.gz", default_handler=lambda x: x.as_dict()
 )
 
 
@@ -87,7 +87,7 @@ print(
     f"leaves {len(df_wbm_screen):,} out of {len(df_wbm):,} "
     f"({len(df_wbm_screen) / len(df_wbm):.1%})"
 )
-print(f"excluded by {sum(df_wbm[Key.bandgap] < 0.5)=:,}")
+print(f"excluded by {sum(df_wbm[Key.bandgap_pbe] < 0.5)=:,}")
 print(f"excluded by {sum(df_wbm[Key.n_sites] > 40)=:,}")
 print(f"excluded by {sum(df_wbm.e_above_hull > 0.1)=:,}")
 print(f"excluded by {sum(df_wbm.n_elems > 5)=:,}")
@@ -118,6 +118,6 @@ df_mp_wbm_screen = df_mp_screening_set.rename(
 ).append(df_wbm_screen)
 
 df_mp_wbm_screen.to_json(
-    f"{module_dir}/data/mp+wbm-for-screen.json.gz",
+    f"{module_dir}/mp+wbm-for-screen.json.gz",
     default_handler=lambda x: x.as_dict(),
 )

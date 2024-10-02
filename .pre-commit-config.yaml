@@ -9,7 +9,7 @@ exclude: .drawio$
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.1
+    rev: v0.6.8
     hooks:
       - id: ruff
         args: [--fix]
@@ -33,7 +33,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.1
+    rev: v1.11.2
     hooks:
       - id: mypy
         additional_dependencies: [types-pyyaml, types-requests]
@@ -50,7 +50,7 @@ repos:
           - --check-filenames
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.41.0
+    rev: v0.42.0
     hooks:
       - id: markdownlint
         # MD013: line too long
