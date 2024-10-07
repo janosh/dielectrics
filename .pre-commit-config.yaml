@@ -1,7 +1,7 @@
 ci:
   autoupdate_schedule: quarterly
 
-default_stages: [commit]
+default_stages: [Nonepre-commitNone]
 
 default_install_hook_types: [pre-commit, commit-msg]
 
@@ -9,7 +9,7 @@ exclude: .drawio$
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.8
+    rev: v0.6.9
     hooks:
       - id: ruff
         args: [--fix]
@@ -21,7 +21,7 @@ repos:
       - id: format-ipy-cells
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-case-conflict
       - id: check-symlinks
@@ -42,7 +42,7 @@ repos:
     rev: v2.3.0
     hooks:
       - id: codespell
-        stages: [commit, commit-msg]
+        stages: [Nonepre-commitNone, commit-msg]
         exclude_types: [csv, html, json, svg, bib]
         args:
           - --ignore-words-list
