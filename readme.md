@@ -53,11 +53,16 @@ close_to_hull_high_fom = db.tasks.find({
 ## How to Cite
 
 ```bib
-@article{riebesell_pushing_2024,
-  title = {Pushing the Pareto Front of Band Gap and Permittivity: ML-guided Search for Dielectric Materials},
-  author = {Riebesell, Janosh and Surta, T. Wesley and Goodall, Rhys and Gaultois, Michael and Lee, Alpha A.},
-  date = {2024-01-11},
-  url = {https://arxiv.org/abs/2401.05848v1},
-  urldate = {2024-01-12},
+@article{riebesell_discovery_2024,
+  title = {Discovery of high-performance dielectric materials with machine-learning-guided search},
+  author = {Riebesell, Janosh and Surta, Todd Wesley and Goodall, Rhys Edward Andrew and Gaultois, Michael William and Lee, Alpha Albert},
+  doi = {10.1016/j.xcrp.2024.102241},
+  url = {https://cell.com/cell-reports-physical-science/abstract/S2666-3864(24)00546-0},
+  journaltitle = {Cell Reports Physical Science},
+  issn = {2666-3864},
+  volume = {5},
+  number = {10},
+  date = {2024-10-16},
+  note = {Publisher: Elsevier},
 }
 ```
