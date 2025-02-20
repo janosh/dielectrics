@@ -177,8 +177,7 @@ ax8.set_title(
 x, y = df_l2[df_clf.is_metal][[Key.bandgap_wren, "bandgap_pred_n0"]].to_numpy().T
 pmv.density_hexbin(x, y, ax=ax9)
 ax9.set_title(
-    "Single non-robust Wren trained on all data with L2 loss\n"
-    "where wren_clf.is_metal"
+    "Single non-robust Wren trained on all data with L2 loss\nwhere wren_clf.is_metal"
 )
 
 x, y = (

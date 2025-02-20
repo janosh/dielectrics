@@ -121,9 +121,9 @@ elem_diffs = [
     for x, y in zip(df_fws.orig_formula, df_fws[Key.formula], strict=True)
 ]
 
-assert all(
-    len(diff) == 2 and sum(diff.values()) == 0 for diff in elem_diffs
-), "there's something wrong about this element replacement"
+assert all(len(diff) == 2 and sum(diff.values()) == 0 for diff in elem_diffs), (
+    "there's something wrong about this element replacement"
+)
 
 elem_replacements = ["->".join(str(el) for el in diff) for diff in elem_diffs]
 

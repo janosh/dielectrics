@@ -42,8 +42,7 @@ print(f"'workflows' collection has {len(existing_material_ids):,} material IDs")
 # ).sort_values("fom_wren_std_adj_rank")
 
 df_wren_diel_ens_elemsub = pd.read_json(
-    f"{DATA_DIR}/wren/screen/"
-    "2022-01-30-wren-ens-screen-mp-top1k-fom-elemsub.json.gz",
+    f"{DATA_DIR}/wren/screen/2022-01-30-wren-ens-screen-mp-top1k-fom-elemsub.json.gz",
     orient="split",
 )
 
@@ -208,9 +207,9 @@ print(
 df_new_wfs = pd.DataFrame(new_wf_metadata or [{Key.formula: ""}]).set_index(Key.formula)
 
 nans_per_col = df_new_wfs.isna().sum()
-assert not any(
-    nans_per_col
-), f"some new workflows have missing metadata:\n{nans_per_col}"
+assert not any(nans_per_col), (
+    f"some new workflows have missing metadata:\n{nans_per_col}"
+)
 
 
 # %%

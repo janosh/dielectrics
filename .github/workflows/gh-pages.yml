@@ -21,10 +21,10 @@ jobs:
       - name: Copy file to artifact folder
         run: |
           mkdir -p artifacts
-          cp dielectrics/paper/figs/pareto-plotly.html artifacts/index.html
+          cp paper/figs/pareto-plotly.html artifacts/index.html
 
       - name: Upload build artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
           path: artifacts
@@ -38,4 +38,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4

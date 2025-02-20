@@ -1,3 +1,23 @@
+"""Script to collect and analyze statistics on dielectric materials candidates.
+
+Specifically, this script calculates statistics on observed dielectric constants,
+bandgaps, and figures of merit (FOM) from different sources including:
+- Materials Project (mp-)
+- Materials Virtual Lab (mvc-)
+- WBM database (wbm-)
+- Generated substitution candidates (containing "->")
+
+The script applies the following thresholds for analysis:
+- Dielectric constant: < 100
+- PBE bandgap: > 0.1 eV
+- Figure of merit: > 240
+
+It prints:
+- Total counts of materials from each source
+- Hit rates for materials meeting various threshold combinations from each source
+- Generates histograms comparing different bandgap calculation methods
+"""
+
 # %%
 from __future__ import annotations
 
@@ -122,8 +142,7 @@ elem_sub_hit_rate_all = sum(sub_mask & diel_fom_mask) / sum(sub_mask & diel_elec
 print(f"\nSUB Hit rate all: {elem_sub_hit_rate_all:.2%}")
 elem_sub_hit_rate_bandgap = sum(sub_mask & all_mask) / sum(sub_mask & diel_bandgap_mask)
 print(
-    f"SUB Hit rate bandgap > {pbe_bandgap_threshold}: "
-    f"{elem_sub_hit_rate_bandgap:.2%}"
+    f"SUB Hit rate bandgap > {pbe_bandgap_threshold}: {elem_sub_hit_rate_bandgap:.2%}"
 )
 
 

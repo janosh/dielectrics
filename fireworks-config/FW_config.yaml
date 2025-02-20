@@ -14,7 +14,7 @@ REMOVE_USELESS_DIRS: true
 SORT_FWS: FILO
 
 # If true, queue launcher always creates new block directory every time it is called,
-# else re-uses previous blocks until reaching MAXJOBS_BLOCK.
+# else reuses previous blocks until reaching MAXJOBS_BLOCK.
 ALWAYS_CREATE_NEW_BLOCK: true
 
 # date format for writing block directories in qlaunch's rapid-fire mode

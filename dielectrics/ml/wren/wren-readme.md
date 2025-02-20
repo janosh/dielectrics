@@ -1,5 +1,7 @@
 # Wren for Dielectrics Discovery
 
+> Note: The metrics and training commands in this document are not those of the final checkpoints used in the paper. See [this GitHub discussion](https://github.com/janosh/dielectrics/issues/6#issuecomment-2671374630) for more details.
+
 Total number of trainable parameters: 501,164
 
 ## Testing Total vs Electronic + Ionic Dielectric Constant
