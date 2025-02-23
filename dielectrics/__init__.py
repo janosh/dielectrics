@@ -22,59 +22,94 @@ plt.rcParams["figure.constrained_layout.use"] = True
 class Key(pmv.enums.LabelEnum):
     """Dataframe column names."""
 
-    bandgap = "bandgap"
-    bandgap_exp = "bandgap_exp"
-    bandgap_hse = "bandgap_hse"
-    bandgap_mp = "bandgap_mp"
-    bandgap_pbe = "bandgap_pbe"
-    bandgap_us = "bandgap_us"
-    bandgap_wren = "bandgap_wren"
-    crystal_sys = "crystal_system"
-    date = "date"
-    diel_elec_mp = "diel_elec_mp"
-    diel_elec_pbe = "diel_elec_pbe"
-    diel_elec_wren = "diel_elec_wren"
-    diel_ionic_mp = "diel_ionic_mp"
-    diel_ionic_pbe = "diel_ionic_pbe"
-    diel_ionic_wren = "diel_ionic_wren"
-    diel_total = "diel_total"
-    diel_total_exp = "diel_total_exp"  # total dielectric constant from experiment
-    diel_total_mp = "diel_total_mp"  # total dielectric constant from MP
-    diel_total_pbe = "diel_total_pbe"  # total dielectric constant from PBE DFPT calcs
-    diel_total_us = "diel_total_us"  # total dielectric constant from our own DFPT calcs
-    diel_total_wren = "diel_total_wren"
-    dyn_mat_eigen_vals = "dynamical_matrix_eigen_vals"  # atomate: normalmode_eigenvals
-    dyn_mat_eigen_vecs = "dynamical_matrix_eigen_vecs"  # atomate: normalmode_eigenvecs
-    e_above_hull_mp = "e_above_hull_mp"
-    e_above_hull_pbe = "e_above_hull_pbe"
-    e_above_hull_wren = "e_above_hull_wren"
-    e_form_wren = "e_form_wren"
-    e_per_atom = "energy_per_atom"
-    energy = "energy (eV)"
-    fom = "fom"  # figure of merit Phi_M = band gap x eps_total
-    fom_exp = "fom_exp"
-    fom_mp = "fom_mp"
-    fom_pbe = "fom_pbe"
-    fom_wren = "fom_wren"
-    fom_wren_std_adj = "fom_wren_std_adj"
-    force_constants = "force_constants"
-    formula = "formula"
-    fr_min_e = "(F(R)-E)^1/2"
-    freq = "Frequency (Hz)"  # of electric field in exp. impedance/reflectance plots
-    icsd_id = "icsd_id"
-    imped = "Impedance (Ohms)"
-    mat_id = "material_id"
-    max_ph_freq = "max_phonon_frequency"
-    min_ph_freq = "min_phonon_frequency"
-    n_sites = "n_sites"  # number of sites in the unit cell
-    phonon_freqs = "phonon_frequencies"
-    # synthesis selection status of candidate materials
-    selection_status = "selection_status"
-    spg = "spacegroup"  # international space group number
-    structure = "structure"
-    symmetry = "symmetry"
-    task_id = "task_id"
-    wyckoff = "wyckoff"
+    bandgap = "bandgap", "Band gap"
+    bandgap_exp = "bandgap_exp", "Band gap (exp.)"
+    bandgap_hse = "bandgap_hse", "Band gap (HSE)"
+    bandgap_mp = "bandgap_mp", "Band gap (MP)"
+    bandgap_pbe = "bandgap_pbe", "Band gap (PBE)"
+    bandgap_us = "bandgap_us", "Band gap (us)"
+    bandgap_wren = "bandgap_wren", "Band gap (Wren)"
+    crystal_sys = "crystal_system", "Crystal system"
+    date = "date", "Date"
+    diel_elec_mp = "diel_elec_mp", "ε<sub>elec MP</sub>"
+    diel_elec_pbe = "diel_elec_pbe", "ε<sub>elec PBE</sub>"
+    diel_elec_wren = "diel_elec_wren", "ε<sub>elec Wren</sub>"
+    diel_ionic_mp = "diel_ionic_mp", "ε<sub>ionic MP</sub>"
+    diel_ionic_pbe = "diel_ionic_pbe", "ε<sub>ionic PBE</sub>"
+    diel_ionic_wren = "diel_ionic_wren", "ε<sub>ionic Wren</sub>"
+    diel_total = (
+        "diel_total",
+        "ε<sub>total</sub>",
+        "total dielectric constant from experiment",
+    )
+    diel_total_exp = "diel_total_exp", "ε<sub>total exp.</sub>"
+    diel_total_mp = (
+        "diel_total_mp",
+        "ε<sub>total MP</sub>",
+        "total dielectric constant from MP",
+    )
+    diel_total_pbe = (
+        "diel_total_pbe",
+        "ε<sub>total PBE</sub>",
+        "total dielectric constant from PBE DFPT calcs",
+    )
+    diel_total_us = (
+        "diel_total_us",
+        "ε<sub>total us</sub>",
+        "total dielectric constant from our own DFPT calcs",
+    )
+    diel_total_wren = (
+        "diel_total_wren",
+        "ε<sub>total Wren</sub>",
+        "total dielectric constant from Wren DFPT calcs",
+    )
+    dyn_mat_eigen_vals = (
+        "dynamical_matrix_eigen_vals",
+        "Dynamical matrix eigenvals",
+        "eigenvalues of the dynamical matrix",
+    )  # atomate: normalmode_eigenvals
+    dyn_mat_eigen_vecs = (
+        "dynamical_matrix_eigen_vecs",
+        "Dynamical matrix eigenvecs",
+        "eigenvectors of the dynamical matrix",
+    )  # atomate: normalmode_eigenvecs
+    e_above_hull_mp = "e_above_hull_mp", "E<sub>hull dist MP</sub>"
+    e_above_hull_pbe = "e_above_hull_pbe", "E<sub>hull dist PBE</sub>"
+    e_above_hull_wren = "e_above_hull_wren", "E<sub>hull dist Wren</sub>"
+    e_form_wren = "e_form_wren", "E<sub>form Wren</sub>"
+    e_per_atom = "energy_per_atom", "Energy per atom"
+    energy = "energy (eV)", "Energy"
+    fom = "fom", "Φ", "Figure of merit", "figure of merit Phi_M = band gap x eps_total"
+    fom_exp = "fom_exp", "Φ<sub>exp</sub>"
+    fom_mp = "fom_mp", "Φ<sub>MP</sub>"
+    fom_pbe = "fom_pbe", "Φ<sub>PBE</sub>"
+    fom_wren = "fom_wren", "Φ<sub>Wren</sub>"
+    fom_wren_std_adj = "fom_wren_std_adj", "Φ<sub>Wren - std</sub>"
+    force_constants = "force_constants", "Force constants"
+    formula = "formula", "Formula"
+    fr_min_e = "(F(R)-E)^1/2", "(F(R) - E)<sup>1/2</sup>"
+    freq = (
+        "Frequency (Hz)",
+        "Frequency",
+        "frequency of electric field in exp. impedance/reflectance plots",
+    )
+    icsd_id = "icsd_id", "ICSD ID"
+    imped = "Impedance (Ohms)", "Impedance"
+    mat_id = "material_id", "Material ID"
+    max_ph_freq = "max_phonon_frequency", "Max phonon frequency"
+    min_ph_freq = "min_phonon_frequency", "Min phonon frequency"
+    n_sites = "n_sites", "Number of sites", "number of sites in the unit cell"
+    phonon_freqs = "phonon_frequencies", "Phonon frequencies"
+    selection_status = (
+        "selection_status",
+        "Selection status",
+        "synthesis selection status of candidate materials",
+    )
+    spg = "spacegroup", "Space group", "international space group number"
+    structure = "structure", "Structure"
+    symmetry = "symmetry", "Symmetry"
+    task_id = "task_id", "Task ID"
+    wyckoff = "wyckoff", "Wyckoff position"
 
 
 ev_per_atom = pmv.utils.html_tag("(eV/atom)", tag="span", style="small")
@@ -120,9 +155,11 @@ px.defaults.labels |= {
 class SelectionStatus(pmv.enums.LabelEnum):
     """Enum for synthesis selection status of candidate materials."""
 
-    confirmed = "confirmed dielectric"  # according to literature mention
-    discarded = "discarded"
-    strong_candidate = "strong candidate"  # promising candidate for exp. synthesis
-    weak_candidate = "weak candidate"
+    # according to literature mention
+    confirmed = "confirmed dielectric", "Confirmed dielectric"
+    discarded = "discarded", "Discarded"
+    # promising candidate for exp. synthesis
+    strong_candidate = "strong candidate", "Strong candidate"
+    weak_candidate = "weak candidate", "Weak candidate"
     # to be synthesized if time/resources allow
-    selected_for_synthesis = "selected for synthesis"
+    selected_for_synthesis = "selected for synthesis", "Selected for synthesis"
