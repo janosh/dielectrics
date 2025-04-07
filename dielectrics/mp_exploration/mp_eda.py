@@ -246,9 +246,15 @@ df_melted = df_diel_mp.melt(
 df_melted["component"] = df_melted.component.map(
     {Key.diel_elec_mp: "electronic", Key.diel_ionic_mp: "ionic"}
 )
-cry_sys_order = (
-    "cubic hexagonal trigonal tetragonal orthorhombic monoclinic triclinic".split()
-)
+cry_sys_order = [
+    "cubic",
+    "hexagonal",
+    "trigonal",
+    "tetragonal",
+    "orthorhombic",
+    "monoclinic",
+    "triclinic",
+]
 
 fig = px.strip(
     df_melted,

@@ -29,9 +29,15 @@ except AttributeError:
     # if kaleido is not installed, the linked GH issue doesn't apply
     pass
 
-crystal_sys_order = (
-    "cubic hexagonal trigonal tetragonal orthorhombic monoclinic triclinic".split()
-)
+crystal_sys_order = [
+    "cubic",
+    "hexagonal",
+    "trigonal",
+    "tetragonal",
+    "orthorhombic",
+    "monoclinic",
+    "triclinic",
+]
 
 
 pio.templates.default = pmv.pmv_dark_template

@@ -73,9 +73,15 @@ df_melted = df_us.query("0 < diel_total_pbe < 1000").melt(
 df_melted["component"] = df_melted.component.map(
     {Key.diel_elec_pbe: "electronic", Key.diel_ionic_pbe: "ionic"}
 )
-cry_sys_order = (
-    "cubic hexagonal trigonal tetragonal orthorhombic monoclinic triclinic".split()
-)
+cry_sys_order = [
+    "cubic",
+    "hexagonal",
+    "trigonal",
+    "tetragonal",
+    "orthorhombic",
+    "monoclinic",
+    "triclinic",
+]
 
 
 # %%

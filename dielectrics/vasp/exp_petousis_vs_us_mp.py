@@ -58,7 +58,15 @@ assert len(df_exp) == len(mp_data), f"{len(df_exp)=} != {len(mp_data)=}"
 df_mp = pd.DataFrame(mp_data).set_index(Key.mat_id, drop=False)
 
 df_mp = df_mp.rename(columns={"band_gap": Key.bandgap})
-cols = "material_id structure bandgap e_total e_ionic e_electronic n".split()
+cols = [
+    "material_id",
+    "structure",
+    "bandgap",
+    "e_total",
+    "e_ionic",
+    "e_electronic",
+    "n",
+]
 df_exp[
     df_mp[cols].add_suffix("_mp").columns.str.replace("^e_", "diel_", regex=True)
 ] = df_mp[cols]
