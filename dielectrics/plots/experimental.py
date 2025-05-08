@@ -117,7 +117,7 @@ fig_tauc.layout.legend.update(title=None, x=1, y=0, xanchor="right")
 fig_tauc.layout.yaxis.title.update(text=r"$\sqrt{F(R) - E}$", standoff=9)
 fig_tauc.layout.xaxis.title.update(standoff=8)
 fig_tauc.show()
-pmv.io.save_fig(fig_tauc, f"{PAPER_FIGS}/experimental/exp-tauc-bandgaps.pdf")
+pmv.save_fig(fig_tauc, f"{PAPER_FIGS}/experimental/exp-tauc-bandgaps.pdf")
 
 
 # %% Diffuse Reflectance Plot
@@ -132,7 +132,7 @@ fig_refl.layout.margin.update(l=0, r=0, b=0, t=0)
 fig_refl.layout.legend.update(title=None, x=1, y=0, xanchor="right")
 fig_refl.layout.yaxis.title = "Reflectance (%)"
 fig_refl.show()
-pmv.io.save_fig(fig_refl, f"{PAPER_FIGS}/experimental/exp-diffuse-reflectance.pdf")
+pmv.save_fig(fig_refl, f"{PAPER_FIGS}/experimental/exp-diffuse-reflectance.pdf")
 
 
 # %% DE-data Plot
@@ -195,7 +195,7 @@ for formula in formulas_plain:
     # hide legend since figures will be shown side-by-side
     # fig_diel.update_layout(showlegend=formula == "Bi2Zr2O7")
     img_name = f"exp-{formula}-diel-real-imag-loss-vs-freq"
-    pmv.io.save_fig(fig_diel, f"{PAPER_FIGS}/experimental/{img_name}.pdf")
+    pmv.save_fig(fig_diel, f"{PAPER_FIGS}/experimental/{img_name}.pdf")
 
     # save inset for CsTaTeO6 plot at 1MHz
     if formula == "CsTaTeO6":
@@ -211,7 +211,7 @@ for formula in formulas_plain:
         fig_diel.data = fig_diel.data[:-1]  # remove diel loss tangent from inset
 
         fig_diel.show()
-        pmv.io.save_fig(fig_diel, f"{PAPER_FIGS}/experimental/{img_name}-inset.png")
+        pmv.save_fig(fig_diel, f"{PAPER_FIGS}/experimental/{img_name}-inset.png")
 
 
 # %% Rietveld XRD fits for Zr2Bi2O7 Fm3m (227) and CsTaTeO6 Fd3m
@@ -279,7 +279,7 @@ for material in materials:
     )
     fig_xrd.layout.xaxis.update(title_standoff=0)
     fig_xrd.show()
-    pmv.io.save_fig(fig_xrd, f"{PAPER_FIGS}/experimental/exp-rietveld-{material}.pdf")
+    pmv.save_fig(fig_xrd, f"{PAPER_FIGS}/experimental/exp-rietveld-{material}.pdf")
 
 
 # %% compare experimental and DFT XRD for Bi2Zr2O7
@@ -293,7 +293,7 @@ fig = pmv.xrd_pattern(
     }
 )
 fig.show()
-pmv.io.save_fig(fig, f"{PAPER_FIGS}/experimental/xrd-Bi2Zr2O7-exp-vs-dft.pdf")
+pmv.save_fig(fig, f"{PAPER_FIGS}/experimental/xrd-Bi2Zr2O7-exp-vs-dft.pdf")
 
 
 # %% compare experimental and DFT XRD for CsTaTeO6
@@ -309,7 +309,7 @@ fig = pmv.xrd_pattern(
     }
 )
 fig.show()
-pmv.io.save_fig(fig, f"{PAPER_FIGS}/experimental/xrd-CsTaTeO6-exp-vs-dft.pdf")
+pmv.save_fig(fig, f"{PAPER_FIGS}/experimental/xrd-CsTaTeO6-exp-vs-dft.pdf")
 
 
 # %%

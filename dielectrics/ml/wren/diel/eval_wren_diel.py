@@ -102,7 +102,7 @@ df_wren_seed.nlargest(1000, Key.fom_wren).fom_wren.hist(
 )
 
 ax.set_title("Wren-predicted FoM")
-pmv.io.save_fig(f"{PAPER_FIGS}/wren/screen/top-1k-elemsub-vs-mp+wbm.pdf")
+pmv.save_fig(f"{PAPER_FIGS}/wren/screen/top-1k-elemsub-vs-mp+wbm.pdf")
 
 
 # %% EVALUATING WREN ENSEMBLE STARTS HERE

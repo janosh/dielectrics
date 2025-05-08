@@ -184,11 +184,18 @@ plt.suptitle(f"{len(df_wren):,} samples", y=1.02)
 
 
 # %%
-pmv.ptable_heatmap(
-    df_wren.nlargest(1000, Key.fom_wren)[Key.formula], heat_label="percent"
+cbar_title = "Elemental distribution of top 1k Wren-predicted FoMs"
+fig = pmv.ptable_heatmap_plotly(
+    df_wren.nlargest(1000, Key.fom_wren)[Key.formula],
+    colorbar=dict(title=cbar_title),
 )
+fig.show()
 
-pmv.ptable_heatmap(df_wren.sample(1000)[Key.formula], heat_label="percent")
+cbar_title = "Elemental distribution of random 1k samples"
+fig = pmv.ptable_heatmap_plotly(
+    df_wren.sample(1000)[Key.formula], colorbar=dict(title=cbar_title)
+)
+fig.show()
 
 
 # %%

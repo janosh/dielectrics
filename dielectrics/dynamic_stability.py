@@ -95,9 +95,7 @@ for mat_id in ("mp-756175", "mp-1225854:W->Te"):
     fig.layout.margin = dict(l=0, t=30, b=0, r=0)
     fig.show()
 
-    pmv.io.save_fig(
-        fig, f"{PAPER_FIGS}/{mat_id}-phonon-freqs.svg", width=300, height=200
-    )
+    pmv.save_fig(fig, f"{PAPER_FIGS}/{mat_id}-phonon-freqs.svg", width=300, height=200)
 
 
 # %%
@@ -161,4 +159,4 @@ fig.layout.margin = dict(l=0, t=30, b=0, r=0)
 fig.layout.update(showlegend=False)
 fig.show()
 
-pmv.io.save_fig(fig, f"{PAPER_FIGS}/min-phonon-freq-hist.svg", width=600, height=400)
+pmv.save_fig(fig, f"{PAPER_FIGS}/min-phonon-freq-hist.svg", width=600, height=400)

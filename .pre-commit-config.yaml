@@ -9,7 +9,7 @@ exclude: .drawio$
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.6
+    rev: v0.11.8
     hooks:
       - id: ruff
         args: [--fix]
@@ -46,7 +46,7 @@ repos:
         exclude_types: [csv, html, json, svg, bib]
         args:
           - --ignore-words-list
-          - hist,nin,titel,te,fom,alo,atomate,youn
+          - hist,nin,titel,te,fom,alo,atomate,youn,fo
           - --check-filenames
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
@@ -57,3 +57,10 @@ repos:
         # MD033: no inline HTML
         # MD041: first line in a file should be a top-level heading
         args: [--disable, MD013, MD033, MD041, "--"]
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.32.0
+    hooks:
+      - id: typos
+        types_or: [python, markdown, yaml]
+        args: []

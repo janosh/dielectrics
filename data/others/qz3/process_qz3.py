@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 import pandas as pd
 import requests
 from pymatgen.core import Composition
+from pymatviz.enums import Key as PmvKey
 from tqdm import tqdm
 
 from dielectrics import PKG_DIR, Key, today
@@ -72,7 +73,7 @@ col_map = {
 }
 df_qz3 = df_qz3.rename(columns=col_map)
 
-df_qz3[Key.fom_pbe] = df_qz3[Key.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
+df_qz3[Key.fom_pbe] = df_qz3[PmvKey.bandgap_pbe] * df_qz3[Key.diel_total_pbe]
 
 
 # %%

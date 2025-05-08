@@ -29,7 +29,7 @@ dependencies = [
 Repo = "https://github.com/janosh/dielectrics"
 
 [project.optional-dependencies]
-aflow_wyckoff_labels = ["aviary"]
+aflow_wyckoff_labels = ["matbench_discovery"]
 single_use_deps = [
   "adjustText",
   "crystal_toolkit",
@@ -93,3 +93,13 @@ ignore = [
 pydocstyle.convention = "google"
 isort.lines-after-imports = 2
 isort.split-on-trailing-comma = false
+
+[tool.typos.default.extend-words]
+fom = "fom"
+Fo = "Fo"
+Ba = "Ba"
+Youn = "Youn"
+nin = "nin"
+titel = "titel"
+PN = "PN"
+alo = "alo"

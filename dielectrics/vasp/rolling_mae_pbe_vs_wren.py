@@ -120,7 +120,7 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
         (False, False),
     )
     suffix = f"{'wren' if 'wren' in x_axis_bandgap else 'pbe'}-as-x.pdf"
-    pmv.io.save_fig(fig, f"{PAPER_FIGS}/ml/rolling-bandgap+diel-error-{suffix}")
+    pmv.save_fig(fig, f"{PAPER_FIGS}/ml/rolling-bandgap+diel-error-{suffix}")
 
 
 # %% plot wren and PBE rolling MAE into same plot

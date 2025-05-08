@@ -162,8 +162,16 @@ for ax in (*axs1.flat, *axs2.flat):
 
 
 # %%
-pmv.ptable_heatmap(df_clean[Key.formula])
-pmv.ptable_heatmap(df_clean.nlargest(1000, Key.fom_wren_std_adj)[Key.formula])
+cbar_title = "Elemental distribution of new workflows"
+fig = pmv.ptable_heatmap_plotly(df_clean[Key.formula], colorbar=dict(title=cbar_title))
+fig.show()
+
+cbar_title = "Elemental distribution of top 1k Wren-predicted FoMs"
+fig = pmv.ptable_heatmap_plotly(
+    df_clean.nlargest(1000, Key.fom_wren_std_adj)[Key.formula],
+    colorbar=dict(title=cbar_title),
+)
+fig.show()
 # no change in elemental prevalence from selecting the top 1k Wren-predicted FoMs
 
 
@@ -172,9 +180,8 @@ df_mp_diel = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 
 # %%
-keep_top = 4000
-top_fom: pd.DataFrame = df_clean.nlargest(4000, Key.fom_wren_std_adj)
-
+keep_top = 4_000
+top_fom: pd.DataFrame = df_clean.nlargest(keep_top, Key.fom_wren_std_adj)
 
 top_fom = top_fom.reset_index()
 top_fom.index = top_fom[Key.mat_id].str.split(":").str[0]

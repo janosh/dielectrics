@@ -16,6 +16,7 @@ from dielectrics.element_substitution import (
 
 
 # %% original Wren-single candidates from MP+WBM
+elem_list_key = "elem_list"
 # df_wren_single = pd.read_csv(
 #     f"{DATA_DIR}/wren/screen/wren-diel-single-robust-mp+wbm-fom-elemsub-seeds.csv"
 # )
@@ -31,7 +32,7 @@ df_elem_sub_seeds = df_vasp_ens_std_adj.nlargest(200, Key.fom_pbe)
 df_mp_diel = pd.read_json(f"{DATA_DIR}/mp-exploration/mp-diel-train.json.bz2")
 
 # discard unstable and negative and unrealistically large dielectric constants
-df_mp_diel = df_mp_diel.query("0 < diel_total_mp < 2000 and e_above_hull < 0.1")
+df_mp_diel = df_mp_diel.query("0 < diel_total_mp < 2000 and e_above_hull_mp < 0.1")
 
 df_elem_sub_seeds = df_mp_diel.nlargest(1000, Key.fom_mp)
 
@@ -47,20 +48,18 @@ df_elem_sub_seeds["elem_list"] = df_elem_sub_seeds[Key.wyckoff].map(
 # %%
 dfs, n_iters = [], 1000
 for _ in tqdm(range(n_iters)):
-    df_tmp = df_elem_sub_seeds[[Key.mat_id, Key.formula, "elem_list", Key.wyckoff]]
+    df_tmp = df_elem_sub_seeds[[Key.mat_id, Key.formula, elem_list_key, Key.wyckoff]]
 
     # elem_swap is a tuple of two element symbols: (elem_orig, elem_new)
-    df_tmp["elem_swap"] = df_tmp.elem_list.map(
+    df_tmp["elem_swap"] = df_tmp[elem_list_key].map(
         lambda elem_list: replace_similar_elem(trans_mat, mp_atom_nums, elem_list)
     )
 
     dfs.append(df_tmp)
 
 df_elemsub = pd.concat(dfs)
-
 n_subs = len(df_elemsub)
-df_elemsub = df_elemsub.drop_duplicates(subset=["elem_list", "elem_swap"])
-
+df_elemsub = df_elemsub.drop_duplicates(subset=[elem_list_key, "elem_swap"])
 n_unique = len(df_elemsub)
 
 print(
@@ -111,7 +110,7 @@ all_mp_formulas_csv = f"{DATA_DIR}/mp-exploration/all-mp-formulas.csv"
 try:
     df_all_mp_formulas = pd.read_csv(all_mp_formulas_csv)
 except FileNotFoundError:
-    # %% if CSV doesn't exist, re-download all MP formulas
+    # if CSV doesn't exist, re-download all MP formulas
     with MPRester() as mpr:
         data = mpr.query({}, [Key.mat_id, "pretty_formula"], chunk_size=5000)
 
@@ -141,11 +140,14 @@ print(f"removing existing MP compositions: {prev_len:,} -> {len(df_clean):,}")
 elem_counts = pmv.count_elements(df_clean[Key.formula])
 orig_elem_counts = pmv.count_elements(df_clean.orig_formula)
 
-pmv.ptable_heatmap(elem_counts, log=True)
+cbar_title = "Elemental distribution of new workflows"
+fig = pmv.ptable_heatmap_plotly(elem_counts, log=True, colorbar=dict(title=cbar_title))
+fig.show()
 
-pmv.ptable_heatmap_ratio(
-    elem_counts, orig_elem_counts, cbar_title="substituted/original elements"
+fig = pmv.ptable_heatmap_plotly(
+    elem_counts / orig_elem_counts, colorbar=dict(title="substituted/original elements")
 )
+fig.show()
 
 
 # %%

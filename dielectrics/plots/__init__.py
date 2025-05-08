@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.io as pio
-import pymatviz as pmv
 
 
 px.defaults.labels |= dict(
@@ -28,14 +27,6 @@ try:
 except AttributeError:
     # if kaleido is not installed, the linked GH issue doesn't apply
     pass
-
-crystal_sys_order = (
-    "cubic hexagonal trigonal tetragonal orthorhombic monoclinic triclinic".split()
-)
-
-
-pio.templates.default = pmv.pmv_dark_template
-px.defaults.template = pmv.pmv_dark_template
 
 
 plt.rc("font", size=16)

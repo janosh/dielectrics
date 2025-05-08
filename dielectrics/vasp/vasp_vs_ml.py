@@ -178,14 +178,23 @@ plt.ylim((0, 9))
 
 
 # %%
-ax = pmv.ptable_heatmap(
-    wren_top_fom.reset_index()[Key.formula], count_mode="occurrence", fmt=".0f"
+cbar_title = "Elemental prevalence among Wren-predicted<br>top 100 FoM materials"
+fig = pmv.ptable_heatmap_plotly(
+    wren_top_fom.reset_index()[Key.formula],
+    count_mode="occurrence",
+    fmt=".0f",
+    colorbar=dict(title=cbar_title),
 )
-ax.set_title(f"Elemental prevalence among Wren-predicted top {n_top} FoM materials")
-ax = pmv.ptable_heatmap(
-    cgcnn_top_fom.reset_index()[Key.formula], count_mode="occurrence", fmt=".0f"
+fig.show()
+
+cbar_title = "Elemental prevalence among CGCNN-predicted<br>top 100 FoM materials"
+fig = pmv.ptable_heatmap_plotly(
+    cgcnn_top_fom.reset_index()[Key.formula],
+    count_mode="occurrence",
+    fmt=".0f",
+    colorbar=dict(title=cbar_title),
 )
-ax.set_title(f"Elemental prevalence among CGCNN-predicted top {n_top} FoM materials")
+fig.show()
 
 
 # %% refractive index n_pbe is computed by diel_tensor_to_const() same way as they do in
@@ -194,7 +203,7 @@ ax.set_title(f"Elemental prevalence among CGCNN-predicted top {n_top} FoM materi
 # tested on 2021-06-02 to give identical results to atomate's DielectricBuilder across
 # 31 diverse materials
 df_vasp = df_vasp.query("0 <= n_pbe <= 10")
-df_vasp["n_wren"] = df_wren.n_pred_n0
+df_vasp["n_wren"] = df_wren.n_pred_n0  # broken: n_pred_n0 no longer exists in df_wren
 df_vasp["n_cgcnn"] = df_cgcnn.n_pred_n0
 
 

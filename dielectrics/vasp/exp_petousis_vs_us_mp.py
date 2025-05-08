@@ -19,7 +19,7 @@ import plotly.express as px
 import pymatviz as pmv
 import scipy.stats
 from adjustText import adjust_text
-from aviary.wren.utils import get_aflow_label_from_spglib
+from matbench_discovery.structure.prototype import get_protostructure_label
 from mp_api.client import MPRester
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
@@ -58,7 +58,7 @@ assert len(df_exp) == len(mp_data), f"{len(df_exp)=} != {len(mp_data)=}"
 df_mp = pd.DataFrame(mp_data).set_index(Key.mat_id, drop=False)
 
 df_mp = df_mp.rename(columns={"band_gap": Key.bandgap})
-cols = "material_id structure bandgap e_total e_ionic e_electronic n".split()
+cols = "material_id structure bandgap e_total e_ionic e_electronic n".split()  # noqa: SIM905
 df_exp[
     df_mp[cols].add_suffix("_mp").columns.str.replace("^e_", "diel_", regex=True)
 ] = df_mp[cols]
@@ -82,7 +82,7 @@ df_exp[Key.n_sites] = df_exp[struct_col].map(len)
 df_exp[Key.spg] = df_exp[struct_col].map(lambda x: x.get_space_group_info())
 
 df_exp[Key.wyckoff] = [
-    get_aflow_label_from_spglib(struct) for struct in df_exp[struct_col]
+    get_protostructure_label(struct) for struct in df_exp[struct_col]
 ]
 
 

@@ -82,4 +82,4 @@ fig.layout.margin = dict(t=40, l=10, r=10, b=10)
 fig.layout.title = dict(text=ax_title, x=0.5)
 
 fig.show()
-pmv.io.save_fig(fig, f"{PAPER_FIGS}/diel-ionic-vs-electronic-corr-mp.pdf")
+pmv.save_fig(fig, f"{PAPER_FIGS}/diel-ionic-vs-electronic-corr-mp.pdf")

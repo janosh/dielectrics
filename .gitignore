@@ -15,7 +15,7 @@ block*
 launcher*
 calcs
 
-# large datas files
+# large data files
 *.json.gz
 *.json.bz2
 *.csv.bz2

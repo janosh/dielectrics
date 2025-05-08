@@ -18,7 +18,7 @@ Train           : n - Loss 0.165        MAE 0.224       RMSE 0.779
 
 ### Small version taking 1000 samples from training set
 
-Given a screening set of 100 top n materials + 900 random examples from the remaining ~7000 samples from the training set, can CGCNN identify a sufficiently high number of the top 100 candidates to be a viable model for finding new hihg refractive index materials.
+Given a screening set of 100 top n materials + 900 random examples from the remaining ~7000 samples from the training set, can CGCNN identify a sufficiently high number of the top 100 candidates to be a viable model for finding new high refractive index materials.
 
 CGCNN command used to run enrichment experiment:
 

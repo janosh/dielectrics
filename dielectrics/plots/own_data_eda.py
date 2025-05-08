@@ -8,6 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pymatviz as pmv
 from pymatgen.core import Composition
+from pymatviz import crystal_sys_order
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.db.fetch_data import df_diel_from_task_coll
@@ -73,9 +74,6 @@ df_melted = df_us.query("0 < diel_total_pbe < 1000").melt(
 df_melted["component"] = df_melted.component.map(
     {Key.diel_elec_pbe: "electronic", Key.diel_ionic_pbe: "ionic"}
 )
-cry_sys_order = (
-    "cubic hexagonal trigonal tetragonal orthorhombic monoclinic triclinic".split()
-)
 
 
 # %%
@@ -89,7 +87,7 @@ fig = px.violin(
     hover_data=dict(material_id=True, formula=True),
     template=pmv.pmv_white_template,
     # sort strips from high to low spacegroup number
-    category_orders={Key.crystal_sys: cry_sys_order},
+    category_orders={Key.crystal_sys: crystal_sys_order},
     height=500,
     width=1200,
 ).update_traces(jitter=1)
@@ -97,9 +95,11 @@ fig = px.violin(
 fig.layout.margin.update(l=30, r=30, t=30, b=30)
 fig.layout.legend.update(x=1, y=1, xanchor="right")
 
-df_us = df_us.sort_values(Key.crystal_sys, key=lambda col: col.map(cry_sys_order.index))
+df_us = df_us.sort_values(
+    Key.crystal_sys, key=lambda col: col.map(crystal_sys_order.index)
+)
 
-n_top, x_ticks = 30, dict.fromkeys(cry_sys_order, "")
+n_top, x_ticks = 30, dict.fromkeys(crystal_sys_order, "")
 for cry_sys, df_group in df_us.groupby(Key.crystal_sys):
     ionic_top = df_group[Key.diel_ionic_pbe].nlargest(n_top).mean()
     elec_top = df_group[Key.diel_elec_pbe].nlargest(n_top).mean()
@@ -115,7 +115,7 @@ fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=list(x_ticks.values())
 
 fig.show()
 # img_path = f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin-alternate.pdf"
-# pmv.io.save_fig(fig, img_path, width=900, height=400)
+# pmv.save_fig(fig, img_path, width=900, height=400)
 
 
 # %%
@@ -145,7 +145,7 @@ for crystal_sys, df_group in df_us.groupby(Key.crystal_sys):
     )
 
 
-n_top, x_ticks = 30, dict.fromkeys(cry_sys_order, "")
+n_top, x_ticks = 30, dict.fromkeys(crystal_sys_order, "")
 for cry_sys, df_group in df_us.groupby(Key.crystal_sys):
     ionic_top = df_group[Key.diel_ionic_pbe].nlargest(n_top).mean()
     elec_top = df_group[Key.diel_elec_pbe].nlargest(n_top).mean()
@@ -179,8 +179,7 @@ fig.layout.yaxis.update(range=[0, 80])
 fig.layout.yaxis.title.update(text="ε<sub>elec / ionic</sub>", font_size=18)
 
 fig.show()
-
-pmv.io.save_fig(fig, f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin.pdf")
+# pmv.save_fig(fig, f"{PAPER_FIGS}/our-diel-elec-vs-ionic-violin.pdf")
 
 
 # %%
@@ -188,21 +187,17 @@ df_us.attrs.update(name="us", label="This Work")
 df_mp.attrs.update(name="mp", label="MP Data")
 
 for df in (df_us, df_mp):
-    ax = pmv.ptable_heatmap(
+    fig = pmv.ptable_heatmap_plotly(
         df[Key.formula],
         exclude_elements=("O", "F"),
         colorscale="viridis",
-        zero_color="white",
         count_mode="occurrence",
-        cbar_title=f"Element Occurrence (total={len(df):,})",
-        label_font_size=18,
-        value_font_size=18,
+        colorbar=dict(title=f"Element Occurrence (total={len(df):,})"),
         fmt=".0f",
     )
-
-    pmv.io.save_fig(
-        ax, f"{PAPER_FIGS}/ptable/ptable-elem-counts-{df.attrs['name']}.pdf"
-    )
+    fig.show()
+    pdf_path = f"{PAPER_FIGS}/ptable/ptable-elem-counts-{df.attrs['name']}.pdf"
+    # pmv.save_fig(fig, pdf_path)
 
 
 # %%
@@ -211,17 +206,12 @@ mp_elem_counts = pmv.count_elements(df_mp[Key.formula])
 # normalize by number of materials
 us_elem_counts /= len(df_us)
 mp_elem_counts /= len(df_mp)
-ax = pmv.ptable_heatmap_ratio(
-    us_elem_counts,
-    mp_elem_counts,
-    not_in_numerator=("white", ""),
-    not_in_denominator=("white", ""),
-    not_in_either=("#eff", ""),
-    colorscale="viridis",
-    label_font_size=18,
-    value_font_size=16,
+cbar_title = "Element Occurrence Ratio (us / MP)"
+fig = pmv.ptable_heatmap_plotly(
+    us_elem_counts / mp_elem_counts, colorbar=dict(title=cbar_title)
 )
-pmv.io.save_fig(ax, f"{PAPER_FIGS}/ptable/ptable-elem-ratio-us-vs-mp.pdf")
+fig.show()
+# pmv.save_fig(fig, f"{PAPER_FIGS}/ptable/ptable-elem-ratio-us-vs-mp.pdf")
 
 
 # %% project FoM onto periodic table
@@ -233,26 +223,24 @@ df_frac_comp = pd.DataFrame(df_us[frac_comp_col].tolist())
 df_frac_comp = df_frac_comp.where(df_frac_comp.isna(), 1)
 
 for col, title in (
-    (Key.fom_pbe, r"$\mathbf{\Phi_M}$"),
-    (Key.diel_ionic_pbe, r"$\mathbf{\epsilon}_\text{ionic}$"),
-    (Key.diel_elec_pbe, r"$\mathbf{\epsilon}_\text{electronic}$"),
-    (Key.bandgap_pbe, r"$\mathbf{E}_\text{gap}$ (eV)"),
+    (Key.fom_pbe, "Φ<sub>M</sub> (eV)"),
+    (Key.diel_ionic_pbe, "ε<sub>ionic</sub>"),
+    (Key.diel_elec_pbe, "ε<sub>elec</sub>"),
+    (Key.bandgap_pbe, "E<sub>gap</sub> (eV)"),
 ):
     df_per_elem = df_frac_comp * df_us[col].to_numpy()[:, None]
     srs_per_elem = df_per_elem.mean(axis=0)
     srs_per_elem.index.name = f"Element-projected {title}"
 
-    ax = pmv.ptable_heatmap(
+    fig = pmv.ptable_heatmap_plotly(
         srs_per_elem.dropna(),
         colorscale="viridis",
-        cbar_title=srs_per_elem.index.name,
-        label_font_size=18,
-        value_font_size=18,
+        colorbar=dict(title=srs_per_elem.index.name),
         fmt=".0f",
     )
-    pmv.io.save_fig(
-        ax, f"{PAPER_FIGS}/ptable/ptable-per-elem-{col.replace('_', '-')}.pdf"
-    )
+    fig.show()
+    pdf_path = f"{PAPER_FIGS}/ptable/ptable-per-elem-{col.replace('_', '-')}.pdf"
+    # pmv.save_fig(fig, pdf_path)
 
 
 # %% export LaTeX table of all data points with FoM > fom_tresh for SI
@@ -263,13 +251,13 @@ col_name_map = {
 }
 fom_tresh = 350
 tex_col_names = {
-    Key.diel_elec_pbe: r"$\epsilon_\text{elec}$",
-    Key.diel_ionic_pbe: r"$\epsilon_\text{ionic}$",
-    Key.diel_total_pbe: r"$\epsilon_\text{total}$",
-    Key.bandgap_pbe: "Band Gap (eV)",
-    Key.fom_pbe: r"$\fom$ (eV)",
-    "nsites": "atoms",
-    "nelements": "elements",
+    Key.diel_elec_pbe: "ε<sub>elec</sub>",
+    Key.diel_ionic_pbe: "ε<sub>ionic</sub>",
+    Key.diel_total_pbe: "ε<sub>total</sub>",
+    Key.bandgap_pbe: "E<sub>gap</sub> (eV)",
+    Key.fom_pbe: "Φ<sub>M</sub> (eV)",
+    "nsites": "n<sub>sites</sub>",
+    "nelements": "n<sub>elems</sub>",
 }
 keep_cols = [*col_name_map, *tex_col_names]
 df_high_fom = df_us[df_us[Key.fom_pbe] > fom_tresh][keep_cols]
@@ -299,7 +287,7 @@ float_cols = {
 int_cols = {
     Key.diel_ionic_pbe: "ε<sub>ionic</sub>",
     Key.diel_total_pbe: "ε<sub>total</sub>",
-    Key.fom_pbe: "𝚽<sub>M</sub> (eV)",
+    Key.fom_pbe: "Φ<sub>M</sub> (eV)",
     "nsites": "n<sub>sites</sub>",
     "nelements": "n<sub>elems</sub>",
 }
@@ -326,4 +314,9 @@ styler.data.query("~Formula.str.contains('O')")
 
 
 # %%
-pmv.ptable_heatmap_plotly(df_high_fom[Key.formula], exclude_elements="O")
+cbar_title = (
+    "High-Φ<sub>M</sub> element occurrence (excl. oxygen for better colorscale)"
+)
+pmv.ptable_heatmap_plotly(
+    df_high_fom[Key.formula], exclude_elements="O", colorbar=dict(title=cbar_title)
+)

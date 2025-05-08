@@ -1,6 +1,6 @@
 # %%
 import pandas as pd
-from aviary.wren.utils import get_aflow_label_from_spglib
+from matbench_discovery.structure.prototype import get_protostructure_label
 from pymatgen.core import Composition
 from tqdm.notebook import tqdm
 
@@ -41,10 +41,10 @@ print(
 
 # %% add Wren's input column as Aflow-like Wyckoff encoding
 df_diel_train[Key.wyckoff] = [
-    get_aflow_label_from_spglib(s) for s in tqdm(df_diel_train[Key.structure])
+    get_protostructure_label(s) for s in tqdm(df_diel_train[Key.structure])
 ]
 df_diel_screen[Key.wyckoff] = [
-    get_aflow_label_from_spglib(s) for s in tqdm(df_diel_screen[Key.structure])
+    get_protostructure_label(s) for s in tqdm(df_diel_screen[Key.structure])
 ]
 
 

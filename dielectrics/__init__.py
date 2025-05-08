@@ -1,10 +1,19 @@
 import os
 from datetime import datetime, timezone
-from enum import unique
+from enum import StrEnum, unique
+from typing import TYPE_CHECKING
 
 import plotly.express as px
 import pymatviz as pmv
 from matplotlib import pyplot as plt
+
+
+if TYPE_CHECKING:
+
+    class Key(StrEnum, pmv.enums.LabelEnum):
+        """This is here for mypy's benefit since it doesn't infer Key attributes
+        as strings otherwise.
+        """
 
 
 PKG_DIR = os.path.dirname(__file__)
@@ -19,7 +28,7 @@ plt.rcParams["figure.constrained_layout.use"] = True
 
 
 @unique
-class Key(pmv.enums.LabelEnum):
+class Key(pmv.enums.LabelEnum):  # type: ignore[no-redef]
     """Dataframe column names."""
 
     bandgap = "bandgap", "Band gap"
@@ -79,7 +88,7 @@ class Key(pmv.enums.LabelEnum):
     e_form_wren = "e_form_wren", "E<sub>form Wren</sub>"
     e_per_atom = "energy_per_atom", "Energy per atom"
     energy = "energy (eV)", "Energy"
-    fom = "fom", "Φ", "Figure of merit", "figure of merit Phi_M = band gap x eps_total"
+    fom = "fom", "Φ", "figure of merit Phi_M = band gap x eps_total"
     fom_exp = "fom_exp", "Φ<sub>exp</sub>"
     fom_mp = "fom_mp", "Φ<sub>MP</sub>"
     fom_pbe = "fom_pbe", "Φ<sub>PBE</sub>"

@@ -200,8 +200,8 @@ for cnt, (mat_id, row) in enumerate(df_submit.iterrows()):
 
 print("\n" + "-" * 30)
 print(
-    f"{'if not for dryrun, would have' if dry_run else ''} added {len(new_wf_metadata)}"
-    f" new ones and skipped {len(skipped_ids)} pre-existing workflows"
+    f"{'if not for dry run, would have' if dry_run else ''} added "
+    f"{len(new_wf_metadata)} new and skipped {len(skipped_ids)} pre-existing workflows"
 )
 
 df_new_wfs = pd.DataFrame(new_wf_metadata or [{Key.formula: ""}]).set_index(Key.formula)
@@ -213,5 +213,6 @@ assert not any(nans_per_col), (
 
 
 # %%
-ax = pmv.ptable_heatmap(df_new_wfs.index)
-ax.set(title="Elemental distribution of new workflows")
+cbar_title = "Elemental distribution of new workflows"
+fig = pmv.ptable_heatmap_plotly(df_new_wfs.index, colorbar=dict(title=cbar_title))
+fig.show()

@@ -50,7 +50,7 @@ title1 = "ICSD elemental substitution matrix"
 title2 = "ICSD chemical similarity matrix"
 ax.set_title(title1, y=1.1)
 
-pmv.io.save_fig(ax, f"{module_dir}/plots/icsd-elem-substitution-matrix.pdf")
+pmv.save_fig(ax, f"{module_dir}/plots/icsd-elem-substitution-matrix.pdf")
 
 
 # %% downloaded from https://tddft.org/bmg/data.php

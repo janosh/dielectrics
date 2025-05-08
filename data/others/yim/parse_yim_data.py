@@ -94,7 +94,7 @@ print(f"{df_yim.isna().sum()=}")
 # %%
 mp_data = MPRester().query(
     {"icsd_ids": {"$in": list(df_yim.index)}},
-    "material_id pretty_formula spacegroup.number icsd_ids diel band_gap".split(),
+    "material_id pretty_formula spacegroup.number icsd_ids diel band_gap".split(),  # noqa: SIM905
 )
 
 

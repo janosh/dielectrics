@@ -16,6 +16,7 @@ import plotly.express as px
 import pymatviz as pmv
 from matplotlib.patches import Ellipse
 from pymatgen.util.string import latexify
+from pymatviz import crystal_sys_order
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
@@ -198,15 +199,18 @@ plt.ylim((-0.1, 9.5))
 
 
 # %%
-pmv.ptable_heatmap(df_diel_mp[Key.formula], log=True)
-plt.title("Elemental Prevalence among MP Dielectric Training Materials")
-# plt.savefig(f"{PAPER_FIGS}/eda/mp-diel-train-elements-log.pdf")
+cbar_title = "Elemental Prevalence among MP Dielectric Training Materials"
+fig = pmv.ptable_heatmap_plotly(
+    df_diel_mp[Key.formula], log=True, colorbar=dict(title=cbar_title)
+)
+fig.show()
+pmv.save_fig(fig, f"{PAPER_FIGS}/eda/mp-diel-train-elements-log.pdf")
 
 
 # %%
 pmv.spacegroup_bar(df_diel_mp["spacegroup.number"])
 plt.title("Spacegroup distribution among MP Dielectric Training Materials")
-# plt.savefig(f"{PAPER_FIGS}/eda/mp-diel-train-spacegroup-hist.pdf")
+pmv.save_fig(fig, f"{PAPER_FIGS}/eda/mp-diel-train-spacegroup-hist.pdf")
 
 
 # %%
@@ -214,15 +218,18 @@ df_diel_screen = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-diel-screen.csv.bz2"
 
 
 # %%
-pmv.ptable_heatmap(df_diel_screen[Key.formula], log=True)
-plt.title("Elemental Prevalence among MP Dielectric Screening Materials")
-# plt.savefig(f"{PAPER_FIGS}/eda/mp-diel-screen-elements-log.pdf")
+cbar_title = "Elemental Prevalence among MP Dielectric Screening Materials"
+fig = pmv.ptable_heatmap_plotly(
+    df_diel_screen[Key.formula], log=True, colorbar=dict(title=cbar_title)
+)
+fig.show()
+pmv.save_fig(fig, f"{PAPER_FIGS}/eda/mp-diel-screen-elements-log.pdf")
 
 
 # %%
 pmv.spacegroup_bar(df_diel_screen["spacegroup_mp"])
 plt.title("Spacegroup distribution among MP Dielectric Screening Materials")
-# plt.savefig(f"{PAPER_FIGS}/eda/mp-diel-screen-spacegroup-hist.pdf")
+pmv.save_fig(fig, f"{PAPER_FIGS}/eda/mp-diel-screen-spacegroup-hist.pdf")
 
 
 # %%
@@ -246,10 +253,6 @@ df_melted = df_diel_mp.melt(
 df_melted["component"] = df_melted.component.map(
     {Key.diel_elec_mp: "electronic", Key.diel_ionic_mp: "ionic"}
 )
-cry_sys_order = (
-    "cubic hexagonal trigonal tetragonal orthorhombic monoclinic triclinic".split()
-)
-
 fig = px.strip(
     df_melted,
     x=Key.crystal_sys,
@@ -258,7 +261,7 @@ fig = px.strip(
     color_discrete_map={"electronic": "blue", "ionic": "green"},
     hover_data={Key.mat_id: True, Key.formula: True, Key.crystal_sys: False},
     # sort strips from high to low spacegroup number
-    category_orders={Key.crystal_sys: cry_sys_order},
+    category_orders={Key.crystal_sys: crystal_sys_order},
     height=500,
     width=1000,
 ).update_traces(jitter=1)
@@ -271,7 +274,7 @@ def rgb_color(val: float, max: float) -> str:  # noqa: A002
     return f"rgb({255 * val / max:.1f}, 0, {255 * (max - val) / max:.1f})"
 
 
-n_top, x_ticks = 30, dict.fromkeys(cry_sys_order, "")
+n_top, x_ticks = 30, dict.fromkeys(crystal_sys_order, "")
 for cry_sys, df_group in df_diel_mp.groupby(Key.crystal_sys):
     ionic_top = df_group[Key.diel_ionic_mp].nlargest(n_top).mean()
     elec_top = df_group[Key.diel_elec_mp].nlargest(n_top).mean()
