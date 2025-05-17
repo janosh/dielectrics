@@ -16,11 +16,10 @@ launcher*
 calcs
 
 # large data files
-*.json.gz
+*.gz
 *.json.bz2
 *.csv.bz2
 *.pkl*
-*.tar.gz
 
 # logs
 */airss/**/*.castep

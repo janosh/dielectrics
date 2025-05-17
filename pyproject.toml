@@ -9,11 +9,13 @@ authors = [{ name = "Janosh Riebesell", email = "janosh.riebesell@gmail.com" }]
 description = "Data-driven search for novel dielectric materials with experimental validation"
 readme = "readme.md"
 keywords = [
-  "data-driven materials discovery",
+  "Pareto front",
+  "data-driven",
   "density functional theory",
-  "finding new dielectric materials",
+  "dielectric materials",
   "high-throughput",
   "machine learning",
+  "materials discovery",
 ]
 dependencies = [
   "atomate",

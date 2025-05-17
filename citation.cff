@@ -1,0 +1,47 @@
+# cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: Pushing the Pareto front of band gap and permittivity
+subtitle: ML-guided search for dielectric materials
+authors:
+  - given-names: Janosh
+    family-names: Riebesell
+    affiliation: University of Cambridge
+    orcid: https://orcid.org/0000-0001-5233-3462
+    corresponding: true
+    affil_key: 1, 2
+    github: https://github.com/janosh
+  - given-names: Rhys
+    family-names: Goodall
+    affiliation: University of Cambridge
+    orcid: https://orcid.org/0000-0002-6589-1700
+    affil_key: 1
+    github: https://github.com/comprhys
+  - given-names: T. Wesley
+    family-names: Surta
+    affiliation: University of Liverpool
+    orcid: https://orcid.org/0000-0002-2882-6483
+    affil_key: 3, 4
+    github: https://github.com/twsurta
+  - given-names: Michael
+    family-names: Gaultois
+    affiliation: University of Liverpool
+    orcid: https://orcid.org/0000-0003-2172-2507
+    affil_key: 3
+    github: https://github.com/mgaultois
+  - given-names: Alpha
+    family-names: Lee
+    orcid: 0000-0002-9616-3108
+    affiliation: University of Cambridge
+    affil_key: 1
+    github: https://github.com/alphaleegroup
+affiliations:
+  - Cavendish Laboratory, University of Cambridge, UK
+  - University of Liverpool, Department of Chemistry, Liverpool, UK
+license: MIT
+license-url: https://github.com/janosh/dielectrics/blob/-/license"
+repository-code: https://github.com/janosh/dielectrics
+type: software
+url: https://github.com/janosh/dielectrics
+doi: 10.1016/j.xcrp.2024.102241
+version: 1.0.0 # replace with whatever Matbench Discovery version you use
+date-released: "2024-01-11" # date of arXiv submission

@@ -131,7 +131,7 @@ df_mongo["robocrys_description"] = (
 
 # %%
 struct = df_mongo[Key.structure].iloc[0]
-fig = pmv.structure_2d_plotly(df_mongo[Key.structure].to_dict())
+fig = pmv.structure_2d(df_mongo[Key.structure].to_dict())
 fig.layout.title = struct.formula
 fig.show()
 
@@ -180,6 +180,6 @@ get_pairwise_struct_distances(df_res_and_mongo)
 
 
 # %%
-fig = pmv.structure_2d_plotly(df_res_and_mongo[Key.structure].to_dict(), n_cols=2)
+fig = pmv.structure_2d(df_res_and_mongo[Key.structure].to_dict(), n_cols=2)
 fig.layout.title = "AIRSS vs VASP relaxed structures"
 fig.show()

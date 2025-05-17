@@ -1,5 +1,5 @@
-"""NOTE as of 2024-07-13 in order to run this script to need to install crystal_toolkit
-from github as the most recent PyPI release gives a matplotlib error.
+"""Run this script to start a local server with a Dash app that allows you to click on
+scatter points to view their structure and edit their selection status.
 """
 
 # %%
@@ -23,7 +23,7 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from plotly.validators.scatter.marker import SymbolValidator
 
-from dielectrics import DATA_DIR, PAPER_FIGS, Key, SelectionStatus, today
+from dielectrics import DATA_DIR, Key, SelectionStatus, today
 from dielectrics.db import db
 from dielectrics.db.fetch_data import df_diel_from_task_coll
 
@@ -514,7 +514,7 @@ for xs, ys, clr, txt in [
     )
 
 
-fig.write_html(f"{PAPER_FIGS}/pareto-plotly.html", include_plotlyjs="cdn")
+fig.write_html(f"{module_dir}/pareto-plotly.html", include_plotlyjs="cdn")
 # fig.write_image(f"{PAPER_FIGS}/pareto-plotly.pdf")
 # fig.show()
 
@@ -670,7 +670,7 @@ def update_structure(
 
     try:
         if _id.startswith("mp"):
-            from pymatgen.ext.matproj import MPRester
+            from pymatgen.ext.matproj import MPRester  # noqa: PLC0415
 
             structure = MPRester().get_structure_by_material_id(_id)
         else:

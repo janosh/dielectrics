@@ -284,8 +284,6 @@ def get_structures_from_task_db(
     Returns:
         Structure: Fetched Pymatgen structure.
     """
-    from dielectrics.db import db
-
     task_doc = db.tasks.find_one({Key.mat_id: material_id}, ["output.structure"])
     if task_doc is None:
         raise ValueError(f"{material_id=} not found in DB")

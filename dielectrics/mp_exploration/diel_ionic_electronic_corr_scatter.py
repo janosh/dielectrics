@@ -66,10 +66,10 @@ fig.add_annotation(
     showarrow=False,
     font=dict(size=16),
 )
-fig.layout.coloraxis.colorbar = dict(
+fig.layout.coloraxis.colorbar.update(
     orientation="h", x=0.85, y=0.98, yanchor="top", len=0.3, thickness=12
 )
-fig.layout.coloraxis.colorbar.title = dict(  # type: ignore[attr-defined]
+fig.layout.coloraxis.colorbar.title.update(
     text="E<sub>gap</sub>&nbsp;", font=dict(size=16)
 )
 
@@ -78,8 +78,8 @@ axes_kwds = dict(
 )
 fig.layout.xaxis.update(**axes_kwds)
 fig.layout.yaxis.update(**axes_kwds)
-fig.layout.margin = dict(t=40, l=10, r=10, b=10)
-fig.layout.title = dict(text=ax_title, x=0.5)
+fig.layout.margin.update(t=40, l=10, r=10, b=10)
+fig.layout.title.update(text=ax_title, x=0.5)
 
 fig.show()
 pmv.save_fig(fig, f"{PAPER_FIGS}/diel-ionic-vs-electronic-corr-mp.pdf")
