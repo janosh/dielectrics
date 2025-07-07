@@ -9,7 +9,7 @@ exclude: .drawio$
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.0
+    rev: v0.12.2
     hooks:
       - id: ruff
         args: [--fix]
@@ -59,7 +59,7 @@ repos:
         args: [--disable, MD013, MD033, MD041, "--"]
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.32.0
+    rev: v1
     hooks:
       - id: typos
         types_or: [python, markdown, yaml]
