@@ -50,7 +50,7 @@ mp_cse_path = f"{MODULE_DIR}/2022-01-25-mp-cses-queried.json.gz"
 if os.path.exists(mp_cse_path):
     df_mp = pd.read_json(mp_cse_path, orient="split")
 else:
-    mp_cses = MPRester().get_entries({}, inc_structure=True)
+    mp_cses = MPRester().get_entries(criteria=[], inc_structure=True)
 
     df_mp = pd.DataFrame(mp_cses).rename(columns={0: "computed_structure_entry"})
 
@@ -70,7 +70,7 @@ else:
 
 # %%
 mp_entries = [
-    PDEntry(row.composition, energy=row.energy, name=row.Index)
+    PDEntry(row.composition, energy=row.energy, name=row.Index)  # type: ignore[possibly-unbound-attribute]
     for row in df_mp.itertuples()
 ]
 
@@ -135,7 +135,7 @@ correction_cols = [
 
 df_corrections = pd.DataFrame(
     [
-        [getattr(entry, x) for x in correction_cols]
+        [getattr(entry, str(col)) for col in correction_cols]
         for entry in wbm_processed_struct_entries
     ],
     columns=correction_cols,

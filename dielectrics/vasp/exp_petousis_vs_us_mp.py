@@ -118,7 +118,7 @@ def diel_tensor_to_const(csv: str) -> float:
 pmv.ptable_heatmap_plotly(
     df_exp[Key.formula],
     color_bar=dict(title="Element count"),
-    count_mode="occurrence",
+    count_mode=pmv.enums.ElemCountMode.occurrence,
     fmt=".0f",
 )
 

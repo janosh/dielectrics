@@ -39,20 +39,20 @@ def round_floats_in_csvs(glob_pat: str = "**/*.csv") -> dict[str, Exception]:
             if len(id_cols) > 0:
                 df_csv = df_csv.set_index(id_cols[0])
             df_csv.round(4).to_csv(csv)
-        except (ValueError, KeyError, Exception) as err:
+        except (ValueError, KeyError) as err:
             errors[csv] = err
 
     return errors
 
 
-def _validate_sub_launchdir(ldir: str) -> None:
+def _validate_sub_launch_dir(ldir: str) -> None:
     *_, parent_ldir, child_ldir = ldir.split("/")
     for folder in (parent_ldir, child_ldir):
         assert folder.startswith("launcher_")
         assert "@" in folder, f"got invalid {folder=}"
 
 
-def _validate_launchdir(ldir: str) -> None:
+def _validate_launch_dir(ldir: str) -> None:
     _, dirname, _ = ldir.split("/")
     assert dirname.startswith("launcher_")
     assert "@" in dirname, f"got invalid {dirname=}"
@@ -84,7 +84,7 @@ def rm_never_started_launch_dirs(block_dir: str) -> None:
     (FW_job-49907998.error) files but no actual output files.
     """
     for ldir in glob(f"{block_dir}/*/"):
-        _validate_launchdir(ldir)
+        _validate_launch_dir(ldir)
         files = sorted(os.listdir(ldir))
 
         if files == ["FW_submit.script"]:
@@ -107,7 +107,7 @@ def rm_launch_dirs_missing_stderr(block_dir: str) -> None:
     """Delete launch directories that contain no std_err.txt or std_err.txt.gz file."""
     # trailing slash ensures we only glob directories
     for ldir in glob(f"{block_dir}/*/*/"):
-        _validate_sub_launchdir(ldir)
+        _validate_sub_launch_dir(ldir)
         if len(os.listdir(ldir)) == 0:
             # if the directory is empty, delete and move on
             os.rmdir(ldir)
@@ -127,7 +127,7 @@ def rm_launch_dirs_missing_stderr(block_dir: str) -> None:
 TOP_LEVEL_CALC_DIR = "dfpt-calcs/"
 
 
-def rm_launchdirs(
+def rm_launch_dirs(
     launch_dirs: Sequence[str], *, write_log: bool = True, dry_run: bool = True
 ) -> None:
     """Delete launch directories and optionally write a log file with the deleted
@@ -141,19 +141,19 @@ def rm_launchdirs(
     """
     n_dirs = len(launch_dirs)
     dirs_removed, dirs_not_found = [], []
-    for ldir in tqdm(launch_dirs):
+    for launch_dir in tqdm(launch_dirs):
         # prevent deleting anything not inside the directory holding all calculations
         # (assuming its name is unique)
-        assert TOP_LEVEL_CALC_DIR in ldir, f"'{TOP_LEVEL_CALC_DIR}' not in path {ldir=}"
-        _validate_sub_launchdir(ldir)
+        assert TOP_LEVEL_CALC_DIR in launch_dir
+        _validate_sub_launch_dir(launch_dir)
         try:
             if not dry_run:
-                rmtree(ldir)
+                rmtree(launch_dir)
             else:
-                assert os.path.isdir(ldir)
-            dirs_removed.append(ldir)
+                assert os.path.isdir(launch_dir)
+            dirs_removed.append(launch_dir)
         except (FileNotFoundError, AssertionError):
-            dirs_not_found.append(ldir)
+            dirs_not_found.append(launch_dir)
 
     n_removed, n_not_found = len(dirs_removed), len(dirs_not_found)
 
@@ -219,12 +219,11 @@ def rm_launchdirs_by_fw_query(
 
     launch_dirs = []
     for launch_id in launch_ids:
-        ldir = db.launches.find_one({"launch_id": launch_id}, ["launch_dir"])[
-            "launch_dir"
-        ]
-        launch_dirs.append(ldir)
+        launch_doc = db.launches.find_one({"launch_id": launch_id}, ["launch_dir"])
+        if launch_doc is not None:
+            launch_dirs.append(launch_doc["launch_dir"])
 
-    rm_launchdirs(launch_dirs)
+    rm_launch_dirs(launch_dirs)
 
 
 def rm_launchdirs_by_launches_query(
@@ -254,7 +253,12 @@ def rm_launchdirs_by_launches_query(
 
     launches = db.launches.find(query, ["launch_dir"])
 
-    rm_launchdirs([launch["launch_dir"] for launch in launches], dry_run=dry_run)
+    launch_dirs = [
+        launch["launch_dir"]
+        for launch in launches
+        if isinstance(launch, dict) and launch.get("launch_dir")
+    ]
+    rm_launch_dirs(launch_dirs, dry_run=dry_run)
 
     if dry_run:  # don't modify DB on a dry run
         return
@@ -267,6 +271,7 @@ def rm_launchdirs_by_launches_query(
         result = db.launches.update_many(
             query, {"$set": {"launchdir_deleted": True}}
         ).raw_result
+        assert result is not None
         print(f"Set 'launchdir_deleted': True on {result['nModified']} items")
 
 

@@ -181,7 +181,7 @@ plt.ylim((0, 9))
 cbar_title = "Elemental prevalence among Wren-predicted<br>top 100 FoM materials"
 fig = pmv.ptable_heatmap_plotly(
     wren_top_fom.reset_index()[Key.formula],
-    count_mode="occurrence",
+    count_mode=pmv.enums.ElemCountMode.occurrence,
     fmt=".0f",
     colorbar=dict(title=cbar_title),
 )
@@ -190,7 +190,7 @@ fig.show()
 cbar_title = "Elemental prevalence among CGCNN-predicted<br>top 100 FoM materials"
 fig = pmv.ptable_heatmap_plotly(
     cgcnn_top_fom.reset_index()[Key.formula],
-    count_mode="occurrence",
+    count_mode=pmv.enums.ElemCountMode.occurrence,
     fmt=".0f",
     colorbar=dict(title=cbar_title),
 )

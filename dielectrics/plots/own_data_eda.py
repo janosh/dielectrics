@@ -2,6 +2,7 @@
 
 # %% from https://colab.research.google.com/drive/131MZKKeOhoseoVTJmPuOXVJvDoNes1ge
 import os
+from typing import Any
 
 import pandas as pd
 import plotly.express as px
@@ -99,13 +100,14 @@ df_us = df_us.sort_values(
     Key.crystal_sys, key=lambda col: col.map(crystal_sys_order.index)
 )
 
-n_top, x_ticks = 30, dict.fromkeys(crystal_sys_order, "")
+n_top: int = 30
+x_ticks: dict[str, str] = {}
 for cry_sys, df_group in df_us.groupby(Key.crystal_sys):
     ionic_top = df_group[Key.diel_ionic_pbe].nlargest(n_top).mean()
     elec_top = df_group[Key.diel_elec_pbe].nlargest(n_top).mean()
     ionic_clr = rgb_color(ionic_top, 261)
     elec_clr = rgb_color(elec_top, 102)
-    x_ticks[cry_sys] = (
+    x_ticks[str(cry_sys)] = (
         f"<b>{cry_sys}</b><br>{len(df_group):,} = {len(df_group) / len(df_us):.0%}"
         f"<br><span style='color:{elec_clr}'><b>{elec_top:.0f}</b></span>      "
         f"<span style='color:{ionic_clr}'><b>{ionic_top:.0f}</b></span>"
@@ -121,11 +123,13 @@ fig.show()
 # %%
 fig = go.Figure()
 
-common_kwds = dict(points=False, spanmode="hard", meanline_visible=True, width=0.9)
+common_kwargs: dict[str, Any] = dict(
+    points=False, spanmode="hard", meanline_visible=True, width=0.9
+)
 for crystal_sys, df_group in df_us.groupby(Key.crystal_sys):
-    common_kwds["x"] = df_group[Key.crystal_sys]
-    common_kwds["legendgroup"] = crystal_sys
-    common_kwds["showlegend"] = crystal_sys == "cubic"
+    common_kwargs["x"] = df_group[Key.crystal_sys]
+    common_kwargs["legendgroup"] = str(crystal_sys)
+    common_kwargs["showlegend"] = crystal_sys == "cubic"
 
     fig.add_violin(  # ionic dielectric distribution
         y=df_group[Key.diel_ionic_pbe],
@@ -133,7 +137,7 @@ for crystal_sys, df_group in df_us.groupby(Key.crystal_sys):
         name="ionic",
         side="positive",
         line_color="orange",
-        **common_kwds,
+        **common_kwargs,
     )
     fig.add_violin(  # electronic dielectric distribution
         y=df_group[Key.diel_elec_pbe],
@@ -141,17 +145,18 @@ for crystal_sys, df_group in df_us.groupby(Key.crystal_sys):
         name="electronic",
         side="negative",
         line_color="blue",
-        **common_kwds,
+        **common_kwargs,
     )
 
 
-n_top, x_ticks = 30, dict.fromkeys(crystal_sys_order, "")
+n_top: int = 30
+x_ticks: dict[str, str] = {}
 for cry_sys, df_group in df_us.groupby(Key.crystal_sys):
     ionic_top = df_group[Key.diel_ionic_pbe].nlargest(n_top).mean()
     elec_top = df_group[Key.diel_elec_pbe].nlargest(n_top).mean()
     ionic_clr = rgb_color(ionic_top, 261)
     elec_clr = rgb_color(elec_top, 102)
-    x_ticks[cry_sys] = (
+    x_ticks[str(cry_sys)] = (
         f"<b>{cry_sys}</b><br>{len(df_group):,} = {len(df_group) / len(df_us):.0%}"
         f"<br><span style='color:{elec_clr}'><b>{elec_top:.0f}</b></span>      "
         f"<span style='color:{ionic_clr}'><b>{ionic_top:.0f}</b></span>"
@@ -183,15 +188,15 @@ fig.show()
 
 
 # %%
-df_us.attrs.update(name="us", label="This Work")
-df_mp.attrs.update(name="mp", label="MP Data")
+df_us.attrs.update({"name": "us", "label": "This Work"})
+df_mp.attrs.update({"name": "mp", "label": "MP Data"})
 
 for df in (df_us, df_mp):
     fig = pmv.ptable_heatmap_plotly(
         df[Key.formula],
         exclude_elements=("O", "F"),
         colorscale="viridis",
-        count_mode="occurrence",
+        count_mode=pmv.enums.ElemCountMode.occurrence,
         colorbar=dict(title=f"Element Occurrence (total={len(df):,})"),
         fmt=".0f",
     )
@@ -239,7 +244,7 @@ for col, title in (
         fmt=".0f",
     )
     fig.show()
-    pdf_path = f"{PAPER_FIGS}/ptable/ptable-per-elem-{col.replace('_', '-')}.pdf"
+    pdf_path = f"{PAPER_FIGS}/ptable/ptable-per-elem-{str(col).replace('_', '-')}.pdf"
     # pmv.save_fig(fig, pdf_path)
 
 

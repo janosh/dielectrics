@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Copy file to artifact folder
         run: |
@@ -24,7 +24,7 @@ jobs:
           cp dielectrics/plots/pareto-plotly.html artifacts/index.html
 
       - name: Upload build artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           name: github-pages
           path: artifacts

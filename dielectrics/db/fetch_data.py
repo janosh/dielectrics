@@ -1,7 +1,7 @@
 import os
-from collections.abc import Sequence
+from collections.abc import Hashable, Sequence
 from datetime import datetime, timezone
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import numpy as np
 import pandas as pd
@@ -98,7 +98,7 @@ DEFAULT_FIELDS = (
 def df_diel_from_task_coll(
     query: dict[str, Any] | Sequence[str],
     *,
-    fields: Sequence[str] = DEFAULT_FIELDS,
+    fields: Sequence[Hashable] = DEFAULT_FIELDS,
     col_suffix: str = "_pbe",
     max_diel_total: int = 1000,
     cache: bool = True,
@@ -126,17 +126,19 @@ def df_diel_from_task_coll(
             total dielectric constants and figure of merit.
     """
     if isinstance(query, list | tuple):  # treat list of strings as material_ids
-        query = {Key.mat_id: {"$in": query}}
+        query = {str(Key.mat_id): {"$in": query}}
     if not isinstance(query, dict):
         raise TypeError(f"{query=} must be a dict or list of material IDs")
-    if "task_label" in query:
+
+    query_dict = cast("dict[str, Any]", query)
+    if "task_label" in query_dict:
         raise ValueError(
             "Don't set task_label in fields, 'static dielectric' is auto-set"
         )
     # only fetch dielectric calcs, ignore relaxations
-    query["task_label"] = "static dielectric"
+    query_dict["task_label"] = "static dielectric"
     # material IDs must start with mp-, mvc- or wbm-
-    query.setdefault(Key.mat_id, {"$regex": "^(mp|mvc|wbm)-"})
+    query_dict.setdefault(str(Key.mat_id), {"$regex": "^(mp|mvc|wbm)-"})
 
     fields = (*fields, *REQUIRED_FIELDS)  # ensure required fields are fetched
 
@@ -144,7 +146,7 @@ def df_diel_from_task_coll(
         raise ValueError(f"{col_suffix=} must start with underscore")
 
     os.makedirs(cache_dir := f"{DATA_DIR}/.db_cache", exist_ok=True)
-    hash_val = hash(str(query) + str(sorted(fields)))
+    hash_val = hash(str(query_dict) + str(sorted(fields)))
     json_path = f"{cache_dir}/{hash_val}.json.gz"
 
     if cache and os.path.isfile(json_path):
@@ -161,10 +163,12 @@ def df_diel_from_task_coll(
             )
         return df_from_cache
 
-    data = list(db.tasks.find(query, fields))
+    data = list(db.tasks.find(query_dict, fields))
 
     if len(data) == 0:
-        raise ValueError(f"{query=} matched 0 docs in '{db.tasks.name}' collection")
+        raise ValueError(
+            f"{query_dict=} matched 0 docs in '{db.tasks.name}' collection"
+        )
 
     df_diel = pd.DataFrame(data).rename(columns={"formula_pretty": Key.formula})
 
@@ -175,7 +179,7 @@ def df_diel_from_task_coll(
         )
     except KeyError:  # no structure key in output dict
         pass
-    df_output = pd.json_normalize(output_series).rename(
+    df_output = pd.json_normalize(output_series.tolist()).rename(
         columns={Key.bandgap: Key.bandgap_us}
     )
     df_diel[list(df_output)] = df_output
@@ -251,7 +255,7 @@ def df_diel_from_task_coll(
         orig_len = len(df_diel)
         df_diel = df_diel.drop_duplicates(subset=Key.mat_id)
 
-        if query == {}:
+        if query_dict == {}:
             n_duplicates_expected = 138
             if len(df_diel) != orig_len - n_duplicates_expected:
                 raise ValueError(

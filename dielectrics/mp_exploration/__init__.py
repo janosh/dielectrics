@@ -53,7 +53,7 @@ def fetch_mp_dielectric_structures(query: str | dict[str, Any]) -> pd.DataFrame:
     df_mp_diel_train = pd.DataFrame(mp_diel_train_data)
 
     if "diel" in df_mp_diel_train:
-        df_diel = pd.json_normalize(df_mp_diel_train.pop("diel"))
+        df_diel = pd.json_normalize(df_mp_diel_train.pop("diel").tolist())
         df_mp_diel_train[list(df_diel)] = df_diel.to_numpy()
 
     df_mp_diel_train = df_mp_diel_train.rename(columns=column_rename_map)

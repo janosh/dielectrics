@@ -43,7 +43,7 @@ for wren_csv_path, col, std_col in (
     df_wren = pd.read_csv(
         f"{DATA_DIR}/wren/screen/{wren_csv_path}-screen-mp-top1k-fom-elemsub.csv"
     ).set_index(Key.mat_id)
-    wren_cols = list(df_wren.filter(regex=rf"{col.replace('_wren', '')}_pred_n\d"))
+    wren_cols = list(df_wren.filter(regex=rf"{str(col).replace('_wren', '')}_pred_n\d"))
     assert len(wren_cols) == 10
     df_vasp[col] = df_wren[wren_cols].mean(axis=1)
     df_vasp[std_col] = df_wren[wren_cols].std(axis=1)
@@ -110,5 +110,5 @@ for pbe_col, wren_col, std_col in (
     #     f"n = {n_points:,}", xy=(0.8, 0.4), xycoords="axes fraction", size=11
     # )
 
-    quantity = pbe_col.rsplit("_", 1)[0].replace("_", "-")
+    quantity = str(pbe_col).rsplit("_", 1)[0].replace("_", "-")
     pmv.save_fig(grid.figure, f"{PAPER_FIGS}/ml/parity-wren-vs-pbe-{quantity}.pdf")

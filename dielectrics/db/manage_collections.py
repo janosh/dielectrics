@@ -63,7 +63,7 @@ for coll, md_key in md_field_map.items():
 filters = {"spec.series": "MP+WBM top 1k FoM std-adjusted by Wren diel ens"}
 df_fws = pd.DataFrame(db.fireworks.find(filters))
 
-metadata_df = pd.json_normalize(df_fws.pop("spec"))
+metadata_df = pd.json_normalize(df_fws.pop("spec").tolist())
 
 df_fws[list(metadata_df)] = metadata_df
 

@@ -219,12 +219,17 @@ for material in materials:
     x_col = "Q (Å⁻¹)"
     header_cols = [x_col, "Observed", "Fit", "Difference"]
 
-    kwds = dict(sep=r"\s+", header=None, names=header_cols)
     df_rietveld = pd.read_csv(
-        f"{DATA_DIR}/experiment/{material}-rietveld-plot.txt", **kwds
+        f"{DATA_DIR}/experiment/{material}-rietveld-plot.txt",
+        sep=r"\s+",
+        header=None,
+        names=header_cols,
     )
     rietveld_ticks = pd.read_csv(
-        f"{DATA_DIR}/experiment/{material}-rietveld-ticks.txt", **kwds
+        f"{DATA_DIR}/experiment/{material}-rietveld-ticks.txt",
+        sep=r"\s+",
+        header=None,
+        names=header_cols,
     )
 
     fig_xrd = px.line(df_rietveld, x=x_col, y=header_cols[1:], width=360, height=240)
@@ -244,7 +249,10 @@ for material in materials:
     arrow_kwds = dict(arrowhead=4, arrowsize=0.6, arrowwidth=1.5)
     if material == "CsTaTeO6-Fd3m":
         df_Ta2O5 = pd.read_csv(  # noqa: N816
-            f"{DATA_DIR}/experiment/CsTaTeO6-Ta2O5-xrd-ticks.txt", **kwds
+            f"{DATA_DIR}/experiment/CsTaTeO6-Ta2O5-xrd-ticks.txt",
+            sep=r"\s+",
+            header=None,
+            names=header_cols,
         )
         fig_xrd.add_scatter(  # Ta2O5 peaks
             x=df_Ta2O5[x_col],
@@ -316,7 +324,7 @@ pmv.save_fig(fig, f"{PAPER_FIGS}/experimental/xrd-CsTaTeO6-exp-vs-dft.pdf")
 for material in materials:
     exp_struct = Structure.from_file(f"{DATA_DIR}/experiment/{material}.cif")
     print(f"--- {material} ---\n\n{exp_struct.get_space_group_info()=}")
-    sqs_struct: Structure = SQSTransformation(scaling=(1, 1, 2)).apply_transformation(
+    sqs_struct: Structure = SQSTransformation(scaling=[1, 1, 2]).apply_transformation(
         exp_struct
     )
     sqs_struct.to(f"{DATA_DIR}/experiment/{material}-sqs.cif")
@@ -335,4 +343,5 @@ for material in materials:
     ordered_struct = OrderDisorderedStructureTransformation().apply_transformation(
         exp_struct
     )
+    assert isinstance(ordered_struct, Structure)
     ordered_struct.get_space_group_info()

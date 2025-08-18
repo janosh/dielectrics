@@ -22,7 +22,7 @@ mp_diel_inputs = MPRester().query(
 # %%
 df_input = pd.json_normalize(mp_diel_inputs).set_index(Key.mat_id)
 
-df_input[Key.date] = pd.to_datetime(df_input.pop("created_at")).dt.date
+df_input[Key.date] = pd.to_datetime(df_input.pop("created_at")).dt.date  # type: ignore[unresolved-attribute]
 
 df_input.columns = df_input.columns.str.replace("input.", "")
 

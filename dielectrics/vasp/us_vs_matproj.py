@@ -2,7 +2,7 @@
 import pandas as pd
 import plotly.express as px
 import pymatviz as pmv
-from pymatgen.ext.matproj import MPRester
+from mp_api import MPRester
 
 from dielectrics import Key, today
 from dielectrics.db.fetch_data import df_diel_from_task_coll
@@ -135,11 +135,14 @@ for ax in (ax1, ax2):
     ax.axline([2, 2], [3, 3], color="black", linestyle="dashed", alpha=0.5, zorder=0)
 
 for row in df_mp.itertuples():
-    mp_id = row[Key.mat_id]
+    mp_id = getattr(row, str(Key.mat_id))
     ax1.annotate(
-        mp_id, (row.diel_electronic_mp, row.diel_elec_pbe), ha="center", va="top"
+        mp_id,
+        (row.diel_electronic_mp, row.diel_elec_pbe),  # type: ignore[unresolved-attribute]
+        ha="center",
+        va="top",
     )
-    ax2.annotate(mp_id, (row.diel_total_mp, row.diel_total_pbe), ha="center", va="top")
+    ax2.annotate(mp_id, (row.diel_total_mp, row.diel_total_pbe), ha="center", va="top")  # type: ignore[unresolved-attribute]
 
 
 # plt.savefig(f"{PAPER_FIGS}/us-vs-mp-total-diel.png")

@@ -1,19 +1,10 @@
 import os
 from datetime import datetime, timezone
-from enum import StrEnum, unique
-from typing import TYPE_CHECKING
+from enum import unique
 
 import plotly.express as px
 import pymatviz as pmv
 from matplotlib import pyplot as plt
-
-
-if TYPE_CHECKING:
-
-    class Key(StrEnum, pmv.enums.LabelEnum):
-        """This is here for mypy's benefit since it doesn't infer Key attributes
-        as strings otherwise.
-        """
 
 
 PKG_DIR = os.path.dirname(__file__)

@@ -102,7 +102,8 @@ df_wren_seed.nlargest(1000, Key.fom_wren).fom_wren.hist(
 )
 
 ax.set_title("Wren-predicted FoM")
-pmv.save_fig(f"{PAPER_FIGS}/wren/screen/top-1k-elemsub-vs-mp+wbm.pdf")
+img_path = f"{PAPER_FIGS}/wren/screen/top-1k-elemsub-vs-mp+wbm.pdf"
+plt.savefig(img_path)
 
 
 # %% EVALUATING WREN ENSEMBLE STARTS HERE
@@ -153,19 +154,6 @@ df_vasp_ens[wren_cols] = df_wren[wren_cols]
 df_vasp_single[Key.diel_total_wren] = df_wren_seed[Key.diel_total_wren]
 
 
-# %% Compare Wren 2 months older single predictions with recent ensemble preds
-df_vasp_cleaned = df_vasp_ens.query(
-    "fom_wren_rank < 1000 and diel_total_wren_std < 1000"
-)
-
-plt.figure(figsize=(12, 8))
-pmv.scatter_with_err_bar(
-    df_vasp_cleaned[Key.diel_total_pbe],
-    df_vasp_cleaned[Key.diel_total_wren],
-    yerr=df_vasp_cleaned.diel_total_wren_std,
-)
-
-
 # %%
 ax = df_vasp_single.plot.scatter(
     x=Key.diel_total_pbe, y=Key.diel_total_wren, figsize=(12, 8)
@@ -212,19 +200,19 @@ fig.suptitle(
 labels = {"xlabel": "Materials Project", "ylabel": "Wren"}
 
 x, y = df_ionic_ens[["diel_ionic_target", "diel_ionic_pred_n0"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax1, **labels)
+pmv.density_hexbin(x, y, ax=ax1, **labels)  # type: ignore[invalid-argument-type]
 ax1.set_title("Single ionic")
 
 x, y = df_elec_ens[["diel_elec_target", "diel_elec_pred_n0"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax2, **labels)
+pmv.density_hexbin(x, y, ax=ax2, **labels)  # type: ignore[invalid-argument-type]
 ax2.set_title("Single electronic")
 
 x, y = df_ionic_ens[["diel_ionic_target", "diel_ionic_pred"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax3, **labels)
+pmv.density_hexbin(x, y, ax=ax3, **labels)  # type: ignore[invalid-argument-type]
 ax3.set_title("Ensemble ionic")
 
 x, y = df_elec_ens[["diel_elec_target", "diel_elec_pred"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax4, **labels)
+pmv.density_hexbin(x, y, ax=ax4, **labels)  # type: ignore[invalid-argument-type]
 ax4.set_title("Ensemble electronic")
 
 # plt.savefig(f"{PAPER_FIGS}/wren-diel-density-scatter-trained-on-mp-excl-petousis.pdf")

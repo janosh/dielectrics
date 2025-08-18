@@ -147,11 +147,8 @@ for ml_col, pbe_col in [
     )
     df_dft_idx["rolling_error"] = dft_rolling_err
 
-    df_plot = pd.DataFrame(
-        {
-            "Wren": ml_rolling_err,
-            "PBE": dft_rolling_err,
-        }
-    )
+    df_plot = pd.DataFrame({"Wren": ml_rolling_err, "PBE": dft_rolling_err})
 
-    fig = px.line(df_plot, marginal_x="histogram", marginal_y="histogram")
+    fig = px.scatter(
+        df_plot, marginal_x="histogram", marginal_y="histogram"
+    ).update_traces(mode="lines+markers")

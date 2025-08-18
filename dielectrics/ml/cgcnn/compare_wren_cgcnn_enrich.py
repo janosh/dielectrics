@@ -37,7 +37,7 @@ for df in [df_enrich_1, df_enrich_2]:
 
 # %%
 axs = df_enrich_1.hist(
-    ["n_pred", Key.fom], figsize=[10, 5], bins=50, alpha=0.7, label=model_1
+    ["n_pred", Key.fom], figsize=(10, 5), bins=50, alpha=0.7, label=model_1
 )
 df_enrich_2.hist(["n_pred", Key.fom], bins=50, alpha=0.7, ax=axs, label=model_2)
 plt.legend()

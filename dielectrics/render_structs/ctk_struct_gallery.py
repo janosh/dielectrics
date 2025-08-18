@@ -16,7 +16,7 @@ __date__ = "2023-10-22"
 
 # %%
 df_all = df_diel_from_task_coll(
-    {Key.selection_status: {"$exists": 1}},
+    {str(Key.selection_status): {"$exists": 1}},
     # {"nsites": {"$lt": 5}, "nelements": {"$gt": 2}},
     # crystal system is cubic and less than 5 sites
     # {"spacegroup.number": {"$in": [195, 221, 229, 230, 231]}},
@@ -29,7 +29,7 @@ df_all[Key.structure] = [
     for obj in df_all[Key.structure]
 ]
 for row in df_all.itertuples():
-    row.structure.properties["id"] = getattr(row, Key.mat_id)
+    row.structure.properties["id"] = getattr(row, str(Key.mat_id))  # type: ignore[unresolved-attribute]
 
 if Key.selection_status in df_all:
     df_synth = df_all.query(
@@ -66,7 +66,7 @@ for struct in df_synth[Key.structure]:
         # },
     )
 
-    struct_comp = ctc.StructureMoleculeComponent(struct_or_mol=struct, **ctk_comp_kwds)
+    struct_comp = ctc.StructureMoleculeComponent(struct_or_mol=struct, **ctk_comp_kwds)  # type: ignore[invalid-argument-type]
     struct_title_style = {
         "textAlign": "center",
         "fontWeight": "bold",
@@ -82,10 +82,13 @@ for struct in df_synth[Key.structure]:
     if is_elem_sub_struct and mat_id.startswith("mp-"):
         mp_id = mat_id.split(":")[0]
         mp_struct = MPRester().get_structure_by_material_id(mp_id)
+        if not isinstance(mp_struct, Structure):
+            raise TypeError(f"invalid {type(mp_struct)=}")
         mp_struct.properties["id"] = f"{mp_id} (parent structure)"
 
         struct_comp = ctc.StructureMoleculeComponent(
-            struct_or_mol=mp_struct, **ctk_comp_kwds
+            struct_or_mol=mp_struct,
+            **ctk_comp_kwds,  # type: ignore[invalid-argument-type]
         )
         struct_title = html.H3(mp_struct.properties["id"], style=struct_title_style)
         struct_comps.append(html.Div([struct_title, struct_comp.layout()]))

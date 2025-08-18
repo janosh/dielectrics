@@ -97,7 +97,7 @@ def replace_similar_elem(
 
     # unlike Rhys' original code, this does not handle isotopes (mostly relevant for
     # Deuterium and Tritium, heavier isotopes are less different) https://git.io/JRUC7
-    z_orig = pmv.utils.element_symbols[orig_elem]
+    z_orig = pmv.utils.atomic_numbers[orig_elem]
 
     while True:
         # Z_orig - 1 for 0-indexing
@@ -107,7 +107,7 @@ def replace_similar_elem(
         if z_new not in elem_list:
             break
 
-    new_elem = pmv.utils.atomic_numbers[z_new]
+    new_elem = pmv.utils.element_symbols[z_new]
 
     return (orig_elem, new_elem)
 
@@ -195,8 +195,8 @@ def struct_apply_elem_substitution(
 def df_struct_apply_elem_substitution(
     df: pd.DataFrame,
     orig_struct_col: str = "orig_structure",
-    new_formula_col: str = Key.formula,
-    new_struct_col: str = Key.structure,
+    new_formula_col: str = str(Key.formula),
+    new_struct_col: str = str(Key.structure),
     **kwargs: Any,
 ) -> pd.DataFrame:
     """Apply struct_apply_elem_substitution to a DataFrame.

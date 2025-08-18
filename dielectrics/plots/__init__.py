@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import plotly.express as px
-import plotly.io as pio
 
 
 px.defaults.labels |= dict(
@@ -20,13 +19,6 @@ px.defaults.labels |= dict(
     bandgap_pbe="E<sub>gap PBE</sub> (eV)",
     bandgap_wren="E<sub>Wren</sub> (eV)",
 )
-
-# https://github.com/plotly/Kaleido/issues/122#issuecomment-994906924
-try:
-    pio.kaleido.scope.mathjax = None
-except AttributeError:
-    # if kaleido is not installed, the linked GH issue doesn't apply
-    pass
 
 
 plt.rc("font", size=16)

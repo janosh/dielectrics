@@ -39,7 +39,7 @@ df_cgcnn.describe()
 
 
 # %%
-df_cgcnn.hist(figsize=[12, 8], bins=40, log=True)
+df_cgcnn.hist(figsize=(12, 8), bins=40, log=True)
 
 
 # %%

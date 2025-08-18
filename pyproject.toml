@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.2"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.11.3"]
+build-backend = "uv_build"
 
 [project]
 name = "dielectrics"
@@ -41,18 +41,9 @@ single_use_deps = [
   "seaborn",
 ]
 
-[tool.setuptools.packages]
-find = { include = ["dielectrics*"] }
-
-[tool.mypy]
-check_untyped_defs = true
-disallow_untyped_defs = true
-disallow_any_generics = true
-disallow_incomplete_defs = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-allow_redefinition = true
-no_implicit_optional = false
+[tool.uv.build-backend]
+module-name = "dielectrics"
+module-root = ""
 
 [tool.ruff]
 target-version = "py310"
@@ -96,6 +87,9 @@ pydocstyle.convention = "google"
 isort.lines-after-imports = 2
 isort.split-on-trailing-comma = false
 
+[tool.typos.files]
+extend-exclude = ["*.csv", "*.html"]
+
 [tool.typos.default.extend-words]
 fom = "fom"
 Fo = "Fo"
@@ -105,3 +99,16 @@ nin = "nin"
 titel = "titel"
 PN = "PN"
 alo = "alo"
+Nd = "Nd"
+Comput = "Comput"
+Hight = "Hight"
+Skelton = "Skelton"
+Wirth = "Wirth"
+typ = "typ"
+atomate = "atomate"
+
+[tool.ty.rules]
+unresolved-import = "ignore"
+
+[dependency-groups]
+dev = ["prek>=0.3.8", "ty>=0.0.27"]

@@ -29,7 +29,7 @@ for row in tqdm(df_yim.itertuples(), total=len(df_yim)):
         cols = ["spg_symbol", Key.spg]
         if struct := row.structure:
             df_yim.loc[row.Index, cols] = _, spg_num = struct.get_space_group_info()
-            df_yim.loc[row.Index, Key.crystal_sys] = pmv.utils.crystal_sys_from_spg_num(
+            df_yim.loc[row.Index, Key.crystal_sys] = pmv.utils.spg_to_crystal_sys(
                 spg_num
             )
     except TypeError:  # 'NoneType' object is not subscriptable
@@ -133,7 +133,6 @@ df_yim[mp_ids_col := "likely_mp_ids"] = pd.Series(mp_ids)
 
 # %%
 df_yim[mp_ids_col].map(len).value_counts().plot(kind="bar", log=True)
-pmv.powerups.annotate_bars()
 plt.savefig(f"{mp_ids_col}_lens.pdf")
 
 

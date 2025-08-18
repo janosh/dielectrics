@@ -1,17 +1,13 @@
-ci:
-  autoupdate_schedule: quarterly
-
 default_stages: [pre-commit]
-
 default_install_hook_types: [pre-commit, commit-msg]
 
 exclude: .drawio$
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.0
+    rev: v0.15.8
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
       - id: ruff-format
 
@@ -20,8 +16,7 @@ repos:
     hooks:
       - id: format-ipy-cells
 
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+  - repo: builtin
     hooks:
       - id: check-case-conflict
       - id: check-symlinks
@@ -32,36 +27,35 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.16.1
+  - repo: local
     hooks:
-      - id: mypy
-        additional_dependencies: [types-pyyaml, types-requests]
+      - id: ty
+        name: ty check
+        entry: ty check
+        language: python
+        additional_dependencies: [ty]
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.45.0
+    hooks:
+      - id: typos
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell
         stages: [pre-commit, commit-msg]
         exclude_types: [csv, html, json, svg, bib]
         args:
           - --ignore-words-list
-          - hist,nin,titel,te,fom,alo,atomate,youn,fo,nd
+          - hist,nin,titel,te,fom,alo,atomate,youn,fo,nd,hight,skelton,wirth
           - --check-filenames
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.45.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint
         # MD013: line too long
         # MD033: no inline HTML
         # MD041: first line in a file should be a top-level heading
-        args: [--disable, MD013, MD033, MD041, "--"]
-
-  - repo: https://github.com/crate-ci/typos
-    rev: v1.32.0
-    hooks:
-      - id: typos
-        types_or: [python, markdown, yaml]
-        exclude: \.pre-commit-config.yaml
-        args: []
+        args: [--disable, MD013, MD033, MD041, '--']

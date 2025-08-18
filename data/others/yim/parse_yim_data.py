@@ -100,7 +100,7 @@ mp_data = MPRester().query(
 
 df_mp = pd.DataFrame(mp_data)
 diel_cols = ["eps_elec_mp", "eps_total_mp", "n_mp", Key.diel_elec_mp, Key.diel_total_mp]
-df_mp[diel_cols] = pd.json_normalize(df_mp.pop("diel"))
+df_mp[diel_cols] = pd.json_normalize(df_mp.pop("diel").tolist())
 
 
 df_mp.to_json("mp_data.json.bz2")

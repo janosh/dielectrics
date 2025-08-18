@@ -21,7 +21,7 @@ from bson.objectid import InvalidId
 from crystal_toolkit.settings import SETTINGS as CTK_SETTINGS
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
-from plotly.validators.scatter.marker import SymbolValidator
+from plotly.validator_cache import ValidatorCache
 
 from dielectrics import DATA_DIR, Key, SelectionStatus, today
 from dielectrics.db import db
@@ -29,6 +29,8 @@ from dielectrics.db.fetch_data import df_diel_from_task_coll
 
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable
+
     from pymatgen.core import Structure
 
 
@@ -119,7 +121,7 @@ def get_mp_link(data: str, text: str | None = None) -> str:
         raise ValueError(f"get_mp_link() got {data=} with {text=}")
     if data.startswith(("mp-", "mvc-")):
         # handle IDs of materials from elemental substitution
-        data = data.split(":")[0]
+        data = data.split(":", maxsplit=1)[0]
         href = f"https://materialsproject.org/materials/{data}"
     else:
         query_params = f'{{"reduced_cell_formula":"{data}"}}'
@@ -161,8 +163,8 @@ def create_text_col(df: pd.DataFrame, annotate_min_fom: float = 300) -> list[str
 
 def scatter(
     df_in: pd.DataFrame,
-    x_col: str,
-    y_col: str,
+    x_col: Hashable,
+    y_col: Hashable,
     legend_name: str | None = None,
     **kwargs: Any,
 ) -> go.Figure:
@@ -178,10 +180,9 @@ def scatter(
     df_in = df_in.dropna(thresh=0.1 * len(df_in), axis=1)
     df_in = df_in.fillna("n/a")  # fill remaining NaNs to avoid %{customdata[idx]}
 
-    hover_keys = {*hover_data_keys.values()} & set(df_in)
+    hover_keys: list[str] = sorted({*hover_data_keys.values()} & set(df_in))
     # hover_keys = sorted(hover_keys, key=list(pretty_col_names.values()).index)
-    hover_keys = sorted(hover_keys)
-    hover_data = dict.fromkeys(hover_keys, True)
+    hover_data: dict[str, bool] = dict.fromkeys(hover_keys, True)  # type: ignore[invalid-assignment]
     # don't show text value in hover tooltip
     hover_data["text"] = False
 
@@ -241,18 +242,21 @@ def scatter_with_quiver(
     delta_x = df2[x2] - df1[x1]
     delta_y = df2[y2] - df1[y1]
 
-    scatter_1 = scatter(df1, x_col=x1, y_col=y1, **scatter_1)
-    scatter_2 = scatter(df2, x_col=x2, y_col=y2, **scatter_2)
+    fig_scatter_1 = scatter(df1, x_col=x1, y_col=y1, **scatter_1)
+    fig_scatter_2 = scatter(df2, x_col=x2, y_col=y2, **scatter_2)
 
     quiver = ff.create_quiver(
-        *[df1[x1], df1[y1], delta_x, delta_y],
+        x=df1[x1],
+        y=df1[y1],
+        u=delta_x,
+        v=delta_y,
         arrow_scale=0.02,
         scale=1,
         angle=3.14 * 0.01,  # smaller = steeper arrow head angle
         hoverinfo="skip",
     )
 
-    traces = quiver.data + scatter_1.data + scatter_2.data
+    traces = quiver.data + fig_scatter_1.data + fig_scatter_2.data
 
     for label, trace in zip(legend_labels, traces, strict=True):
         trace["showlegend"] = True
@@ -269,11 +273,12 @@ def scatter_with_quiver(
     if fig:
         fig.add_traces(traces)
 
-    return scatter_1, scatter_2, quiver
+    return fig_scatter_1, fig_scatter_2, quiver
 
 
 # recreate symbol and color iterators every time we plot
-symbol_iter = iter(SymbolValidator().values[2::6])  # noqa: PD011
+symbol_validator = ValidatorCache.get_validator("scatter.marker", "symbol")
+symbol_iter = iter(symbol_validator.values[2::6])  # noqa: PD011
 color_iter = iter(px.colors.qualitative.Dark24)
 
 fig = go.Figure()
@@ -392,8 +397,8 @@ trace["marker"]["color"] = "rgba(0, 100, 255, 0.8)"
 
 airss_points = scatter(
     df_airss := df_unselected.query('material_id.str.startswith("airss")'),
-    x_col=Key.diel_total_pbe,
-    y_col=Key.bandgap_us,
+    x_col=str(Key.diel_total_pbe),
+    y_col=str(Key.bandgap_us),
     legend_name=f"{len(df_airss):,} AIRSS structures mean FoM = "
     f"{df_airss[Key.fom_pbe].mean():.0f}",
 )
@@ -522,7 +527,7 @@ fig.write_html(f"{module_dir}/pareto-plotly.html", include_plotlyjs="cdn")
 # %% Dash app to display structure and notes for selected material next to Pareto plot
 app = Dash(
     prevent_initial_callbacks=True,
-    assets_folder=CTK_SETTINGS.ASSETS_PATH,
+    assets_folder=str(CTK_SETTINGS.ASSETS_PATH),
     # external_stylesheets=[f"{module_dir}/static.css"],
 )
 app.title = "Dielectric Pareto Front"  # browser tab title
@@ -640,7 +645,7 @@ def update_notes(
     context = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
     # if callback was triggered by click on graph and not on save_btn click,
     # ignore it
-    if context != save_btn.id:
+    if context != save_btn.id:  # type: ignore[possibly-unbound-attribute]
         return None
 
     data = click_data["points"][0]

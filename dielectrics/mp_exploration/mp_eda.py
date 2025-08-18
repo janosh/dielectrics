@@ -274,13 +274,14 @@ def rgb_color(val: float, max: float) -> str:  # noqa: A002
     return f"rgb({255 * val / max:.1f}, 0, {255 * (max - val) / max:.1f})"
 
 
-n_top, x_ticks = 30, dict.fromkeys(crystal_sys_order, "")
+n_top = 30
+x_ticks: dict[str, str] = {}
 for cry_sys, df_group in df_diel_mp.groupby(Key.crystal_sys):
     ionic_top = df_group[Key.diel_ionic_mp].nlargest(n_top).mean()
     elec_top = df_group[Key.diel_elec_mp].nlargest(n_top).mean()
     ionic_clr = rgb_color(ionic_top, 212)
     elec_clr = rgb_color(elec_top, 124)
-    x_ticks[cry_sys] = (
+    x_ticks[str(cry_sys)] = (
         f"<b>{cry_sys}</b><br>{len(df_group):,} = {len(df_group) / len(df_diel_mp):.0%}"
         f"<br><span style='color:{elec_clr}'><b>{elec_top:.0f}</b></span>      "
         f"<span style='color:{ionic_clr}'><b>{ionic_top:.0f}</b></span>"

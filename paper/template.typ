@@ -1,7 +1,3 @@
-#import "@preview/muchpdf:0.1.1": muchpdf
-
-#let pdf-img(path, ..args) = muchpdf(read(path, encoding: none), ..args)
-
 #let subfigure-kind = "subfigure"
 #let subfigure-counter = counter(subfigure-kind)
 

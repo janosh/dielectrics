@@ -1,12 +1,4 @@
-#import "template.typ": (
-  arkheion,
-  arkheion-appendices,
-  pdf-img,
-  si0,
-  si1,
-  si4,
-  subfigure,
-)
+#import "template.typ": arkheion, arkheion-appendices, si0, si1, si4, subfigure
 // https://github.com/schang412/typst-whalogen
 // ce(str) used to render chemical formulas
 #import "@preview/whalogen:0.3.0": ce
@@ -48,7 +40,7 @@
   float: false,
   [
     #place(dx: -4.8em, dy: 5em, rotate(-90deg)[Graphical Abstract])
-    #pdf-img("figs/drawio/discovery-funnel.pdf", width: 7em)
+    #image("figs/drawio/discovery-funnel.pdf", width: 7em)
   ],
 )
 
@@ -77,7 +69,7 @@ We first report the computational output of our workflow and then present experi
 <sec:ml-workflow-for-dielectric-discovery>
 
 #figure(
-  pdf-img("figs/drawio/discovery-workflow-build-step-5.pdf"),
+  image("figs/drawio/discovery-workflow-build-step-5.pdf"),
   caption: [
     Diagram of our dielectric material discovery workflow, integrating ML pre-screening and elemental substitution for generating novel crystals with high-throughput DFPT validation. The discovery pipeline can operate in two modes: screening and generation. Screening mode searches for large permittivity among known materials. In generation mode, we feed the top 1k MP structures by figure of merit $Phi_"M"$ into an element substitution process.
   ],
@@ -100,7 +92,7 @@ The remaining candidates are ranked by their ML-predicted figure of merit $Phi_"
 The violin plot in @fig:our-diel-elec-vs-ionic-violin shows Gaussian kernel density estimates (KDE) of all 2532 DFPT-computed electronic and ionic dielectric constants split by crystal system. Unlike the electronic contribution which is lower-bounded by the vacuum permittivity, the ionic dielectric constant can be zero in all crystal systems. We observe a general trend of higher dielectric constant the higher the crystal symmetry, especially for the ionic contribution. Only cubic crystals reach significant electronic permittivity with a median of 10.
 
 #figure(
-  pdf-img("figs/our-diel-elec-vs-ionic-violin.pdf", width: 97.0%),
+  image("figs/our-diel-elec-vs-ionic-violin.pdf", width: 97.0%),
   caption: [
     Violin plot showing Gaussian KDEs of DFPT-computed electronic (blue left halves) and ionic (orange right halves) contributions to the dielectric constant split by crystal system. The dashed horizontal lines in each violin show the median. Below each crystal system is the number of materials we have for it as well as its share of the total DFPT dataset in percent. The colored bold numbers (blue = low, red = high) show the mean of the top 30 electronic/ionic dielectric constants for each crystal system.
   ],
@@ -110,15 +102,15 @@ The violin plot in @fig:our-diel-elec-vs-ionic-violin shows Gaussian kernel dens
 
 #figure(
   align(center)[#table(
-      columns: 3,
-      align: (left, center, center),
-      table.header([Study], [Number of Hits / Total], [Hit Rate (%)]),
-      table.hline(),
-      [Petousis et al. @petousis_high-throughput_2017], [$7 \/ 139$], [$5.0$],
-      [Qu et al. @qu_high_2020], [$15 \/ 441$], [$3.4$],
-      [This work], [$155 \/ 2532$], [5.8],
-      [This work (with $E_"gap" > 0.1$ eV)], [$154 \/ 1911$], [$bold("7.5")$],
-    )],
+    columns: 3,
+    align: (left, center, center),
+    table.header([Study], [Number of Hits / Total], [Hit Rate (%)]),
+    table.hline(),
+    [Petousis et al. @petousis_high-throughput_2017], [$7 \/ 139$], [$5.0$],
+    [Qu et al. @qu_high_2020], [$15 \/ 441$], [$3.4$],
+    [This work], [$155 \/ 2532$], [5.8],
+    [This work (with $E_"gap" > 0.1$ eV)], [$154 \/ 1911$], [$bold("7.5")$],
+  )],
   caption: [Hit rate comparison for materials with $Phi_"M" > 240$. Excluding metals misclassified as insulators by our band gap models (which did not enter the other works in the first place), we achieve a $Phi_"M" > 240$ hit rate of 7.5%. This validates our approach of creating candidate structures from known dielectrics and pre-screening with ML.],
   kind: table,
 )<tab:hit-rate-comparison>
@@ -126,7 +118,7 @@ The violin plot in @fig:our-diel-elec-vs-ionic-violin shows Gaussian kernel dens
 @fig:pareto-us-vs-qu-vs-petousis compares our DFPT data to the results of #cite(<petousis_high-throughput_2017>, form: "prose") and #cite(<qu_high_2020>, form: "prose"). Our workflow generates more high-$Phi_"M"$ materials than both previous works combined and at a higher hit rate per expensive DFPT calculation than either #cite(<petousis_high-throughput_2017>, form: "prose") or #cite(<qu_high_2020>, form: "prose"). We believe this hit rate increase is attributable to ML pre-screening and substituting elements into known dielectric materials.
 
 #figure(
-  pdf-img("figs/pareto-us-vs-petousis-vs-qu-plotly.pdf", width: 80.0%),
+  image("figs/pareto-us-vs-petousis-vs-qu-plotly.pdf", width: 80.0%),
   caption: [
     Log-log plot of PBE band gap $E_"gap"$ vs. total dielectric constant $epsilon_"tot"$ visualizing the hit rates for high-$Phi_"M"$ materials from different studies. Many of our DFPT data points (blue circles) reach into regions far beyond the #si4[240eV] isoline. The orange diamonds and green squares show results from #cite(<petousis_high-throughput_2017>, form: "prose") and #cite(<qu_high_2020>, form: "prose") which produce fewer $Phi_"M" > 240$ materials, both in absolute numbers and as a fraction of dataset size (see @tab:hit-rate-comparison. The dark blue lines indicate constant figure of merit $Phi_"M" = E_"gap" dot epsilon_"tot"$. The stacked marginal rugs along the top and right show the distribution of band gaps and dielectric constants in each dataset.
   ],
@@ -146,7 +138,7 @@ To validate our workflow's ability to produce viable dielectric materials in pra
     row-gutter: 3pt,
     align: (left, center, right),
     subfigure(
-      pdf-img("figs/exp-rietveld-CsTaTeO6-Fd3m.pdf"),
+      image("figs/exp-rietveld-CsTaTeO6-Fd3m.pdf"),
       caption: [
         Pyrochlore Fd3m Rietveld fit for
       ],
@@ -178,7 +170,7 @@ To validate our workflow's ability to produce viable dielectric materials in pra
     ),
 
     subfigure(
-      pdf-img("figs/exp-rietveld-Bi2Zr2O7-Fm3m.pdf"),
+      image("figs/exp-rietveld-Bi2Zr2O7-Fm3m.pdf"),
       caption: [
         Fluorite Fm3m Rietveld fit for
       ],
@@ -212,14 +204,14 @@ To validate our workflow's ability to produce viable dielectric materials in pra
     row-gutter: 9pt,
     column-gutter: 9pt,
     subfigure(
-      pdf-img("figs/exp-diffuse-reflectance.pdf"),
+      image("figs/exp-diffuse-reflectance.pdf"),
       caption: [
         Diffuse reflectance spectra
       ],
       label: <fig:exp-diffuse-reflectance>,
     ),
     subfigure(
-      pdf-img("figs/exp-tauc-bandgaps.pdf"),
+      image("figs/exp-tauc-bandgaps.pdf"),
       caption: [
         Optical band gap from Tauc
       ],
@@ -227,7 +219,7 @@ To validate our workflow's ability to produce viable dielectric materials in pra
     ),
 
     subfigure(
-      [#pdf-img("figs/exp-CsTaTeO6-diel-real-imag-loss-vs-freq.pdf")
+      [#image("figs/exp-CsTaTeO6-diel-real-imag-loss-vs-freq.pdf")
         #place(
           dx: 13.2em,
           dy: -10.8em,
@@ -243,7 +235,7 @@ To validate our workflow's ability to produce viable dielectric materials in pra
       label: <fig:exp-CSTaTeO6-diel-real-imag-loss-vs-freq>,
     ),
     subfigure(
-      pdf-img("figs/exp-Bi2Zr2O7-diel-real-imag-loss-vs-freq.pdf"),
+      image("figs/exp-Bi2Zr2O7-diel-real-imag-loss-vs-freq.pdf"),
       caption: [
         dielectric response vs frequency
       ],
@@ -329,9 +321,7 @@ For each of the four material properties of interest -- formation energy, ionic 
 - Ensemble variance allows us to assess epistemic model uncertainty, which we incorporate into a risk-aware figure of merit via error propagation. This reduces false positives at the cost of increased false negatives.
 
 The ensemble-risk-aware figure of merit $Phi_"M"^"std-adj"$ including uncertainty propagation reads:
-$
-  Phi_"M"^"std-adj" = sqrt(( epsilon_"tot" dot sigma_(E_"gap") )^2 + ( E_"gap" dot sigma_(epsilon_"tot") )^2),
-$ where $epsilon_"tot"^"Wren"$ and $sigma_(epsilon_"tot")$ are the Wren ensemble mean and standard deviation for the predicted total dielectric constant. Likewise $E_"gap"^"Wren"$ and $sigma_(E_"gap")$ are the ensemble mean/std. dev. for the Wren-predicted band gap. We use the $Phi_"M"^"std-adj"$ (rather than the standard $Phi_"M"$) to rank element substitution structures for priority when allocating compute budget for DFPT calculations.
+$ Phi_"M"^"std-adj" = sqrt(( epsilon_"tot" dot sigma_(E_"gap") )^2 + ( E_"gap" dot sigma_(epsilon_"tot") )^2), $ where $epsilon_"tot"^"Wren"$ and $sigma_(epsilon_"tot")$ are the Wren ensemble mean and standard deviation for the predicted total dielectric constant. Likewise $E_"gap"^"Wren"$ and $sigma_(E_"gap")$ are the ensemble mean/std. dev. for the Wren-predicted band gap. We use the $Phi_"M"^"std-adj"$ (rather than the standard $Phi_"M"$) to rank element substitution structures for priority when allocating compute budget for DFPT calculations.
 
 Moreover, for the formation energy ensemble, we also estimate aleatoric uncertainty, i.e. uncertainty that is inherent to the data, by using a "robust" loss function. This loss requires changing the final output layer of each model to predict two numbers per sample. The loss function interprets the first number as the predicted mean and the second as predicted aleatoric uncertainty. This uncertainty enters the loss function as an attenuation term on the $L^p$ norm. This allows the model to deweight the loss on predictions it attributes higher uncertainty to at the cost of incurring a higher regularization penalty.
 
@@ -478,14 +468,14 @@ Due to the defect nature of this pyrochlore formulation, the #ce("Cs+") (A-site)
 As indicated by the shaded regions in @fig:diel-total-vs-bandgap-mp, while ideal dielectric materials all push into the top right of this plot, different applications have different requirements. Materials for flash storage require especially large band gaps to minimize leakage current and maintain polarization over extended periods. CPU gate dielectrics trade off lower band gaps in exchange for increased permittivity which lowers the gate voltage required to achieve polarization and hence decreases power consumption. For random access memory (RAM) applications, increased leakage current resulting from a lower band gap is acceptable since RAM is memory-refreshed hundreds of times a second (stored data is read and immediately rewritten unmodified to preserve integrity to avoid polarization sapping over time). Instead, optimal RAM performance relies on exceptionally high permittivity so that each repolarization costs minimal energy. Our goal is to discover materials in any of these regions beyond the green isoline ($Phi_"M" = 240$). @fig:diel-parts-vs-bandgap-mp shows that the principal contributions to the permittivity are due to the ionic permittivity of the materials rather than their electronic permittivity.
 
 #figure(
-  pdf-img("figs/diel-total-vs-bandgap-mp.pdf", width: 300pt),
+  image("figs/diel-total-vs-bandgap-mp.pdf", width: 300pt),
   caption: [
     2d histogram showing the $1 \/ x$ relationship between band gap and dielectric constant for 7.2k MP materials. The dashed isolines represent levels of constant figure of merit ($epsilon_"tot" dot E_"gap"$). The colored ellipses highlight the optimal trade-offs between band gap and permittivity for specific device applications. See @fig:diel-parts-vs-bandgap-mp for the same plot split by electronic and ionic contributions to the permittivity.
   ],
 )<fig:diel-total-vs-bandgap-mp>
 
 #figure(
-  pdf-img("figs/diel-parts-vs-bandgap-mp.pdf"),
+  image("figs/diel-parts-vs-bandgap-mp.pdf"),
   caption: [
     Ionic (left) and electronic (right) parts of the dielectric constant. Ionic permittivity makes a much larger contribution than the total compared to electronic permittivity and is also much more likely to break the 1/x relationship with band gap.
   ],
@@ -495,10 +485,10 @@ As indicated by the shaded regions in @fig:diel-total-vs-bandgap-mp, while ideal
 <sec:dfpt-validation>
 To validate our DFPT results, @fig:exp-vs-us-vs-petousis-diel-total compares our ab-initio results generated using the `wf_dielectric_constant` workflow in `atomate` @mathew_atomate_2017 against available experimental dielectric constants collected in @petousis_benchmarking_2016@petousis_high-throughput_2017. While we achieve better agreement with experiment than Petousis as indicated by the lower MAE of 16.5 (vs 20.4) and higher $R^2$ of 0.41 (vs 0.0), and similar performance to MP (MAE = 14.9, $R^2 = 0.12$), we incur a slightly larger fraction of outliers than either of them at 14% (vs 9% and 10%, respectively). We define outliers as points with absolute relative deviation greater than $plus.minus 50 %$ relative to experiment. The reason we nonetheless achieve higher $R^2$ is due to the lack of extreme outliers; we have more but they are less severe. This is advantageous in high-throughput settings where the goal is to guide experiment. Even rare cases of extreme outliers will show up given sufficient throughput and extreme permittivity overpredictions are more likely to result in wasted experimental effort.
 
-We note that while the data in MP was generated with the same `atomate` workflow as designed and benchmarked by #cite(<petousis_benchmarking_2016>, form: "prose"), our data is expected to deviate from MP/Petousis due to our departure in choice of VASP parameters described in @sec:dfpt-to-dielectric, most notably the use of `PBE_54` POTCARs, increased $k$-point density of 3000 points per atom, increased `ENCUT` = 700~eV plane wave energy cutoff and decreased `EDIFF`$ = 10^−7 thin "eV"$ SCF convergence criterion. All of the above, though most notably the newer pseudopotentials may explain the less extreme outliers with respect to experiment. Overall, the variations with respect to MP/Petousis are within reason for run-to-run variability using slightly modified settings.
+We note that while the data in MP was generated with the same `atomate` workflow as designed and benchmarked by #cite(<petousis_benchmarking_2016>, form: "prose"), our data is expected to deviate from MP/Petousis due to our departure in choice of VASP parameters described in @sec:dfpt-to-dielectric, most notably the use of `PBE_54` POTCARs, increased $k$-point density of 3000 points per atom, increased `ENCUT` = 700~eV plane wave energy cutoff and decreased `EDIFF`$= 10^−7 thin "eV"$ SCF convergence criterion. All of the above, though most notably the newer pseudopotentials may explain the less extreme outliers with respect to experiment. Overall, the variations with respect to MP/Petousis are within reason for run-to-run variability using slightly modified settings.
 
 #figure(
-  pdf-img("figs/exp-vs-us-vs-petousis-vs-mp-diel-total.pdf"),
+  image("figs/exp-vs-us-vs-petousis-vs-mp-diel-total.pdf"),
   caption: [
     Comparison of experimental and DFPT-computed values for total permittivity $epsilon_"tot"$. Our data shows lower MAE and higher $R^2$ but more outliers (defined as points with $> 50 %$ error) compared to Petousis et al. Comparing our DFPT dielectric constants with experimental values, we achieve an MAE of 16.5 and $R^2$ of 0.4 while MP results attain a slightly lower MAE of 14.9 and $R^2$ of 0.125. A CSV file with the plotted experimental data is available on #link("https://github.com/janosh/dielectrics/blob/68839f9d8/data/others/petousis/exp-petousis.csv")[GitHub].
   ],
@@ -514,14 +504,14 @@ We note that while the data in MP was generated with the same `atomate` workflow
       row-gutter: 9pt,
       column-gutter: 9pt,
       subfigure(
-        pdf-img("figs/ptable-elem-counts-us.pdf"),
+        image("figs/ptable-elem-counts-us.pdf"),
         caption: [
           Element occurrences
         ],
         label: <fig:ptable-elem-counts-us>,
       ),
       subfigure(
-        pdf-img("figs/ptable-per-elem-fom-pbe.pdf"),
+        image("figs/ptable-per-elem-fom-pbe.pdf"),
         caption: [
           $Phi_"M" = epsilon_"tot" dot E_"gap"$
         ],
@@ -529,14 +519,14 @@ We note that while the data in MP was generated with the same `atomate` workflow
       ),
 
       subfigure(
-        pdf-img("figs/ptable-per-elem-diel-ionic-pbe.pdf"),
+        image("figs/ptable-per-elem-diel-ionic-pbe.pdf"),
         caption: [
           Ionic permittivity $epsilon_0$
         ],
         label: <fig:ptable-per-elem-diel-ionic-pbe>,
       ),
       subfigure(
-        pdf-img("figs/ptable-per-elem-diel-elec-pbe.pdf"),
+        image("figs/ptable-per-elem-diel-elec-pbe.pdf"),
         caption: [
           Electronic permittivity $epsilon_oo$
         ],
@@ -554,7 +544,7 @@ We note that while the data in MP was generated with the same `atomate` workflow
 @tab:table-fom-pbe-gt-350 lists all DFPT results in our dataset with $Phi_"M" > 350$ sorted by $Phi_"M"$. The highest-$Phi_"M"$ materials are almost exclusively oxides with only two fluorides and one selenide in the mix (#ce("AcF3"), #ce("LiY2F7") and #ce("Sm2CdSe4")). Some of the top materials, unfortunately, contain toxic or rare elements (e.g. #ce("Cd"), #ce("Nd"), #ce("Dy")) which are undesirable for environmental, economic and lab-safety/logistic reasons. Others contain lanthanides and actinides, f-block elements which DFT is known to struggle with due to strong electron correlation effects in the atomic-like $4 f$ orbitals near the valence band @soderlind_groundstate_2014. Both are strong arguments against attempting experimental synthesis, explaining why we did not simply select the top materials in this list.
 
 #figure(
-  pdf-img("figs/table-fom-pbe-gt-350.pdf"),
+  image("figs/table-fom-pbe-gt-350.pdf"),
   caption: [
     Table of DFPT results with $Phi_"M" > 350$ sorted by $Phi_"M"$.
   ],
@@ -569,14 +559,14 @@ We note that while the data in MP was generated with the same `atomate` workflow
     column-gutter: 9pt,
     row-gutter: 3pt,
     subfigure(
-      pdf-img("figs/rolling-bandgap+diel-error-pbe-as-x.pdf"),
+      image("figs/rolling-bandgap+diel-error-pbe-as-x.pdf"),
       caption: [
         RAE as a function of PBE band gap
       ],
       label: <fig:rolling-bandgap-diel-error-pbe-as-x>,
     ),
     subfigure(
-      pdf-img("figs/rolling-bandgap+diel-error-wren-as-x.pdf"),
+      image("figs/rolling-bandgap+diel-error-wren-as-x.pdf"),
       caption: [
         RAE as a function of Wren band gap
       ],

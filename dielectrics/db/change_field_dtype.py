@@ -14,7 +14,7 @@ from dielectrics.db import db, float_fields, md_field_map
 # %% convert all float_fields to type float (sth turns them into strings, need to
 # investigate)
 for coll, md_key in md_field_map.items():
-    paths = [md_key + field for field in float_fields]
+    paths = [f"{md_key}{field}" for field in float_fields]
 
     filters = {"$or": [{x: {"$type": "string"}} for x in paths]}
     docs = list(db[coll].find(filters, paths))

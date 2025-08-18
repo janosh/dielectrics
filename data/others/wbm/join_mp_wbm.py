@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from matbench_discovery.data import DataFiles
 from matbench_discovery.data import df_wbm as df_summary
-from pymatgen.ext.matproj import MPRester
+from mp_api import MPRester
 
 from dielectrics import DATA_DIR, Key
 
@@ -47,7 +47,7 @@ df_mp_wbm = df_mp_wbm.query("bandgap.notnull()")
 
 
 # %%
-[[ax1, ax2, ax3]] = df_mp_wbm.hist(figsize=[20, 4], bins=80, log=True, layout=[1, 3])
+[[ax1, ax2, ax3]] = df_mp_wbm.hist(figsize=(20, 4), bins=80, log=True, layout=(1, 3))
 
 ax1.set_xlabel("VASP energy [eV]")
 ax2.set_xlabel("formation energy [eV/atom]")

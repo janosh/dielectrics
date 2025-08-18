@@ -29,7 +29,7 @@ castep_files = glob(f"{DATA_DIR}/airss/{formula}/good_castep/*.castep")
 # %% 2022-06-30
 def get_pairwise_struct_distances(
     df: pd.DataFrame,
-    structure_col: str = Key.structure,
+    structure_col: str = str(Key.structure),
     fingerprint_col: str = "site_stats_fingerprint",
     # show only half of symmetric matrix by default, set to False to show all
     triangular: Literal["lower", "upper", False] = "lower",
@@ -73,7 +73,7 @@ def get_pairwise_struct_distances(
         if triangular in ("upper", False):
             df_out.loc[idx1, idx2] = np.linalg.norm(fp1 - fp2)
 
-    return df_out.style.format("{:.3g}", na_rep="").background_gradient(axis=None)
+    return df_out.style.format("{:.3g}", na_rep="").background_gradient(axis=None)  # type: ignore[unresolved-attribute]
 
 
 # %%
@@ -110,7 +110,7 @@ df_diel_from_task_coll(airss_candidates_for_chris, fields=["output.structure"])
 airss_mongo_ids = ("airss-1", "airss-2", "mp-755367:Cu->Na")
 
 df_mongo = df_diel_from_task_coll(
-    {Key.mat_id: {"$in": airss_mongo_ids}},
+    {str(Key.mat_id): {"$in": airss_mongo_ids}},
     fields=["output.structure", "airss_id"],
     cache=False,
 )
