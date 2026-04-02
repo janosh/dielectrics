@@ -200,19 +200,19 @@ fig.suptitle(
 labels = {"xlabel": "Materials Project", "ylabel": "Wren"}
 
 x, y = df_ionic_ens[["diel_ionic_target", "diel_ionic_pred_n0"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax1, **labels)  # type: ignore[invalid-argument-type]
+pmv.density_hexbin(x, y, ax=ax1, **labels)
 ax1.set_title("Single ionic")
 
 x, y = df_elec_ens[["diel_elec_target", "diel_elec_pred_n0"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax2, **labels)  # type: ignore[invalid-argument-type]
+pmv.density_hexbin(x, y, ax=ax2, **labels)
 ax2.set_title("Single electronic")
 
 x, y = df_ionic_ens[["diel_ionic_target", "diel_ionic_pred"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax3, **labels)  # type: ignore[invalid-argument-type]
+pmv.density_hexbin(x, y, ax=ax3, **labels)
 ax3.set_title("Ensemble ionic")
 
 x, y = df_elec_ens[["diel_elec_target", "diel_elec_pred"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax4, **labels)  # type: ignore[invalid-argument-type]
+pmv.density_hexbin(x, y, ax=ax4, **labels)
 ax4.set_title("Ensemble electronic")
 
 # plt.savefig(f"{PAPER_FIGS}/wren-diel-density-scatter-trained-on-mp-excl-petousis.pdf")

@@ -177,12 +177,12 @@ def scatter(
     df_in["text"] = create_text_col(df_in, kwargs.pop("annotate_min_fom", None))
 
     # drop cols with > 90% missing data
-    df_in = df_in.dropna(thresh=0.1 * len(df_in), axis=1)
+    df_in = df_in.dropna(thresh=int(0.1 * len(df_in)), axis=1)
     df_in = df_in.fillna("n/a")  # fill remaining NaNs to avoid %{customdata[idx]}
 
-    hover_keys: list[str] = sorted({*hover_data_keys.values()} & set(df_in))
+    hover_keys: list[str] = sorted({*hover_data_keys.values()} & set(df_in))  # ty: ignore[invalid-assignment]
     # hover_keys = sorted(hover_keys, key=list(pretty_col_names.values()).index)
-    hover_data: dict[str, bool] = dict.fromkeys(hover_keys, True)  # type: ignore[invalid-assignment]
+    hover_data: dict[str, bool] = dict.fromkeys(hover_keys, True)
     # don't show text value in hover tooltip
     hover_data["text"] = False
 
@@ -513,8 +513,8 @@ for xs, ys, clr, txt in [
     fig.add_annotation(
         text=f"<b>{txt}</b>",
         font=dict(color=clr, size=15),
-        x=sum(xs) / 2,  # type: ignore[arg-type]
-        y=sum(ys) / 2,  # type: ignore[arg-type]
+        x=sum(xs) / 2,
+        y=sum(ys) / 2,
         showarrow=False,
     )
 
@@ -558,7 +558,7 @@ span = html.Span(id="status", style={"color": "green"})
 
 status_dd = dcc.Dropdown(
     id="status-dropdown",
-    options=[dict(label=stat, value=stat) for stat in SelectionStatus],  # type: ignore[attr-defined]
+    options=[dict(label=stat, value=stat) for stat in SelectionStatus],  # ty: ignore[not-iterable]
     style=dict(display="inline-block", width="15em", lineHeight="0em"),
     placeholder="Selection status",
 )
@@ -645,7 +645,7 @@ def update_notes(
     context = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
     # if callback was triggered by click on graph and not on save_btn click,
     # ignore it
-    if context != save_btn.id:  # type: ignore[possibly-unbound-attribute]
+    if context != save_btn.id:
         return None
 
     data = click_data["points"][0]
@@ -654,7 +654,7 @@ def update_notes(
     try:
         payload = {"notes": notes}
         if status_value:
-            payload[Key.selection_status] = status_value
+            payload[Key.selection_status] = status_value  # ty: ignore[invalid-assignment]
         db.tasks.update_one({"_id": mongo_id}, {"$set": payload})
     except ValueError as err:
         print(f"{err=}")

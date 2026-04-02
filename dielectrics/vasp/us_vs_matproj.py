@@ -138,11 +138,11 @@ for row in df_mp.itertuples():
     mp_id = getattr(row, str(Key.mat_id))
     ax1.annotate(
         mp_id,
-        (row.diel_electronic_mp, row.diel_elec_pbe),  # type: ignore[unresolved-attribute]
+        (row.diel_electronic_mp, row.diel_elec_pbe),
         ha="center",
         va="top",
     )
-    ax2.annotate(mp_id, (row.diel_total_mp, row.diel_total_pbe), ha="center", va="top")  # type: ignore[unresolved-attribute]
+    ax2.annotate(mp_id, (row.diel_total_mp, row.diel_total_pbe), ha="center", va="top")
 
 
 # plt.savefig(f"{PAPER_FIGS}/us-vs-mp-total-diel.png")

@@ -70,7 +70,7 @@ else:
 
 # %%
 mp_entries = [
-    PDEntry(row.composition, energy=row.energy, name=row.Index)  # type: ignore[possibly-unbound-attribute]
+    PDEntry(row.composition, energy=row.energy, name=row.Index)
     for row in df_mp.itertuples()
 ]
 

@@ -19,7 +19,7 @@ plt.rcParams["figure.constrained_layout.use"] = True
 
 
 @unique
-class Key(pmv.enums.LabelEnum):  # type: ignore[no-redef]
+class Key(pmv.enums.LabelEnum):
     """Dataframe column names."""
 
     bandgap = "bandgap", "Band gap"

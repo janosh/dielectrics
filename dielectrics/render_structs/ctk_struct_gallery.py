@@ -29,7 +29,7 @@ df_all[Key.structure] = [
     for obj in df_all[Key.structure]
 ]
 for row in df_all.itertuples():
-    row.structure.properties["id"] = getattr(row, str(Key.mat_id))  # type: ignore[unresolved-attribute]
+    row.structure.properties["id"] = getattr(row, str(Key.mat_id))
 
 if Key.selection_status in df_all:
     df_synth = df_all.query(
@@ -66,7 +66,7 @@ for struct in df_synth[Key.structure]:
         # },
     )
 
-    struct_comp = ctc.StructureMoleculeComponent(struct_or_mol=struct, **ctk_comp_kwds)  # type: ignore[invalid-argument-type]
+    struct_comp = ctc.StructureMoleculeComponent(struct_or_mol=struct, **ctk_comp_kwds)
     struct_title_style = {
         "textAlign": "center",
         "fontWeight": "bold",
@@ -88,7 +88,7 @@ for struct in df_synth[Key.structure]:
 
         struct_comp = ctc.StructureMoleculeComponent(
             struct_or_mol=mp_struct,
-            **ctk_comp_kwds,  # type: ignore[invalid-argument-type]
+            **ctk_comp_kwds,
         )
         struct_title = html.H3(mp_struct.properties["id"], style=struct_title_style)
         struct_comps.append(html.Div([struct_title, struct_comp.layout()]))

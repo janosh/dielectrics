@@ -18,6 +18,7 @@ repos:
 
   - repo: builtin
     hooks:
+      - id: check-added-large-files
       - id: check-case-conflict
       - id: check-symlinks
       - id: check-yaml
@@ -33,7 +34,9 @@ repos:
         name: ty check
         entry: ty check
         language: python
+        types: [python]
         additional_dependencies: [ty]
+        args: [--output-format, concise]
 
   - repo: https://github.com/crate-ci/typos
     rev: v1.45.0

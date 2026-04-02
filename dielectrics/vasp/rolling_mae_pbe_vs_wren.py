@@ -111,8 +111,8 @@ for (x_axis_bandgap, other_bandgap), (x_axis_diel, other_diel) in [
         fig.layout.legend = dict(x=1, y=0.15, xanchor="right", bgcolor="rgba(0,0,0,0)")
 
     # set x-min to 0 (can't use None for xmax, has no effect)
-    fig.layout.xaxis.update(range=[0, 8.5])
-    fig.layout.xaxis2.update(range=[0, 750])
+    fig.layout.xaxis.update(range=[0, 8.5])  # ty: ignore[invalid-argument-type]
+    fig.layout.xaxis2.update(range=[0, 750])  # ty: ignore[invalid-argument-type]
 
     fig.show()
     assert ("wren" in x_axis_bandgap, "wren" in x_axis_diel) in (

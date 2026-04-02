@@ -105,7 +105,7 @@ if "jarvis_atoms" not in df_db:
     ]
     print(f"Done converting {len(df_db):,} structures to Alignn atom+line graphs")
 
-desc = f"Getting Alignn predictions for: {', '.join(alignn_models.keys())}"
+desc = f"Getting Alignn predictions for: {', '.join(alignn_models.keys())}"  # ty: ignore[no-matching-overload]
 for row in tqdm(df_db.itertuples(), total=len(df_db), desc=desc):
     idx, atom_graph = row.Index, row.alignn_atom_graph
     line_graph = row.alignn_line_graph

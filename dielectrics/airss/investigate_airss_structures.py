@@ -73,7 +73,7 @@ def get_pairwise_struct_distances(
         if triangular in ("upper", False):
             df_out.loc[idx1, idx2] = np.linalg.norm(fp1 - fp2)
 
-    return df_out.style.format("{:.3g}", na_rep="").background_gradient(axis=None)  # type: ignore[unresolved-attribute]
+    return df_out.style.format("{:.3g}", na_rep="").background_gradient(axis=None)
 
 
 # %%
