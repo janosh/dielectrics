@@ -5,7 +5,7 @@ exclude: .drawio$
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.8
+    rev: v0.15.12
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -39,7 +39,7 @@ repos:
         args: [--output-format, concise]
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.45.0
+    rev: v1.45.1
     hooks:
       - id: typos
 

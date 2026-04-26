@@ -111,4 +111,4 @@ atomate = "atomate"
 unresolved-import = "ignore"
 
 [dependency-groups]
-dev = ["prek>=0.3.8", "ty>=0.0.27"]
+dev = ["prek>=0.3.10", "ty>=0.0.32"]
