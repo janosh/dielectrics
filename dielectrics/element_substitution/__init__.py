@@ -80,7 +80,7 @@ def aflow_wren_to_comp(aflow_wren_label: str) -> Composition:
 
 def replace_similar_elem(
     transition_matrix: NDArray[np.float32],
-    atomic_nums: Sequence[int],
+    atomic_nums: Sequence[int] | NDArray[np.integer],
     elem_list: Sequence[str],
     rng: np.random.Generator | None = None,
 ) -> tuple[str, str]:

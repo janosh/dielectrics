@@ -192,7 +192,7 @@ df_us.attrs.update({"name": "us", "label": "This Work"})
 df_mp.attrs.update({"name": "mp", "label": "MP Data"})
 
 for df in (df_us, df_mp):
-    fig = pmv.ptable_heatmap_plotly(
+    fig = pmv.ptable_heatmap(
         df[Key.formula],
         exclude_elements=("O", "F"),
         colorscale="viridis",
@@ -212,7 +212,7 @@ mp_elem_counts = pmv.count_elements(df_mp[Key.formula])
 us_elem_counts /= len(df_us)
 mp_elem_counts /= len(df_mp)
 cbar_title = "Element Occurrence Ratio (us / MP)"
-fig = pmv.ptable_heatmap_plotly(
+fig = pmv.ptable_heatmap(
     us_elem_counts / mp_elem_counts, colorbar=dict(title=cbar_title)
 )
 fig.show()
@@ -237,7 +237,7 @@ for col, title in (
     srs_per_elem = df_per_elem.mean(axis=0)
     srs_per_elem.index.name = f"Element-projected {title}"
 
-    fig = pmv.ptable_heatmap_plotly(
+    fig = pmv.ptable_heatmap(
         srs_per_elem.dropna(),
         colorscale="viridis",
         colorbar=dict(title=srs_per_elem.index.name),
@@ -309,7 +309,7 @@ styler = (
     )
 )
 
-pmv.io.df_to_pdf(styler, f"{PAPER_FIGS}/table-fom-pbe-gt-{fom_tresh}.pdf", size="100cm")
+pmv.io.df_to_html(styler, file_path=f"{PAPER_FIGS}/table-fom-pbe-gt-{fom_tresh}.html")
 df_high_fom.to_csv(f"{DATA_DIR}/our-data-with-fom-pbe-gt-{fom_tresh}.csv", index=False)
 styler.set_caption(f"Table of materials with 𝚽<sub>M</sub> > {fom_tresh} eV")
 
@@ -322,6 +322,6 @@ styler.data.query("~Formula.str.contains('O')")
 cbar_title = (
     "High-Φ<sub>M</sub> element occurrence (excl. oxygen for better colorscale)"
 )
-pmv.ptable_heatmap_plotly(
+pmv.ptable_heatmap(
     df_high_fom[Key.formula], exclude_elements="O", colorbar=dict(title=cbar_title)
 )

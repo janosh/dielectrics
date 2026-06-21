@@ -3,7 +3,7 @@ import pandas as pd
 import pymatviz as pmv
 from matbench_discovery.data import DataFiles
 from matbench_discovery.data import df_wbm as df_summary
-from pymatgen.ext.matproj import MPRester
+from mp_api.client import MPRester
 
 from dielectrics import DATA_DIR, Key
 from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
@@ -84,22 +84,31 @@ plt.legend()
 
 
 # %%
-mp_data = MPRester().query(
-    criteria={Key.mat_id: {"$in": list(df_top_1k.index)}},
-    properties=[
-        Key.mat_id,
-        "final_structure",
-        "final_energy",
-        "formation_energy_per_atom",
-        "e_above_hull",
-    ],
-)
+with MPRester() as mpr:
+    mp_docs = mpr.materials.summary.search(
+        material_ids=list(df_top_1k.index),
+        fields=[
+            "material_id",
+            "structure",
+            "energy_per_atom",
+            "nsites",
+            "formation_energy_per_atom",
+            "energy_above_hull",
+        ],
+    )
 
-df_mp = pd.DataFrame(mp_data).set_index(Key.mat_id)
-df_mp.columns = df_mp.columns.str.replace("final_", "")
-df_mp = df_mp.rename(
-    columns={"formation_energy_per_atom": "e_form", "e_above_hull": "e_hull"}
-)
+df_mp = pd.DataFrame(
+    [
+        {
+            Key.mat_id: str(doc.material_id),
+            Key.structure: doc.structure,
+            "energy": doc.energy_per_atom * doc.nsites,  # total DFT energy of the cell
+            "e_form": doc.formation_energy_per_atom,
+            "e_hull": doc.energy_above_hull,
+        }
+        for doc in mp_docs
+    ]
+).set_index(Key.mat_id)
 
 
 # %%
@@ -185,14 +194,14 @@ plt.suptitle(f"{len(df_wren):,} samples", y=1.02)
 
 # %%
 cbar_title = "Elemental distribution of top 1k Wren-predicted FoMs"
-fig = pmv.ptable_heatmap_plotly(
+fig = pmv.ptable_heatmap(
     df_wren.nlargest(1000, Key.fom_wren)[Key.formula],
     colorbar=dict(title=cbar_title),
 )
 fig.show()
 
 cbar_title = "Elemental distribution of random 1k samples"
-fig = pmv.ptable_heatmap_plotly(
+fig = pmv.ptable_heatmap(
     df_wren.sample(1000)[Key.formula], colorbar=dict(title=cbar_title)
 )
 fig.show()

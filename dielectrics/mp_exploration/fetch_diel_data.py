@@ -14,20 +14,20 @@ defined by screening_set_filters.
 """
 
 # %%
-df_diel_train = fetch_mp_dielectric_structures({"has": "diel"})
+df_diel_train = fetch_mp_dielectric_structures(has_dielectric=True)
 
 
 # %%
-screening_set_filters = {
-    "has": {"$nin": ["diel"]},  # exclude materials already in training set
-    "e_above_hull": {"$lte": 0.1},  # exclude non-stable materials
-    "band_gap": {"$gte": 0.5},  # at least semiconductor band gap
-    # i.e. exclude conductors since they don't have dielectric effect
-    "nelements": {"$gte": 5, "$lte": 10},  # exclude elemental/overly complex stuff
-    "nsites": {"$gte": 100},  # exclude huge unit-cells for computational efficiency
-    # 2x of https://www-nature-com.ezp.lib.cam.ac.uk/articles/sdata2016134#Sec4
-}
-df_diel_screen = fetch_mp_dielectric_structures(screening_set_filters)
+df_diel_screen = fetch_mp_dielectric_structures(
+    energy_above_hull=(None, 0.1),  # exclude non-stable materials
+    band_gap=(0.5, None),  # at least semiconductor band gap (exclude conductors)
+    num_elements=(5, 10),  # exclude elemental/overly complex stuff
+    num_sites=(100, None),  # 2x of https://nature.com/articles/sdata2016134#Sec4
+)
+# exclude materials already in the training set (those with computed dielectric data)
+df_diel_screen = df_diel_screen[
+    ~df_diel_screen[Key.mat_id].isin(df_diel_train[Key.mat_id])
+]
 
 
 # %%

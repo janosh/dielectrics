@@ -70,7 +70,7 @@ else:
 
 # %%
 mp_entries = [
-    PDEntry(row.composition, energy=row.energy, name=row.Index)
+    PDEntry(row.composition, energy=row.energy, name=row.Index)  # ty: ignore[unresolved-attribute]
     for row in df_mp.itertuples()
 ]
 

@@ -1,15 +1,21 @@
 default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg]
 
-exclude: .drawio$
-
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.15.18
     hooks:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
+
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.51
+    hooks:
+      - id: ty
+        # --isolated: don't create/update uv.lock or the local .venv
+        args: [--isolated]
+        env: { UV_FROZEN: "0" } # prek-only: override global UV_FROZEN=1 which would require a uv.lock
 
   - repo: https://github.com/janosh/format-ipy-cells
     rev: v0.1.11
@@ -18,30 +24,22 @@ repos:
 
   - repo: builtin
     hooks:
-      - id: check-added-large-files
       - id: check-case-conflict
       - id: check-symlinks
       - id: check-yaml
-      - id: destroyed-symlinks
       - id: end-of-file-fixer
-        exclude_types: [svg, html, json]
       - id: mixed-line-ending
       - id: trailing-whitespace
-
-  - repo: local
-    hooks:
-      - id: ty
-        name: ty check
-        entry: ty check
-        language: python
-        types: [python]
-        additional_dependencies: [ty]
-        args: [--output-format, concise]
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: destroyed-symlinks
+      - id: check-vcs-permalinks
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.45.1
+    rev: v1.47.2
     hooks:
       - id: typos
+        stages: [pre-commit, commit-msg]
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.2
@@ -55,7 +53,7 @@ repos:
           - --check-filenames
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.48.0
+    rev: v0.49.0
     hooks:
       - id: markdownlint
         # MD013: line too long

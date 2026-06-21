@@ -1,8 +1,9 @@
 # %%
 import pandas as pd
+from emmet.core.summary import HasProps
+from mp_api.client import MPRester
 from pymatgen.core import Element
 from pymatgen.electronic_structure.plotter import DosPlotter
-from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
 from dielectrics import DATA_DIR, Key
@@ -17,17 +18,17 @@ rare_earths = [
 
 
 # %%
-mp_data = MPRester().query(
-    {
-        "nsites": {"$lte": 20},
-        "has": {"$all": ["diel", "bandstructure"]},
-        "icsd_ids": {"$ne": []},
-        "nelements": {"$lte": 5},
-        "e_above_hull": {"$lte": 0.1},
-        "elements": {"$nin": rare_earths},
-    },
-    [Key.mat_id],
-)
+with MPRester() as mpr:
+    docs = mpr.materials.summary.search(
+        num_sites=(None, 20),
+        num_elements=(None, 5),
+        energy_above_hull=(None, 0.1),
+        has_props=[HasProps.dielectric, HasProps.bandstructure],
+        theoretical=False,  # has an ICSD entry (experimentally observed)
+        exclude_elements=rare_earths,
+        fields=["material_id"],
+    )
+mp_data = [str(doc.material_id) for doc in docs]
 
 print(f"materials matching filters: {len(mp_data):,}")
 
@@ -51,10 +52,11 @@ with MPRester() as mpr:
         doses[mp_id] = dos
 
 
-# %%
+# %% plot one example DOS (get_dos_by_material_id now returns a bare Dos without an
+# attached structure, so label the plot with the material ID instead of its composition)
+example_id = df_dos.index[0]
 dos_plotter = DosPlotter()
-plot_label = dos.structure.composition
-dos_plotter.add_dos(plot_label, dos)
+dos_plotter.add_dos(example_id, doses[example_id])
 dos_plotter.get_plot()
 
 

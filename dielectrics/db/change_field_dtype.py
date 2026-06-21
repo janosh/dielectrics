@@ -43,16 +43,16 @@ for idx, (field, (coll, md_key)) in enumerate(
     product(float_fields, md_field_map.items()), 1
 ):
     print(f"{idx:>3}: {field}")
-    field = md_key + field
-    data = db[coll].find({field: ""})
+    full_field = md_key + field
+    data = db[coll].find({full_field: ""})
 
     ids = [doc["_id"] for doc in data]
 
     if len(ids) > 0:
-        print(f"unset {len(ids):,} {field=} in {coll=}")
+        print(f"unset {len(ids):,} {full_field=} in {coll=}")
 
     result = db[coll].update_many(
         {"_id": {"$in": ids}},
-        {"$unset": {field: ""}},
+        {"$unset": {full_field: ""}},
     )
     assert len(ids) == result.modified_count

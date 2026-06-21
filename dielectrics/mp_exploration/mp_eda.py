@@ -193,14 +193,14 @@ plt.xlabel(r"log dielectric constant $\log(\epsilon)$")
 plt.ylabel(r"PBE Bandgap $E_\mathrm{gap}$ / eV")
 
 
-plt.xlim((None, 8))
+plt.xlim(right=8)
 plt.ylim((-0.1, 9.5))
 # plt.savefig(f"{PAPER_FIGS}/eda/diel-elec-vs-bandgap.pdf")
 
 
 # %%
 cbar_title = "Elemental Prevalence among MP Dielectric Training Materials"
-fig = pmv.ptable_heatmap_plotly(
+fig = pmv.ptable_heatmap(
     df_diel_mp[Key.formula], log=True, colorbar=dict(title=cbar_title)
 )
 fig.show()
@@ -219,7 +219,7 @@ df_diel_screen = pd.read_csv(f"{DATA_DIR}/mp-exploration/mp-diel-screen.csv.bz2"
 
 # %%
 cbar_title = "Elemental Prevalence among MP Dielectric Screening Materials"
-fig = pmv.ptable_heatmap_plotly(
+fig = pmv.ptable_heatmap(
     df_diel_screen[Key.formula], log=True, colorbar=dict(title=cbar_title)
 )
 fig.show()

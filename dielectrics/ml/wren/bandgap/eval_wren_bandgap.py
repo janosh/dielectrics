@@ -119,7 +119,7 @@ print(f"Remaining: {n_non_metals_w_clf / n_non_metals_wo_clf:.2%}")
 
 # %%
 plt.figure(figsize=(12, 8))
-pmv.classify.roc_curve_plotly(
+pmv.classify.roc_curve(
     targets=df_clf.is_metal_target, probs_positive=df_clf["is_metal_logits_c1"]
 )
 

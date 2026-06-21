@@ -1,6 +1,9 @@
+"""MongoDB access and (de)serialization helpers for the dielectrics task collection."""
+
+import os
 import re
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from bson.json_util import dumps, loads
@@ -11,8 +14,14 @@ from tqdm import tqdm
 from dielectrics import Key
 
 
-MONGO_SRV = "mongodb+srv://janosh:WVX8HtsAJo@atomate-cluster.q8s9p.mongodb.net/atomate"
+# MongoDB connection string with credentials, set via
+# export MONGO_SRV=mongodb+srv://<user>:<password>@<cluster-host>/<db>
+# Only needed to (re)generate data or run the discovery pipeline; analysis reads the
+# published task dataset (fetch_data.df_diel_from_task_coll), so MONGO_SRV may be unset.
+# pymongo connects lazily, so importing this module never reaches the DB on its own.
+MONGO_SRV = os.getenv("MONGO_SRV")
 db = MongoClient(MONGO_SRV).dielectrics
+
 
 md_field_map = {"fireworks": "spec.", "workflows": "metadata.", "tasks": ""}
 
@@ -131,7 +140,7 @@ def update_str_in_collection(
 
         # archive the old collection
 
-        today = datetime.now(tz=timezone.utc).date()
+        today = datetime.now(tz=UTC).date()
         coll.rename(f"{coll.name}_arxiv_{today}")
         # move temp collection to collection
         tmp_coll.rename(coll.name)

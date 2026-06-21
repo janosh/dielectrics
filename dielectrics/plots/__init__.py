@@ -1,3 +1,5 @@
+"""Shared plotly/matplotlib plotting defaults for the project."""
+
 import matplotlib.pyplot as plt
 import plotly.express as px
 

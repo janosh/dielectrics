@@ -18,9 +18,8 @@ for coll in db.list_collection_names():
 
 print("\n--- DB Stats ---")
 for key, val in db.command("dbstats").items():
-    if isinstance(val, float):
-        val = round(val, 2)
-    print(f"{key}: {val:{',' if isinstance(val, int | float) else ''}}")
+    disp_val = round(val, 2) if isinstance(val, float) else val
+    print(f"{key}: {disp_val:{',' if isinstance(disp_val, int | float) else ''}}")
 
 
 # %% display the number of tasks per 'series' field

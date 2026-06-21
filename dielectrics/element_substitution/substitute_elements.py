@@ -1,8 +1,8 @@
 # %%
 import pandas as pd
 import pymatviz as pmv
+from mp_api.client import MPRester
 from pymatgen.core import Composition
-from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
 from dielectrics import DATA_DIR, Key
@@ -112,12 +112,14 @@ try:
 except FileNotFoundError:
     # if CSV doesn't exist, re-download all MP formulas
     with MPRester() as mpr:
-        data = mpr.query({}, [Key.mat_id, "pretty_formula"], chunk_size=5000)
+        docs = mpr.materials.summary.search(fields=["material_id", "formula_pretty"])
 
-    df_all_mp_formulas = pd.DataFrame(data).set_index(Key.mat_id)
-    df_all_mp_formulas = df_all_mp_formulas.rename(
-        columns={"pretty_formula": Key.formula}
-    )
+    df_all_mp_formulas = pd.DataFrame(
+        [
+            {Key.mat_id: str(doc.material_id), Key.formula: doc.formula_pretty}
+            for doc in docs
+        ]
+    ).set_index(Key.mat_id)
     df_all_mp_formulas.round(4).to_csv(all_mp_formulas_csv)
 
 # We may want to keep only keep new compositions when substituting on a thoroughly
@@ -141,10 +143,10 @@ elem_counts = pmv.count_elements(df_clean[Key.formula])
 orig_elem_counts = pmv.count_elements(df_clean.orig_formula)
 
 cbar_title = "Elemental distribution of new workflows"
-fig = pmv.ptable_heatmap_plotly(elem_counts, log=True, colorbar=dict(title=cbar_title))
+fig = pmv.ptable_heatmap(elem_counts, log=True, colorbar=dict(title=cbar_title))
 fig.show()
 
-fig = pmv.ptable_heatmap_plotly(
+fig = pmv.ptable_heatmap(
     elem_counts / orig_elem_counts, colorbar=dict(title="substituted/original elements")
 )
 fig.show()

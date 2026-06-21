@@ -6,10 +6,10 @@ import pickle
 from typing import TYPE_CHECKING
 
 import pandas as pd
+from mp_api.client import MPRester
 from pymatgen.core import Composition
 from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
 from pymatgen.entries.computed_entries import ComputedEntry
-from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
 from dielectrics import DATA_DIR, PKG_DIR, Key
@@ -116,7 +116,7 @@ filters = {
     # "task_label": "static dielectric",
 }
 
-db.tasks.count_documents(filters)
+db.tasks.count_documents(filters)  # ty: ignore[invalid-argument-type]
 
 
 # %%
@@ -146,12 +146,17 @@ df_tasks.isna().sum()
 mp_ids = list(df_tasks[Key.mat_id].filter(regex="m(p|vc)-\\d+$").unique())
 
 if mp_ids:
-    data = MPRester().query(
-        {Key.mat_id: {"$in": mp_ids}},
-        ["e_above_hull", Key.mat_id],
-    )
+    with MPRester() as mpr:
+        docs = mpr.materials.summary.search(
+            material_ids=mp_ids, fields=["material_id", "energy_above_hull"]
+        )
 
-    df_mp = pd.DataFrame(data).set_index(Key.mat_id)
+    df_mp = pd.DataFrame(
+        [
+            {Key.mat_id: str(doc.material_id), "e_above_hull": doc.energy_above_hull}
+            for doc in docs
+        ]
+    ).set_index(Key.mat_id)
 
     df_tasks[Key.e_above_hull_mp] = df_tasks[Key.mat_id].map(df_mp.e_above_hull)
 
@@ -245,7 +250,7 @@ print(f"Materials with positive PBE formation energy: {sum(df_tasks[form_col] > 
 
 # %%
 # mp_version = '2020-09-08' at last run
-mp_version = MPRester().get_database_version().replace("_", "-")
+mp_version = MPRester().db_version
 n_skipped = n_updated = 0
 
 for row in tqdm(list(df_tasks.set_index("_id").itertuples())):

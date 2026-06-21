@@ -6,7 +6,7 @@ import os
 import subprocess
 import time
 from collections.abc import Sequence
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from glob import glob
 from os.path import isfile
 from shutil import rmtree
@@ -62,7 +62,7 @@ def du(paths: list[str]) -> str:
     """Disk usage in human readable format (e.g. '2,1GB')."""
     if not paths:
         return ""
-    return subprocess.check_output(["du", "-sh", *paths]).split()[0].decode("utf-8")  # noqa: S603
+    return subprocess.check_output(["du", "-sh", *paths]).split()[0].decode("utf-8")  # noqa: S603, S607
 
 
 def ldir_is_recent(ldir: str, n_days: int) -> bool:
@@ -71,11 +71,9 @@ def ldir_is_recent(ldir: str, n_days: int) -> bool:
     """
     date_str = ldir[: ldir.rindex("-")].replace("launcher_", "")
 
-    ldir_date = datetime.strptime(date_str, r"%Y-%m-%d-%H-%M-%S").replace(
-        tzinfo=timezone.utc
-    )
+    ldir_date = datetime.strptime(date_str, r"%Y-%m-%d-%H-%M-%S").replace(tzinfo=UTC)
     # return True if the date is less than n_days in the past
-    return datetime.now(tz=timezone.utc) - timedelta(days=n_days) > ldir_date
+    return datetime.now(tz=UTC) - timedelta(days=n_days) > ldir_date
 
 
 def rm_never_started_launch_dirs(block_dir: str) -> None:
@@ -169,7 +167,7 @@ def rm_launch_dirs(
     dic = {"msg": msg, "dirs_removed": dirs_removed, "dirs_not_found": dirs_not_found}
 
     if write_log:
-        utc_time = datetime.now(tz=timezone.utc)
+        utc_time = datetime.now(tz=UTC)
         with open(f"deleted_dirs_{utc_time:%Y-%m-%d@%H:%M}.yaml", "w") as file:
             file.write(yaml.dump(dic, sort_keys=False))
 

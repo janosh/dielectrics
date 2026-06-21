@@ -4,27 +4,49 @@ calcs.
 
 # %%
 import pandas as pd
+from emmet.core.summary import HasProps
+from mp_api.client import MPRester
 from pymatgen.core import Composition
-from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp import Kpoints
+from tqdm import tqdm
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
 from dielectrics.plots import plt  # side-effect import sets plotly template and plt.rc
 
 
-# %%
-mp_diel_inputs = MPRester().query(
-    criteria={"has": "diel"},
-    properties=[Key.mat_id, "input", "created_at", "pretty_formula"],
-)
+# %% fetch the DFPT Dielectric task INCAR/KPOINTS for each material with dielectric data
+# (the legacy materials-doc "input" field is gone; VASP inputs now live on task docs)
+with MPRester() as mpr:
+    diel_docs = mpr.materials.summary.search(
+        has_props=[HasProps.dielectric],
+        fields=["material_id", "formula_pretty", "task_ids"],
+    )
+
+    records = []
+    for doc in tqdm(diel_docs, desc="Fetching MP dielectric VASP inputs"):
+        tasks = mpr.materials.tasks.search(
+            task_ids=doc.task_ids, fields=["task_type", "completed_at", "orig_inputs"]
+        )
+        diel_task = next(
+            (task for task in tasks if task.task_type == "DFPT Dielectric"), None
+        )
+        if diel_task is None:
+            continue
+        incar = diel_task.orig_inputs.incar or {}
+        date = diel_task.completed_at.date() if diel_task.completed_at else None
+        records.append(
+            {
+                Key.mat_id: str(doc.material_id),
+                Key.formula: doc.formula_pretty,
+                Key.date: date,
+                "kpoints": diel_task.orig_inputs.kpoints,
+                **{f"incar.{key}": val for key, val in incar.items()},
+            }
+        )
 
 
 # %%
-df_input = pd.json_normalize(mp_diel_inputs).set_index(Key.mat_id)
-
-df_input[Key.date] = pd.to_datetime(df_input.pop("created_at")).dt.date
-
-df_input.columns = df_input.columns.str.replace("input.", "")
+df_input = pd.DataFrame(records).set_index(Key.mat_id)
 
 
 # %% drop single-value columns

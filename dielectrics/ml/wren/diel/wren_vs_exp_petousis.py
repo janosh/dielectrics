@@ -9,7 +9,9 @@ from dielectrics.plots import plt  # side-effect import sets plotly template and
 
 
 # %%
-path_fn = lambda part: f"{DATA_DIR}/wren/diel/wren-mp-diel-{part}-trained-on-all-mp.csv"
+def path_fn(part: str) -> str:  # noqa: D103
+    return f"{DATA_DIR}/wren/diel/wren-mp-diel-{part}-trained-on-all-mp.csv"
+
 
 wren_models = [
     "elec-ensemble",
@@ -35,29 +37,23 @@ df_exp = df_exp.drop_duplicates(Key.mat_id).set_index(Key.mat_id)
 
 # %%
 for key, df_diel_model in dfs.items():
-    df_diel_model = df_diel_model.drop(
+    df_model = df_diel_model.drop(
         df_diel_model.filter(like="_target"), axis=1
     ).drop_duplicates(Key.mat_id)
+    df_model = df_model.set_index(Key.mat_id)
 
-    df_diel_model = df_diel_model.set_index(Key.mat_id)
-
-    df_diel_model[f"diel_{key}_pred"] = df_diel_model.filter(like="_pred_n").mean(
-        axis=1
-    )
-
-    df_exp[f"diel_{key}_wren"] = df_diel_model[f"diel_{key}_pred"]
+    df_model[f"diel_{key}_pred"] = df_model.filter(like="_pred_n").mean(axis=1)
+    df_exp[f"diel_{key}_wren"] = df_model[f"diel_{key}_pred"]
 
     if "robust" in key:
         df_exp[f"diel_{key}_wren_std"] = (
-            (df_diel_model.filter(like="_ale_n") ** 2).mean(axis=1)
-            + df_diel_model.filter(like="_pred_n").var(axis=1)
+            (df_model.filter(like="_ale_n") ** 2).mean(axis=1)
+            + df_model.filter(like="_pred_n").var(axis=1)
         ) ** 0.5
     else:
-        df_exp[f"diel_{key}_wren_std"] = df_diel_model.filter(like="_pred_n").std(
-            axis=1
-        )
+        df_exp[f"diel_{key}_wren_std"] = df_model.filter(like="_pred_n").std(axis=1)
 
-    dfs[key] = df_diel_model
+    dfs[key] = df_model
 
 
 # %%

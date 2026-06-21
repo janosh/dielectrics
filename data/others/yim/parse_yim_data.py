@@ -12,8 +12,8 @@ from os.path import basename, isdir, splitext
 
 import numpy as np
 import pandas as pd
+from mp_api.client import MPRester
 from pymatgen.core import Structure
-from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
 from dielectrics import ROOT, Key
@@ -21,31 +21,28 @@ from dielectrics import ROOT, Key
 
 # %% Parse data from archive
 data = {}
-arxiv = tarfile.open("dielectrics.tgz")
+with tarfile.open("dielectrics.tgz") as arxiv:
+    for member in arxiv:
+        icsd_id = splitext(basename(member.name))[0]
 
-for member in arxiv:
-    icsd_id = splitext(basename(member.name))[0]
+        file = arxiv.extractfile(member)
 
-    file = arxiv.extractfile(member)
+        if "ICSD" not in member.name or file is None:
+            continue
 
-    if "ICSD" not in member.name or file is None:
-        continue
+        lines = file.read().decode("utf-8").splitlines()
 
-    lines = file.read().decode("utf-8").splitlines()
+        diel_total = float(lines[9].split("Averaged static dielectric constant: ")[1])
 
-    diel_total = float(lines[9].split("Averaged static dielectric constant: ")[1])
+        eps_elec = np.fromstring("\n".join(lines[1:4]), sep="\t").reshape(-1, 3)
+        eps_ionic = np.fromstring("\n".join(lines[5:8]), sep="\t").reshape(-1, 3)
 
-    eps_elec = np.fromstring("\n".join(lines[1:4]), sep="\t").reshape(-1, 3)
-    eps_ionic = np.fromstring("\n".join(lines[5:8]), sep="\t").reshape(-1, 3)
-
-    dct = {
-        Key.diel_total_pbe: diel_total,
-        "eps_elec": eps_elec,
-        "eps_ionic": eps_ionic,
-    }
-    data[int(icsd_id.replace("ICSD_", ""))] = dct
-
-arxiv.close()
+        dct = {
+            Key.diel_total_pbe: diel_total,
+            "eps_elec": eps_elec,
+            "eps_ionic": eps_ionic,
+        }
+        data[int(icsd_id.replace("ICSD_", ""))] = dct
 
 
 # %%
@@ -91,24 +88,31 @@ df_yim[Key.formula] = [
 print(f"{df_yim.isna().sum()=}")
 
 
-# %%
-mp_data = MPRester().query(
-    {"icsd_ids": {"$in": list(df_yim.index)}},
-    "material_id pretty_formula spacegroup.number icsd_ids diel band_gap".split(),  # noqa: SIM905
-)
+# %% match Yim structures to MP materials by structure (the legacy icsd_ids query field
+# is no longer available in the MP API), then attach MP dielectric properties. Scalar
+# diel averages are e_total/e_electronic/n (legacy poly_total/poly_electronic)
+diel_cols = ["n_mp", Key.diel_elec_mp, Key.diel_total_mp]
+fields = ["material_id", "band_gap", "n", "e_electronic", "e_total"]
+mp_rows = []
+with MPRester() as mpr:
+    for icsd_id, struct in tqdm(df_yim[Key.structure].dropna().items()):
+        mp_ids = mpr.find_structure(struct, allow_multiple_results=True)
+        if not mp_ids:  # empty material_ids would fetch the entire DB
+            continue
+        mp_rows.extend(
+            {
+                Key.icsd_id: icsd_id,
+                Key.mat_id: str(doc.material_id),
+                "band_gap": doc.band_gap,
+                "n_mp": doc.n,
+                Key.diel_elec_mp: doc.e_electronic,
+                Key.diel_total_mp: doc.e_total,
+            }
+            for doc in mpr.materials.summary.search(material_ids=mp_ids, fields=fields)
+        )
 
-
-df_mp = pd.DataFrame(mp_data)
-diel_cols = ["eps_elec_mp", "eps_total_mp", "n_mp", Key.diel_elec_mp, Key.diel_total_mp]
-df_mp[diel_cols] = pd.json_normalize(df_mp.pop("diel").tolist())
-
-
-df_mp.to_json("mp_data.json.bz2")
-df_mp = pd.read_json("mp_data.json.bz2")
-
-
-# df.groupby(level=0).first() removes rows with duplicate index (i.e. icsd_id)
-df_map = df_mp.explode("icsd_ids").set_index("icsd_ids").groupby(level=0).first()
+# groupby(level=0).first() removes rows with duplicate index (i.e. icsd_id)
+df_map = pd.DataFrame(mp_rows).set_index(Key.icsd_id).groupby(level=0).first()
 df_yim[Key.bandgap_mp] = df_map.band_gap
 df_yim["possible_mp_id"] = df_map[Key.mat_id]
 df_yim[diel_cols] = df_map[diel_cols]

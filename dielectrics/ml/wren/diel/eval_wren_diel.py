@@ -1,5 +1,6 @@
 # %%
 import pandas as pd
+import plotly.graph_objects as go
 import pymatviz as pmv
 
 from dielectrics import DATA_DIR, PAPER_FIGS, Key
@@ -26,11 +27,11 @@ df_ionic_rob_ens["diel_ionic_pred"] = df_ionic_rob_ens.filter(
     like="pred_n", axis=1
 ).mean(axis=1)
 df_elec_rob_ens["diel_elec_pred"] = df_elec_rob_ens.filter(like="pred_n", axis=1).mean(
-    1
+    axis=1
 )
 
 df_ionic_rob_ens["diel_ionic_ale"] = df_ionic_rob_ens.filter(like="ale_", axis=1).mean(
-    1
+    axis=1
 )
 df_elec_rob_ens["diel_elec_ale"] = df_elec_rob_ens.filter(like="ale_", axis=1).mean(
     axis=1
@@ -38,25 +39,53 @@ df_elec_rob_ens["diel_elec_ale"] = df_elec_rob_ens.filter(like="ale_", axis=1).m
 
 
 # %%
-fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+def density_parity_grid(
+    panels: list[tuple[str, pd.DataFrame, list[str]]], title: str
+) -> go.Figure:
+    """Plot four pymatviz density_scatter parity plots (MP vs Wren) as a 2x2 facet grid.
 
-fig.suptitle("Wren Dielectric Models trained on MP")
-for ax, df, title in zip(
-    axs.flat,
-    (
-        df_ionic_rob_ens[["diel_ionic_target", "diel_ionic_pred"]],
-        df_elec_rob_ens[["diel_elec_target", "diel_elec_pred"]],
-        df_ionic_rob_ens[["diel_ionic_target", "diel_ionic_pred_n0"]],
-        df_elec_rob_ens[["diel_elec_target", "diel_elec_pred_n0"]],
-    ),
-    ("Single ionic", "Single electronic", "Ensemble ionic", "Ensemble electronic"),
-    strict=True,
-):
-    x, y = df.to_numpy().T
-    pmv.density_hexbin(x, y, ax=ax)
-    ax.set_title(title)
+    Args:
+        panels (list[tuple[str, pd.DataFrame, list[str]]]): One (panel_title, dataframe,
+            [x_col, y_col]) tuple per panel, in row-major order.
+        title (str): Overall figure title.
 
-# plt.savefig(f"{PAPER_FIGS}/wren-diel-density-scatter-trained-on-all-mp.pdf")
+    Returns:
+        go.Figure: 2x2 facet grid of density parity plots.
+    """
+    df_long = pd.concat(
+        [
+            pd.DataFrame(
+                {"Materials Project": df_panel[x_col], "Wren": df_panel[y_col]}
+            ).assign(panel=panel_title)
+            for panel_title, df_panel, (x_col, y_col) in panels
+        ],
+        ignore_index=True,
+    )
+    fig = pmv.density_scatter(
+        df=df_long,
+        x="Materials Project",
+        y="Wren",
+        facet_col="panel",
+        facet_col_wrap=2,
+        category_orders={"panel": [panel_title for panel_title, *_ in panels]},
+    )
+    for anno in fig.layout.annotations:  # strip plotly's "panel=" facet-title prefix
+        anno.update(text=anno.text.replace("panel=", ""))
+
+    fig.update_layout(title_text=title, width=1200, height=1000)
+    return fig
+
+
+panels = [
+    ("Single ionic", df_ionic_rob_ens, ["diel_ionic_target", "diel_ionic_pred"]),
+    ("Single electronic", df_elec_rob_ens, ["diel_elec_target", "diel_elec_pred"]),
+    ("Ensemble ionic", df_ionic_rob_ens, ["diel_ionic_target", "diel_ionic_pred_n0"]),
+    ("Ensemble electronic", df_elec_rob_ens, ["diel_elec_target", "diel_elec_pred_n0"]),
+]
+fig = density_parity_grid(panels, title="Wren Dielectric Models trained on MP")
+fig.show()
+
+# pmv.save_fig(fig, f"{PAPER_FIGS}/wren-diel-density-scatter-trained-on-all-mp.pdf")
 
 
 # %%
@@ -190,29 +219,19 @@ df_elec_ens["diel_elec_pred"] = df_elec_ens.filter(like="pred_n", axis=1).mean(a
 
 
 # %%
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 10))
-
-fig.suptitle(
-    "Non-robust Wren Dielectric Models\ntrained on MP excluding chemical systems in "
-    "the Petousis experimental dataset"
+panels = [
+    ("Single ionic", df_ionic_ens, ["diel_ionic_target", "diel_ionic_pred_n0"]),
+    ("Single electronic", df_elec_ens, ["diel_elec_target", "diel_elec_pred_n0"]),
+    ("Ensemble ionic", df_ionic_ens, ["diel_ionic_target", "diel_ionic_pred"]),
+    ("Ensemble electronic", df_elec_ens, ["diel_elec_target", "diel_elec_pred"]),
+]
+fig = density_parity_grid(
+    panels,
+    title="Non-robust Wren Dielectric Models<br>trained on MP excluding chemical "
+    "systems in the Petousis experimental dataset",
 )
+fig.show()
 
-labels = {"xlabel": "Materials Project", "ylabel": "Wren"}
-
-x, y = df_ionic_ens[["diel_ionic_target", "diel_ionic_pred_n0"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax1, **labels)
-ax1.set_title("Single ionic")
-
-x, y = df_elec_ens[["diel_elec_target", "diel_elec_pred_n0"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax2, **labels)
-ax2.set_title("Single electronic")
-
-x, y = df_ionic_ens[["diel_ionic_target", "diel_ionic_pred"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax3, **labels)
-ax3.set_title("Ensemble ionic")
-
-x, y = df_elec_ens[["diel_elec_target", "diel_elec_pred"]].to_numpy().T
-pmv.density_hexbin(x, y, ax=ax4, **labels)
-ax4.set_title("Ensemble electronic")
-
-# plt.savefig(f"{PAPER_FIGS}/wren-diel-density-scatter-trained-on-mp-excl-petousis.pdf")
+# pmv.save_fig(
+#     fig, f"{PAPER_FIGS}/wren-diel-density-scatter-trained-on-mp-excl-petousis.pdf"
+# )

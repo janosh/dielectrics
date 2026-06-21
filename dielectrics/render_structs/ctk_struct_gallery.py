@@ -29,7 +29,7 @@ df_all[Key.structure] = [
     for obj in df_all[Key.structure]
 ]
 for row in df_all.itertuples():
-    row.structure.properties["id"] = getattr(row, str(Key.mat_id))
+    row.structure.properties["id"] = getattr(row, str(Key.mat_id))  # ty: ignore[unresolved-attribute]
 
 if Key.selection_status in df_all:
     df_synth = df_all.query(

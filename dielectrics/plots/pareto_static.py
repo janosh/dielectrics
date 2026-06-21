@@ -110,7 +110,7 @@ for df, (name, label) in (
 
 handles = ax.legend().legend_handles
 for handle in handles:
-    handle.set_sizes([50])
+    handle.set_sizes([50])  # ty: ignore[unresolved-attribute]
 if mp_kde:
     kde_label = f"KDE of {len(df_mp):,} MP DFPT calcs"
     kde_handle = Patch(label=kde_label, facecolor="deepskyblue")
@@ -158,7 +158,7 @@ isoline_legend = ax.legend(isoline_handles, labels, loc="lower left")
 for handle, text in zip(
     isoline_legend.legend_handles, isoline_legend.get_texts(), strict=True
 ):
-    text.set_color(handle.get_color())
+    text.set_color(handle.get_color())  # ty: ignore[unresolved-attribute]
 
 # pmv.save_fig(ax, f"{PAPER_FIGS}/pareto-{'-vs-'.join(names)}-matplotlib.pdf")
 
@@ -268,13 +268,13 @@ df_synth = df_us.query(
 )
 for idx, row in enumerate(df_synth.itertuples()):
     fig.add_scatter(
-        x=[row.diel_total_pbe],
-        y=[row.bandgap_us],
+        x=[row.diel_total_pbe],  # ty: ignore[unresolved-attribute]
+        y=[row.bandgap_us],  # ty: ignore[unresolved-attribute]
         mode="markers",
         marker=dict(
             size=15, symbol="cross" if idx % 2 == 0 else "x", color=synth_color
         ),
-        name=htmlify(row.formula),
+        name=htmlify(row.formula),  # ty: ignore[unresolved-attribute]
     )
 
 

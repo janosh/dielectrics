@@ -94,7 +94,7 @@ new_wf_metadata = []
 for cnt, (mat_id, row) in enumerate(df_submit.iterrows()):
     if mat_id in existing_material_ids:
         print(f"{cnt}: {mat_id} ({row[Key.formula]}) already in DB, skipping")
-        skipped_ids.append(mat_id)
+        skipped_ids.append(str(mat_id))
         continue
 
     wf = wf_dielectric_constant(row.structure)
@@ -171,12 +171,12 @@ for cnt, (mat_id, row) in enumerate(df_submit.iterrows()):
         if val is None:
             continue
 
-        if any(x in key for x in ("_mp", "_wren")) or key == "icsd_ids":
+        if any(x in str(key) for x in ("_mp", "_wren")) or key == "icsd_ids":
             meta_dict[key] = val
-        if "airss" in key:
+        if "airss" in str(key):
             meta_dict[key] = val
 
-    if "->" in mat_id:
+    if "->" in str(mat_id):
         assert "elemsub" in meta_dict["series"]
     else:
         assert "elemsub" not in meta_dict["series"]
@@ -214,5 +214,5 @@ assert not any(nans_per_col), (
 
 # %%
 cbar_title = "Elemental distribution of new workflows"
-fig = pmv.ptable_heatmap_plotly(df_new_wfs.index, colorbar=dict(title=cbar_title))
+fig = pmv.ptable_heatmap(df_new_wfs.index.to_series(), colorbar=dict(title=cbar_title))
 fig.show()

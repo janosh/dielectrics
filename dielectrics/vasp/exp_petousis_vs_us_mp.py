@@ -115,9 +115,9 @@ def diel_tensor_to_const(csv: str) -> float:
 
 
 # %%
-pmv.ptable_heatmap_plotly(
+pmv.ptable_heatmap(
     df_exp[Key.formula],
-    color_bar=dict(title="Element count"),
+    colorbar=dict(title="Element count"),
     count_mode=pmv.enums.ElemCountMode.occurrence,
     fmt=".0f",
 )
@@ -289,9 +289,9 @@ vmin, vmax = df_exp[list(color_cols)].min(), df_exp[list(color_cols)].max()
 
 # split dataframes into two tables for and write each to a separate PDF
 for _idx, sub_df in enumerate(np.array_split(df_exp.reset_index(drop=True), 2), 1):
-    sub_df.index += 1  # start index at 1, must come after reset_index
+    sub_df.index += 1  # ty: ignore[unresolved-attribute] # start index at 1
     styler = (
-        sub_df[[*info_cols, *color_cols]]
+        sub_df[[*info_cols, *color_cols]]  # ty: ignore[unresolved-attribute]
         .rename(columns=color_cols | info_cols)
         .style.format(precision=1)
     )

@@ -1,5 +1,7 @@
+"""Top-level package: shared paths, the column-name Key enum and plotting defaults."""
+
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import unique
 
 import plotly.express as px
@@ -12,7 +14,7 @@ ROOT = os.path.dirname(PKG_DIR)
 PAPER_FIGS = f"{ROOT}/paper/figs"
 DATA_DIR = f"{ROOT}/data"
 SCRIPTS_DIR = f"{ROOT}/scripts"
-today = f"{datetime.now(tz=timezone.utc):%Y-%m-%d}"
+today = f"{datetime.now(tz=UTC):%Y-%m-%d}"
 
 pmv.set_plotly_template("pymatviz_white")
 plt.rcParams["figure.constrained_layout.use"] = True

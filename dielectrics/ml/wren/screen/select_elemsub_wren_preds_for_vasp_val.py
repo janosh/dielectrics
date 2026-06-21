@@ -163,11 +163,11 @@ for ax in (*axs1.flat, *axs2.flat):
 
 # %%
 cbar_title = "Elemental distribution of new workflows"
-fig = pmv.ptable_heatmap_plotly(df_clean[Key.formula], colorbar=dict(title=cbar_title))
+fig = pmv.ptable_heatmap(df_clean[Key.formula], colorbar=dict(title=cbar_title))
 fig.show()
 
 cbar_title = "Elemental distribution of top 1k Wren-predicted FoMs"
-fig = pmv.ptable_heatmap_plotly(
+fig = pmv.ptable_heatmap(
     df_clean.nlargest(1000, Key.fom_wren_std_adj)[Key.formula],
     colorbar=dict(title=cbar_title),
 )

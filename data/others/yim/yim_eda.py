@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import pymatviz as pmv
+from mp_api.client import MPRester
 from plotly.subplots import make_subplots
 from pymatgen.core import Structure
-from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
 from dielectrics import DATA_DIR, Key
@@ -122,11 +122,12 @@ fig.layout.xaxis.update(tickvals=list(range(7)), ticktext=x_ticks)
 fig.show()
 
 
-# %%
-mp_ids = {}
-mpr = MPRester()
-for row in tqdm(df_yim.itertuples()):
-    mp_ids[row.Index] = mpr.find_structure(row.structure)
+# %% match each Yim structure to candidate MP materials by structure
+with MPRester() as mpr:
+    mp_ids = {
+        row.Index: mpr.find_structure(row.structure, allow_multiple_results=True)
+        for row in tqdm(df_yim.itertuples())
+    }
 
 df_yim[mp_ids_col := "likely_mp_ids"] = pd.Series(mp_ids)
 
@@ -139,8 +140,15 @@ plt.savefig(f"{mp_ids_col}_lens.pdf")
 # %% where there are several mp_ids, pick the one with lowest energy above convex hull
 # since these are ICSD structures and lowest lying polymorph is the one most likely to
 # be stable
+candidate_ids = sorted({mp_id for ids in df_yim[mp_ids_col] for mp_id in ids})
+with MPRester() as mpr:
+    hull_docs = mpr.materials.summary.search(
+        material_ids=candidate_ids, fields=["material_id", "energy_above_hull"]
+    )
+e_above_hull_map = {str(doc.material_id): doc.energy_above_hull for doc in hull_docs}
+
 df_yim[Key.e_above_hull_mp] = df_yim[mp_ids_col].map(
-    lambda ids: [mpr.query(mp_id, ["e_above_hull"])["e_above_hull"] for mp_id in ids]
+    lambda ids: [e_above_hull_map.get(mp_id) for mp_id in ids]
 )
 
 df_yim["likely_mp_id"] = df_yim.map(

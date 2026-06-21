@@ -179,7 +179,7 @@ plt.ylim((0, 9))
 
 # %%
 cbar_title = "Elemental prevalence among Wren-predicted<br>top 100 FoM materials"
-fig = pmv.ptable_heatmap_plotly(
+fig = pmv.ptable_heatmap(
     wren_top_fom.reset_index()[Key.formula],
     count_mode=pmv.enums.ElemCountMode.occurrence,
     fmt=".0f",
@@ -188,7 +188,7 @@ fig = pmv.ptable_heatmap_plotly(
 fig.show()
 
 cbar_title = "Elemental prevalence among CGCNN-predicted<br>top 100 FoM materials"
-fig = pmv.ptable_heatmap_plotly(
+fig = pmv.ptable_heatmap(
     cgcnn_top_fom.reset_index()[Key.formula],
     count_mode=pmv.enums.ElemCountMode.occurrence,
     fmt=".0f",
@@ -435,8 +435,8 @@ if log:
 else:
     n_max, y_max = 6, 6
 
-plt.xlim((None, n_max**2))
-plt.ylim((None, y_max))
+plt.xlim(right=n_max**2)
+plt.ylim(top=y_max)
 plt.legend()
 plt.title("CGCNN to VASP quiver plot")
 plt.xlabel(r"Dielectric Constant $\epsilon_r = n^2$")

@@ -180,7 +180,7 @@ def scatter(
     df_in = df_in.dropna(thresh=int(0.1 * len(df_in)), axis=1)
     df_in = df_in.fillna("n/a")  # fill remaining NaNs to avoid %{customdata[idx]}
 
-    hover_keys: list[str] = sorted({*hover_data_keys.values()} & set(df_in))  # ty: ignore[invalid-assignment]
+    hover_keys: list[str] = sorted({*hover_data_keys.values()} & set(df_in))
     # hover_keys = sorted(hover_keys, key=list(pretty_col_names.values()).index)
     hover_data: dict[str, bool] = dict.fromkeys(hover_keys, True)
     # don't show text value in hover tooltip
@@ -558,7 +558,7 @@ span = html.Span(id="status", style={"color": "green"})
 
 status_dd = dcc.Dropdown(
     id="status-dropdown",
-    options=[dict(label=stat, value=stat) for stat in SelectionStatus],  # ty: ignore[not-iterable]
+    options=[dict(label=stat, value=stat) for stat in SelectionStatus],
     style=dict(display="inline-block", width="15em", lineHeight="0em"),
     placeholder="Selection status",
 )
@@ -654,7 +654,7 @@ def update_notes(
     try:
         payload = {"notes": notes}
         if status_value:
-            payload[Key.selection_status] = status_value  # ty: ignore[invalid-assignment]
+            payload[Key.selection_status] = status_value
         db.tasks.update_one({"_id": mongo_id}, {"$set": payload})
     except ValueError as err:
         print(f"{err=}")

@@ -21,33 +21,30 @@ The most interesting materials in our dataset are viewable in an interactive Plo
 
 <https://janosh.github.io/dielectrics>
 
-## Database Access
+## Data Access
 
-Read-only credentials for MongoDB Atlas M2 instance holding 2.7k DFPT results:
+All 2.7k DFPT results are published as a release asset and used directly by the analysis code, so no database is required:
 
-```yml
-host: mongodb+srv://atomate-cluster.q8s9p.mongodb.net
-port: 27017
-database: dielectrics
-collection: tasks
-readonly_user: readonly
-readonly_password: kHsBcWwTb4
-```
+[`dielectrics-tasks.json.gz`](https://github.com/janosh/dielectrics/releases/download/v0.1.0/dielectrics-tasks.json.gz)
 
-Example Python code using `pymongo` to filter our 2.7k DFPT results for all materials with figure or merit $\Phi_\text{M} > 200$ (defined as $\Phi_\text{M} = E_\text{gap} \cdot \epsilon_\text{total}$) and $E_\text{hull-dist} < 0.05\ \text{eV}$:
+`df_diel_from_task_coll` downloads the asset on first use, then filters and processes it with pandas. To select all materials with figure of merit $\Phi_\text{M} > 200$ (defined as $\Phi_\text{M} = E_\text{gap} \cdot \epsilon_\text{total}$) and $E_\text{hull-dist} < 0.05\ \text{eV}$:
 
 ```py
-from pymongo import MongoClient
+from dielectrics.db.fetch_data import df_diel_from_task_coll
 
-cluster = "atomate-cluster.q8s9p.mongodb.net/atomate"
-server = f"mongodb+srv://readonly:kHsBcWwTb4@{cluster}"
-db = MongoClient(server).dielectrics
-close_to_hull_high_fom = db.tasks.find({
-  "e_above_hull_pbe": {"$lt": 0.1},
-  "output.bandgap": { "$gt": 3 },
-  "output.epsilon_static.0.0": { "$gt": 10 },
-  "output.epsilon_ionic.0.0": { "$gt": 50 },
-})
+df = df_diel_from_task_coll({})  # all results, or e.g. {"series": "Wren top 100 FoM"}
+close_to_hull_high_fom = df.query("fom_pbe > 200 and e_above_hull_pbe < 0.05")
+```
+
+Or load the raw task documents yourself:
+
+```py
+import gzip, json, urllib.request
+
+url = "https://github.com/janosh/dielectrics/releases/download/v0.1.0/dielectrics-tasks.json.gz"
+urllib.request.urlretrieve(url, "dielectrics-tasks.json.gz")
+with gzip.open("dielectrics-tasks.json.gz", mode="rt") as file:
+    task_docs = json.load(file)
 ```
 
 ## How to Cite

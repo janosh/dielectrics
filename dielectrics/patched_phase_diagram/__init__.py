@@ -1,3 +1,5 @@
+"""Patched phase diagram construction and convex-hull-distance helpers."""
+
 from __future__ import annotations
 
 import gzip
